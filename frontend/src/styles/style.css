@@ -1,0 +1,299 @@
+@import 'tailwindcss';
+
+@theme {
+
+  /* =====================================================
+     BACKGROUNDS
+     ===================================================== */
+
+  /* Main website background */
+  --color-background: #fbfbfd;
+
+  /* Secondary sections */
+  /* Used for:
+     - category sections
+     - footer
+     - product comparison areas
+     */
+  --color-background-secondary: #f5f5f7;
+
+  /* Product hero backgrounds */
+  /* Used for:
+     - featured products
+     - promotional banners
+     - premium product cards
+     */
+  --color-background-dark: #1d1d1f;
+
+  /* Pure black */
+  /* Used for:
+     - navbar
+     - video sections
+     - immersive hero sections
+  */
+  --color-background-black: #000000;
+
+
+  /* =====================================================
+     TEXT COLORS
+     ===================================================== */
+
+
+  /* Primary text
+   Used for:
+   - Page titles
+   - Product names
+   - Prices
+   - Important information
+*/
+  --color-foreground: #1d1d1f;
+
+
+  /* Secondary text
+   Used for:
+   - Product descriptions
+   - Specifications
+   - Category names
+   - Metadata
+*/
+  --color-muted: #6e6e73;
+
+
+  /* Subtle text
+   Used for:
+   - Placeholders
+   - Disabled states
+   - Legal text
+   - Small details
+*/
+  --color-subtle: #86868b;
+
+
+  /* Text on dark backgrounds
+   Used for:
+   - Dark hero sections
+   - Black navbar
+   - Dark product banners
+*/
+  --color-inverse: #ffffff;
+
+
+
+  /* =====================================================
+     BRAND COLORS
+     ===================================================== */
+
+
+  /* Main action color */
+  /* Used for:
+     - Buy buttons
+     - Add to cart
+     - Links
+     */
+  --color-primary: #0071e3;
+
+  --color-minimal-green: #5E8C61;
+  --color-minimal-yellow: #D4A017;
+
+
+  /* Hover state */
+  --color-primary-hover: #0077ed;
+
+
+  /* Focus rings */
+  --color-focus: #0071e3;
+
+
+  /* Success */
+  /* Used for:
+     - in stock
+     - payment success
+     */
+  --color-success: #34c759;
+
+
+  /* Warning */
+  --color-warning: #ff9500;
+
+
+  /* Error */
+  /* Used for:
+     - validation errors
+     - failed payments
+     */
+  --color-danger: #ff3b30;
+
+
+
+  /* =====================================================
+     CARDS
+     ===================================================== */
+
+
+  /* Normal cards */
+  /* Used for:
+     - products
+     - categories
+     - reviews
+     */
+  --color-card: #ffffff;
+
+
+  /* Small UI elements */
+  /* Used for:
+     - filters
+     - tags
+     - chips
+     */
+  --color-chip: #f5f5f7;
+
+
+  /* Glass effect backgrounds */
+  /* Used for:
+     - floating navbar
+     - image overlays
+     */
+  --color-glass: rgba(255, 255, 255, 0.75);
+
+
+
+  /* =====================================================
+     BORDERS
+     ===================================================== */
+
+
+  /* Main borders */
+  /* Used for:
+     - inputs
+     - cards
+     - separators
+     */
+  --color-border: #d2d2d7;
+
+
+  /* Very subtle borders */
+  /* Used for:
+     - sections
+     - dividers
+     */
+  --color-border-soft: #e8e8ed;
+
+
+
+  /* =====================================================
+     SHADOWS
+     ===================================================== */
+
+
+  /* Product image shadow */
+  /* Used ONLY for:
+     - floating product renders
+     - 3D product images
+     */
+  --shadow-product:
+    0 20px 40px rgba(0, 0, 0, 0.18);
+
+
+  /* Card shadow */
+  /* Used for:
+     - dropdowns
+     - modals
+     - floating menus
+     */
+  --shadow-elevated:
+    0 10px 30px rgba(0, 0, 0, 0.08);
+
+
+
+  /* =====================================================
+     BORDER RADIUS
+     ===================================================== */
+
+
+  /* Small elements */
+  /* Used for:
+     - inputs
+     - small buttons
+     */
+  --radius-sm: 10px;
+
+
+  /* Cards */
+  /* Used for:
+     - product cards
+     - category cards
+     */
+  --radius-md: 18px;
+
+
+  /* Large Apple style containers */
+  /* Used for:
+     - hero sections
+     - promotional cards
+     */
+  --radius-lg: 28px;
+
+
+  /* Pills */
+  /* Used for:
+     - search bar
+     - tags
+     - CTA buttons
+     */
+  --radius-pill: 9999px;
+
+
+
+  /* =====================================================
+     TYPOGRAPHY
+     ===================================================== */
+
+
+  /* Apple-like spacing */
+  --tracking-tight: -0.025em;
+
+
+   --font-sans: "Manrope", "Geist", sans-serif;
+   --font-playfair: "Playfair Display", serif;
+   --font-cormorant: "Cormorant Garamond", serif;
+
+  /* Hero title       64px
+Page title       48px
+Section title    32px
+Product name     24px
+Price            28px
+Body             17px
+Navigation       14px
+Small text       12-14px */
+
+}
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--color-foreground);
+  background: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes infiniteScroll {
+   from { transform: translateX(0); } to { transform: translateX(-50%); }
+}
+
+.IconsGroup {
+   animation: infiniteScroll 15s linear infinite;
+}
+
+.hero-transition {
+    transition: opacity 500ms ease, transform 500ms ease;
+}
+
+.fade-out {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.fade-in {
+    opacity: 1;
+    transform: translateY(0);
+}
