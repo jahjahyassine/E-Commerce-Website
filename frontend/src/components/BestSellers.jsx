@@ -84,7 +84,7 @@ function BestSellers() {
                                         absolute
                                         bottom-20
                                         right-6
-                                        bg-minimal-green
+                                        bg-primary
                                         text-inverse
                                         text-lg
                                         font-bold

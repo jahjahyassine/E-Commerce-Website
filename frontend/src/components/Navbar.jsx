@@ -1,248 +1,419 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-
-const NAV_LINKS = [
-    { label: "Store", href: "#hero" },
-    { label: "Categories", href: "#categories" },
-    { label: "Best Sellers", href: "#bestsellers" },
-    { label: "Brands", href: "#brands" },
-    { label: "AI Assistant", href: "#assistant" },
-];
-
-const CATEGORY_GROUPS = [
-    {
-        title: "Computers",
-        items: ["Laptops", "Desktop PCs", "Monitors"],
-    },
-    {
-        title: "Mobile",
-        items: ["Smartphones", "Tablets", "Smartwatches"],
-    },
-    {
-        title: "Audio",
-        items: ["Headphones", "Earbuds", "Speakers"],
-    },
-    {
-        title: "Gaming",
-        items: ["Gaming Laptops", "Consoles", "Accessories"],
-    },
-];
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 function Navbar() {
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [searchOpen, setSearchOpen] = useState(false);
-    const [categoriesOpen, setCategoriesOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const [toggleSearch, setToggleSearch] = useState(false);
+    const [search, setSearch] = useState("");
+    const [showCategories, setShowCategories] = useState(false);
+
+    const searchRef = useRef(null);
 
     useEffect(() => {
-        document.body.style.overflow = menuOpen ? "hidden" : "";
-        return () => {
-            document.body.style.overflow = "";
-        };
-    }, [menuOpen]);
+        if (toggleSearch) {
+            searchRef.current?.focus();
+        }
+    }, [toggleSearch]);
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+
+        const value = search.trim();
+
+        if (!value) {
+            return;
+        }
+
+        navigate(`/products?search=${encodeURIComponent(value)}`);
+        setToggleSearch(false);
+    };
+
+    const categories = [
+        {
+            name: "Laptops",
+            value: "Laptops",
+        },
+        {
+            name: "Smartphones",
+            value: "Smartphones",
+        },
+        {
+            name: "Tablets",
+            value: "Tablets",
+        },
+        {
+            name: "Monitors",
+            value: "Monitors",
+        },
+        {
+            name: "Keyboards",
+            value: "Keyboards",
+        },
+        {
+            name: "Mice",
+            value: "Mice",
+        },
+        {
+            name: "Headphones",
+            value: "Headphones",
+        },
+    ];
 
     return (
         <nav
             className="
-                bg-glass/90 backdrop-blur-md border-b border-border-soft/60
-                text-foreground font-sans font-medium
+                relative
+                z-50
+                w-full
+                bg-card/70
+                backdrop-blur-xl
+                shadow-product
+                border-b
+                border-border-soft
+                text-foreground
+                px-6
+                py-3
+                font-sans
             "
-            aria-label="Primary"
         >
-            <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-3">
+            <div className="flex items-center justify-between gap-6">
+
                 <Link
                     to="/"
-                    className="text-xl font-semibold tracking-tight text-foreground shrink-0"
+                    className="
+                        shrink-0
+                        text-xl
+                        font-semibold
+                        tracking-tight
+                        text-foreground
+                        hover:opacity-70
+                        duration-300
+                    "
                 >
                     ByteStore
                 </Link>
 
-                <ul className="hidden lg:flex items-center gap-7 text-[15px] text-muted">
-                    {NAV_LINKS.map((link) =>
-                        link.label === "Categories" ? (
-                            <li
-                                key={link.label}
-                                className="relative group"
-                                onMouseEnter={() => setCategoriesOpen(true)}
-                                onMouseLeave={() => setCategoriesOpen(false)}
-                            >
-                                <a
-                                    href={link.href}
-                                    className="hover:text-foreground transition-colors duration-200"
-                                    aria-expanded={categoriesOpen}
-                                    aria-haspopup="true"
-                                >
-                                    {link.label}
-                                </a>
-                                <div
-                                    className={`
-                                        absolute top-full left-0 pt-3
-                                        transition-all duration-200
-                                        ${categoriesOpen
-                                            ? "opacity-100 visible translate-y-0"
-                                            : "opacity-0 invisible translate-y-1"}
-                                    `}
-                                >
-                                    <div className="w-64 rounded-md bg-card border border-border-soft shadow-elevated p-5">
-                                        <ul className="space-y-4 text-sm">
-                                            {CATEGORY_GROUPS.map((group) => (
-                                                <li key={group.title}>
-                                                    <p className="font-semibold text-foreground">
-                                                        {group.title}
-                                                    </p>
-                                                    <ul className="mt-2 space-y-1.5 pl-3">
-                                                        {group.items.map((item) => (
-                                                            <li key={item}>
-                                                                <a
-                                                                    href="#categories"
-                                                                    className="text-muted hover:text-foreground transition-colors"
-                                                                >
-                                                                    {item}
-                                                                </a>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </li>
-                        ) : (
-                            <li key={link.label}>
-                                <a
-                                    href={link.href}
-                                    className="hover:text-foreground transition-colors duration-200"
-                                >
-                                    {link.label}
-                                </a>
-                            </li>
-                        )
-                    )}
-                </ul>
 
-                <div className="flex items-center gap-2 sm:gap-3">
-                    {searchOpen ? (
-                        <input
-                            autoFocus
-                            type="search"
-                            placeholder="Search products"
-                            aria-label="Search products"
-                            className="
-                                w-36 sm:w-48 px-3 py-1.5 text-sm
-                                bg-background-secondary rounded-sm
-                                border border-border-soft
-                                focus:outline-none focus:border-border
-                                transition-colors
-                            "
-                            onBlur={() => setSearchOpen(false)}
-                        />
-                    ) : (
+                <ul className="hidden lg:flex items-center gap-8 text-muted">
+
+                    <li className="hover:text-foreground duration-300">
+                        <Link to="/products">
+                            Store
+                        </Link>
+                    </li>
+
+                    <li
+                        className="relative"
+                        onMouseEnter={() => setShowCategories(true)}
+                        onMouseLeave={() => setShowCategories(false)}
+                    >
                         <button
                             type="button"
-                            aria-label="Open search"
-                            onClick={() => setSearchOpen(true)}
                             className="
-                                p-2 rounded-full bg-background-secondary
-                                border border-border-soft hover:border-border
-                                transition-colors
+                                flex
+                                items-center
+                                gap-1
+                                hover:text-foreground
+                                duration-300
+                                cursor-pointer
                             "
                         >
-                            <SearchIcon />
+                            Categories
+
+                            <svg
+                                className={`w-4 h-4 duration-200 ${
+                                    showCategories
+                                        ? "rotate-180"
+                                        : ""
+                                }`}
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="m6 9 6 6 6-6"
+                                />
+                            </svg>
                         </button>
-                    )}
 
-                    <button
-                        type="button"
-                        aria-label="Shopping bag"
+                        {showCategories && (
+                            <div
+                                className="
+                                    absolute
+                                    top-full
+                                    left-1/2
+                                    -translate-x-1/2
+                                    pt-4
+                                    w-56
+                                "
+                            >
+                                <div
+                                    className="
+                                        rounded-2xl
+                                        border
+                                        border-border
+                                        bg-card/95
+                                        backdrop-blur-xl
+                                        shadow-product
+                                        p-2
+                                    "
+                                >
+                                    {categories.map((category) => (
+                                        <button
+                                            key={category.value}
+                                            type="button"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/products?category=${encodeURIComponent(
+                                                        category.value
+                                                    )}`
+                                                )
+                                            }
+                                            className="
+                                                w-full
+                                                text-left
+                                                px-4
+                                                py-2.5
+                                                rounded-xl
+                                                text-muted
+                                                hover:text-foreground
+                                                hover:bg-foreground/5
+                                                duration-200
+                                                cursor-pointer
+                                            "
+                                        >
+                                            {category.name}
+                                        </button>
+                                    ))}
+
+                                    <div className="border-t border-border my-2" />
+
+                                    <Link
+                                        to="/products"
+                                        className="
+                                            block
+                                            px-4
+                                            py-2.5
+                                            rounded-xl
+                                            text-foreground
+                                            font-semibold
+                                            hover:bg-foreground/5
+                                            duration-200
+                                        "
+                                    >
+                                        View all products
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
+                    </li>
+
+                    <li className="hover:text-foreground duration-300">
+                        <Link to="/products?sort=deals">
+                            Deals
+                        </Link>
+                    </li>
+
+                    <li className="hover:text-foreground duration-300">
+                        <Link to="/products?sort=newest">
+                            New Arrivals
+                        </Link>
+                    </li>
+
+                    <li className="hover:text-foreground duration-300">
+                        <Link to="/support">
+                            Support
+                        </Link>
+                    </li>
+                </ul>
+
+
+                <div className="flex items-center gap-2">
+
+
+                    <div className="flex items-center">
+
+                        {toggleSearch ? (
+                            <form
+                                onSubmit={handleSearch}
+                                className="
+                                    flex
+                                    items-center
+                                    bg-background-secondary
+                                    rounded-full
+                                    border
+                                    border-border-soft
+                                    focus-within:border-border
+                                    overflow-hidden
+                                    duration-300
+                                "
+                            >
+                                <svg
+                                    className="w-5 h-5 ml-3 text-muted shrink-0"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth="1.5"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                                    />
+                                </svg>
+
+                                <input
+                                    ref={searchRef}
+                                    value={search}
+                                    onChange={(e) =>
+                                        setSearch(e.target.value)
+                                    }
+                                    placeholder="Search products..."
+                                    className="
+                                        w-40
+                                        xl:w-56
+                                        px-3
+                                        py-2
+                                        bg-transparent
+                                        outline-none
+                                        text-sm
+                                        text-foreground
+                                        placeholder:text-muted
+                                    "
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSearch("");
+                                        setToggleSearch(false);
+                                    }}
+                                    className="
+                                        mr-2
+                                        text-muted
+                                        hover:text-foreground
+                                        duration-200
+                                        cursor-pointer
+                                    "
+                                    aria-label="Close search"
+                                >
+                                    <svg
+                                        className="w-5 h-5"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="1.8"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            d="M6 6l12 12M18 6 6 18"
+                                        />
+                                    </svg>
+                                </button>
+                            </form>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => setToggleSearch(true)}
+                                className="
+                                    bg-background-secondary
+                                    p-2
+                                    rounded-full
+                                    border
+                                    border-border-soft
+                                    hover:border-border
+                                    hover:bg-foreground/5
+                                    duration-300
+                                    cursor-pointer
+                                "
+                                aria-label="Search products"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth="1.5"
+                                    stroke="currentColor"
+                                    className="w-5 h-5"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                                    />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+
+                    <Link
+                        to="/cart"
                         className="
-                            hidden sm:inline-flex p-2 rounded-full bg-background-secondary
-                            border border-border-soft hover:border-border transition-colors
+                            bg-background-secondary
+                            p-2
+                            rounded-full
+                            border
+                            border-border-soft
+                            hover:border-border
+                            hover:bg-foreground/5
+                            duration-300
                         "
+                        aria-label="Shopping cart"
                     >
-                        <BagIcon />
-                    </button>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            className="w-5 h-5"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974a1.125 1.125 0 0 1 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1-.75 0Z"
+                            />
+                        </svg>
+                    </Link>
 
-                    <button
-                        type="button"
+
+                    <Link
+                        to="/login"
+                        className="
+                            bg-background-secondary
+                            p-2
+                            rounded-full
+                            border
+                            border-border-soft
+                            hover:border-border
+                            hover:bg-foreground/5
+                            duration-300
+                        "
                         aria-label="Account"
-                        className="
-                            hidden sm:inline-flex p-2 rounded-full bg-background-secondary
-                            border border-border-soft hover:border-border transition-colors
-                        "
                     >
-                        <UserIcon />
-                    </button>
-
-                    <button
-                        type="button"
-                        className="lg:hidden p-2 rounded-full border border-border-soft"
-                        aria-label={menuOpen ? "Close menu" : "Open menu"}
-                        aria-expanded={menuOpen}
-                        onClick={() => setMenuOpen((open) => !open)}
-                    >
-                        {menuOpen ? <CloseIcon /> : <MenuIcon />}
-                    </button>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            className="w-5 h-5"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                            />
+                        </svg>
+                    </Link>
                 </div>
             </div>
-
-            {menuOpen && (
-                <div className="lg:hidden border-t border-border-soft bg-card/95 backdrop-blur-md">
-                    <ul className="flex flex-col px-4 py-4 gap-1 text-base">
-                        {NAV_LINKS.map((link) => (
-                            <li key={link.label}>
-                                <a
-                                    href={link.href}
-                                    className="block py-3 text-muted hover:text-foreground transition-colors"
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    {link.label}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
         </nav>
-    );
-}
-
-function SearchIcon() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-        </svg>
-    );
-}
-
-function BagIcon() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-        </svg>
-    );
-}
-
-function UserIcon() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-        </svg>
-    );
-}
-
-function MenuIcon() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-        </svg>
-    );
-}
-
-function CloseIcon() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-        </svg>
     );
 }
 
