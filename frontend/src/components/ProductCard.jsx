@@ -1,7 +1,11 @@
+import { useMutation } from "@tanstack/react-query";
 import { FaStar } from "react-icons/fa6";
-import { Link, useSearchParams } from "react-router-dom";
+import { data, Link, useSearchParams } from "react-router-dom";
+
+
 function ProductCard({ product }) {
 
+    
 
     return (
         <Link className="flex flex-col bg-card text-foreground h-[450px] rounded-3xl border border-border overflow-hidden shadow-product" to={`/products/${product.id}`}
@@ -36,9 +40,11 @@ function ProductCard({ product }) {
                 </div>
 
 
-                <div className="bg-primary hover:bg-primary-hover text-inverse font-bold text-lg text-center py-2 rounded-full justify-self-end duration-300 ease-in-out cursor-pointer">
-                    Add to Cart
-                </div>
+                <Link className="bg-primary hover:bg-primary-hover text-inverse font-bold text-lg text-center py-2 rounded-full justify-self-end duration-300 ease-in-out cursor-pointer mt-1"
+                    to={`/products/${product.id}`}
+                >
+                    View Product
+                </Link>
 
             </div>
         </Link>

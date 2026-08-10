@@ -3,6 +3,7 @@ import Landing from './pages/Landing';
 import Explore from './pages/Explore';
 import ProductPage from './pages/ProductPage';
 import Register from './pages/Register';
+import Login from './pages/Login';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Route path="/products" element={<Explore />} />
       <Route path="/products/:id" element={<ProductPage />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/login" element={<Login />} />
     </Routes>
   )
 }

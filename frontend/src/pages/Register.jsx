@@ -1,45 +1,85 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import DotField from "../components/animation/DotField";
-import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 
 function Register() {
+    const BASE_URL = import.meta.env.VITE_BASE_URL;
+    const navigate = useNavigate();
 
-    const BASE_URL = import.meta.env.VITE_BASE_URL
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [checked, setChecked] = useState(false);
+    const [validationError, setValidationError] = useState("");
 
-    const [firstName, setFirstName] = useState("")
-    const [lastName, setLastName] = useState("")
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [confirmPassword, setConfirmPassword] = useState("")
-    const [checked, setChecked] = useState(false)
-
-    const registerUser = async () => {
+    const registerUser = async (data) => {
         const response = await fetch(
             `${BASE_URL}/auth/register`,
             {
-                method: POST,
-                body: {
-                    full_name: firstName + " " + lastName,
-                    email: email,
-                    password: password
-                }
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
             }
-        )
-    }
+        );
 
-    const { isLoading } = useQuery({
-        queryKey: ["register"],
-        queryFn: registerUser
-    })
+        if (!response.ok) {
+            const error = await response.json();
+
+            throw new Error(
+                error.detail || "Registration failed"
+            );
+        }
+
+        return response.json();
+    };
+
+    const {
+        mutate: register,
+        isPending,
+        isError,
+        error,
+    } = useMutation({
+        mutationFn: registerUser,
+
+        onSuccess: () => {
+            navigate("/login");
+        },
+    });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-    }
+
+        setValidationError("");
+
+        if (password !== confirmPassword) {
+            setValidationError("Passwords do not match.");
+            return;
+        }
+
+        if (!checked) {
+            setValidationError(
+                "You must agree to the Terms of Service and Privacy Policy."
+            );
+            return;
+        }
+
+        register({
+            username,
+            full_name: `${firstName} ${lastName}`,
+            email,
+            password,
+        });
+    };
 
     return (
-        <main className="bg-background">
+        <main className="bg-background min-h-screen">
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
@@ -64,92 +104,142 @@ function Register() {
                 />
             </div>
 
-            <main className="relative z-10 h-screen w-full flex flex-col items-center justify-center">
+            <section className="relative z-10 min-h-screen w-full flex flex-col items-center justify-center px-4 pt-20">
+                <section className="flex flex-col justify-between items-center bg-card/20 py-8 px-10 md:px-18 rounded-3xl backdrop-blur-xl shadow-product w-full max-w-lg">
 
-                <section className="flex justify-around items-center flex-col bg-card/20 py-6 px-18 rounded-3xl backdrop-blur-xl shadow-product h-[70vh]">
-                    <div>
+                    <div className="text-center mb-6">
                         <h2 className="text-3xl font-bold">
                             Create Your Account
                         </h2>
-                        <p className="text-muted font-bold text-center">
+
+                        <p className="text-muted font-bold mt-2">
                             Shop smarter with ByteStore.
-                            <br />Your account keeps everything in one place.
+                            <br />
+                            Your account keeps everything in one place.
                         </p>
                     </div>
 
-
                     <form
-                        className="flex flex-col justify-center gap-4 items-center gap-2"
-                        onSubmit={(e) => handleSubmit(e)}
+                        className="flex flex-col gap-4 items-center w-full"
+                        onSubmit={handleSubmit}
                     >
-
-                        <input
-                            type="text"
-                            className="bg-chip placeholder:text-muted text-foreground font-bold text-xl py-1 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
-                            placeholder="First name"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                        />
-
-
-                        <input
-                            type="text"
-                            className="bg-chip placeholder:text-muted text-foreground font-bold text-xl py-1 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
-                            placeholder="Last name"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                        />
-
-                        <input
-                            type="text"
-                            className="bg-chip placeholder:text-muted text-foreground font-bold text-xl py-1 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
-                            placeholder="Email address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-
-                        <input
-                            type="password" 
-                            className="bg-chip placeholder:text-muted text-foreground font-bold text-xl py-1 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-
-                        <input
-                            type="password" 
-                            className="bg-chip placeholder:text-muted text-foreground font-bold text-xl py-1 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
-                            placeholder="Confirm Password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                        />
-
-                        <div className="flex gap-1">
+                        <div className="flex gap-3 w-full">
                             <input
-                                type="checkbox" required
-                                value={checked}
-                                onChange={(e) => setTerms(checked)}
+                                type="text"
+                                className="bg-chip placeholder:text-muted text-foreground font-bold text-lg py-2 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
+                                placeholder="First name"
+                                value={firstName}
+                                onChange={(e) =>
+                                    setFirstName(e.target.value)
+                                }
+                                required
                             />
-                            <label className="">I agree to the Terms of Service and Privacy Policy</label>
+
+                            <input
+                                type="text"
+                                className="bg-chip placeholder:text-muted text-foreground font-bold text-lg py-2 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
+                                placeholder="Last name"
+                                value={lastName}
+                                onChange={(e) =>
+                                    setLastName(e.target.value)
+                                }
+                                required
+                            />
                         </div>
 
-                        <button className="bg-primary text-xl text-inverse font-bold px-5 py-2 rounded-2xl cursor-pointer hover:scale-[1.02] duration-300 hover:bg-primary-hover"
-                        type="submit"
+                        <input
+                            type="text"
+                            className="bg-chip placeholder:text-muted text-foreground font-bold text-lg py-2 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
+                            placeholder="Username"
+                            value={username}
+                            onChange={(e) =>
+                                setUsername(e.target.value)
+                            }
+                            required
+                        />
+
+                        <input
+                            type="email"
+                            className="bg-chip placeholder:text-muted text-foreground font-bold text-lg py-2 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
+                            placeholder="Email address"
+                            value={email}
+                            onChange={(e) =>
+                                setEmail(e.target.value)
+                            }
+                            required
+                        />
+
+                        <input
+                            type="password"
+                            className="bg-chip placeholder:text-muted text-foreground font-bold text-lg py-2 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) =>
+                                setPassword(e.target.value)
+                            }
+                            required
+                        />
+
+                        <input
+                            type="password"
+                            className="bg-chip placeholder:text-muted text-foreground font-bold text-lg py-2 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
+                            placeholder="Confirm password"
+                            value={confirmPassword}
+                            onChange={(e) =>
+                                setConfirmPassword(e.target.value)
+                            }
+                            required
+                        />
+
+                        <div className="flex items-start gap-2 w-full text-sm text-muted">
+                            <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(e) =>
+                                    setChecked(e.target.checked)
+                                }
+                                className="mt-1"
+                            />
+
+                            <label>
+                                I agree to the Terms of Service and
+                                Privacy Policy
+                            </label>
+                        </div>
+
+                        {(validationError || isError) && (
+                            <p className="text-minimal-red text-sm text-center">
+                                {validationError ||
+                                    error?.message ||
+                                    "Registration failed."}
+                            </p>
+                        )}
+
+                        <button
+                            className="bg-primary text-xl text-inverse font-bold px-5 py-2 rounded-2xl cursor-pointer hover:scale-[1.02] duration-300 hover:bg-primary-hover w-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            type="submit"
+                            disabled={isPending}
                         >
-                            Create Account
+                            {isPending
+                                ? "Creating Account..."
+                                : "Create Account"}
                         </button>
-
-
                     </form>
 
-                    <p>Already have an account?
-                        <Link to="/login" className="text-emerald/80 font-bold"> Sign in</Link>
+                    <p className="mt-6">
+                        Already have an account?
+                        <Link
+                            to="/login"
+                            className="text-emerald/80 font-bold"
+                        >
+                            {" "}
+                            Sign in
+                        </Link>
                     </p>
                 </section>
-            </main>
+            </section>
         </main>
-    )
+    );
 }
-
 
 export default Register;

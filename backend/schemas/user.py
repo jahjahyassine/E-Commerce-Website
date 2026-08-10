@@ -10,8 +10,8 @@ class UserRegister (BaseModel):
 
 
 class UserLogin (BaseModel):
-    username: str | None = None
-    email: EmailStr | None = None
+    identifier: str
+    rememberOption: bool
     password: str
     
 

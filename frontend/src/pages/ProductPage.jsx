@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import DotField from "../components/animation/DotField";
 import Navbar from "../components/Navbar";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { FaStar } from "react-icons/fa6";
 import { useMemo, useState, useEffect } from "react";
 
@@ -15,6 +15,58 @@ function ProductPage() {
     const updateCategory = (category) => {
         navigate(`/products?category=${category}`);
     };
+
+    const BASE_URL = import.meta.env.VITE_BASE_URL
+
+    const addToCart = async ({ variant_id, quantity }) => {
+        const token = localStorage.getItem("access_token");
+
+        if (!token) {
+            navigate("/login");
+            return;
+        }
+
+        const response = await fetch(`${BASE_URL}/cart`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                variant_id,
+                quantity,
+            }),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+
+            throw new Error(
+                error.detail || "Failed to add item to cart"
+            );
+        }
+
+        return response.json();
+    };
+
+
+    const {
+        mutate: addItem,
+        isPending,
+        isError,
+        error,
+    } = useMutation({
+        mutationFn: addToCart,
+
+        onSuccess: () => {
+            console.log("Item added to cart");
+        },
+    });
+
+
+    const handleSubmit = () => {
+
+    }
 
     const getProductDetails = async () => {
         const response = await fetch(
@@ -669,7 +721,14 @@ function ProductPage() {
                                 disabled={
                                     !selectedVariant ||
                                     !selectedVariant.is_active ||
-                                    !isInStock
+                                    !isInStock ||
+                                    isPending
+                                }
+                                onClick={() =>
+                                    addItem({
+                                        variant_id: selectedVariant.id,
+                                        quantity,
+                                    })
                                 }
                                 className="
                                     mt-6
@@ -689,8 +748,14 @@ function ProductPage() {
                                     disabled:hover:scale-100
                                 "
                             >
-                                Add to Cart
+                                {isPending ? "Adding..." : "Add to Cart"}
                             </button>
+
+                            {isError && (
+                                <p className="text-minimal-red text-sm text-center mt-2">
+                                    {error.message}
+                                </p>
+                            )}
 
                         </div>
                     </section>
@@ -901,9 +966,9 @@ function ProductPage() {
                                                                     key={index}
                                                                     className={
                                                                         index <
-                                                                        Number(
-                                                                            review.rating
-                                                                        )
+                                                                            Number(
+                                                                                review.rating
+                                                                            )
                                                                             ? "text-minimal-yellow text-sm"
                                                                             : "text-muted/30 text-sm"
                                                                     }

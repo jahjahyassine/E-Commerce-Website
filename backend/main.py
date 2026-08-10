@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from routes import product, inventory
+from routes import product, inventory, auth, cart
 
 import models
 
@@ -10,6 +10,9 @@ app = FastAPI()
 
 app.include_router(product.router)
 app.include_router(inventory.router)
+app.include_router(auth.router)
+app.include_router(cart.router)
+
 
 origins = [
     "http://localhost.tiangolo.com",
