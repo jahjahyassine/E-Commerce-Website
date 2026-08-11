@@ -205,12 +205,12 @@ function CartPage() {
                             </div>
                         </section>
 
-                        <section className="w-full h-full flex flex-col bg-chip gap-4 p-2 rounded-3xl">
+                        <section className="max-h-[600px] flex flex-col bg-chip gap-4 p-2 rounded-3xl overflow-y-auto">
                             {
                                 cart?.items?.map((cartItem) => (
 
                                     <div key={cartItem.product_variant.id}
-                                        className={`w-full h-[150px] flex rounded-2xl overflow-hidden p-4 gap-4 ${selectAll ? "bg-chip" : "bg-card"}`}
+                                        className={`w-full h-[150px] shrink-0 flex rounded-2xl overflow-hidden p-4 gap-4 ${selectAll ? "bg-chip" : "bg-card"}`}
                                     >
                                         <div className="aspect-square rounded-xl overflow-hidden h-full bg-chip">
                                             <img src={cartItem.product_variant.media[0].media_url}
@@ -326,7 +326,7 @@ function CartPage() {
                                     Go to Checkout
                                 </p>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-right" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8" />
+                                    <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8" />
                                 </svg>
                             </button>
                         </div>

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from routes import product, inventory, auth, cart
+from routes import product, inventory, auth, cart, user
 
 import models
 
@@ -12,6 +12,8 @@ app.include_router(product.router)
 app.include_router(inventory.router)
 app.include_router(auth.router)
 app.include_router(cart.router)
+app.include_router(user.router)
+
 
 
 origins = [

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import getCurrentUser from "../hooks/CurrentUser";
 
 function Navbar() {
     const navigate = useNavigate();
@@ -7,6 +8,9 @@ function Navbar() {
     const [toggleSearch, setToggleSearch] = useState(false);
     const [search, setSearch] = useState("");
     const [showCategories, setShowCategories] = useState(false);
+    const [isLogged, setIsLogged] = useState(false)
+
+    const [currentUser, setCurrentUser] = useState({})
 
     const searchRef = useRef(null);
 
@@ -28,6 +32,15 @@ function Navbar() {
         navigate(`/products?search=${encodeURIComponent(value)}`);
         setToggleSearch(false);
     };
+
+    useEffect(() => {
+        const token = localStorage.getItem("access_token")
+
+        if (token) {
+            setCurrentUser(getCurrentUser())
+            setIsLogged(true)
+        }
+    }, [])
 
     const categories = [
         {
@@ -122,11 +135,10 @@ function Navbar() {
                             Categories
 
                             <svg
-                                className={`w-4 h-4 duration-200 ${
-                                    showCategories
-                                        ? "rotate-180"
-                                        : ""
-                                }`}
+                                className={`w-4 h-4 duration-200 ${showCategories
+                                    ? "rotate-180"
+                                    : ""
+                                    }`}
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -382,35 +394,61 @@ function Navbar() {
                     </Link>
 
 
-                    <Link
-                        to="/login"
-                        className="
-                            bg-background-secondary
-                            p-2
-                            rounded-full
-                            border
-                            border-border-soft
-                            hover:border-border
-                            hover:bg-foreground/5
-                            duration-300
-                        "
-                        aria-label="Account"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth="1.5"
-                            stroke="currentColor"
-                            className="w-5 h-5"
+                    {isLogged ? (
+                        <Link
+                            to="/profile"
+                            className="
+                                bg-background-secondary
+                                w-10 h-10
+                                rounded-full
+                                border
+                                border-border-soft
+                                hover:border-border
+                                hover:bg-foreground/5
+                                duration-300
+                            "
+                            aria-label="Account"
                         >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                            />
-                        </svg>
-                    </Link>
+                            <div className="h-full w-full rounded-full overflow-hidden">
+                                <img
+                                    src={currentUser.profile_pic_path}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        </Link>
+                    ) : (
+                        <Link
+                            to="/login"
+                            className="
+            bg-background-secondary
+            p-2
+            rounded-full
+            border
+            border-border-soft
+            hover:border-border
+            hover:bg-foreground/5
+            duration-300
+        "
+                            aria-label="Account"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth="1.5"
+                                stroke="currentColor"
+                                className="w-5 h-5"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                                />
+                            </svg>
+                        </Link>
+                    )}
+
                 </div>
             </div>
         </nav>
