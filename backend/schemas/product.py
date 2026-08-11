@@ -91,6 +91,12 @@ class ProductResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ProductResponseBrief (BaseModel):
+    id: int
+    name: str
+    description: str | None
+
+
 
 
 class ProductVariantCreate(BaseModel):
@@ -134,6 +140,7 @@ class ProductVariantResponse(BaseModel):
     discount_percentage: Decimal | None
     attributes: dict[str, Any] | None
     is_active: bool
+    product: ProductResponseBrief
 
     inventory: InventoryResponse | None = None
 

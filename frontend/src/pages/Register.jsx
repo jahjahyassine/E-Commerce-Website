@@ -208,7 +208,7 @@ function Register() {
                         </div>
 
                         {(validationError || isError) && (
-                            <p className="text-minimal-red text-sm text-center">
+                            <p className="text-minimal-red text-sm font-bold text-center">
                                 {validationError ||
                                     error?.message ||
                                     "Registration failed."}

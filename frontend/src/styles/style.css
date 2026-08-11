@@ -20,13 +20,17 @@
 
 
   /* Premium accent */
-  --color-premium: #F5E4C8;
+ --color-premium: #F5E4C8;
+--color-premium-hover: #EBD2A8;
 
-  --color-minimal-yellow: #F5C84C;
+--color-minimal-yellow: #F5C84C;
+--color-minimal-yellow-hover: #E5B43C;
 
-  --color-emerald: #2E7D5A;
+--color-emerald: #2E7D5A;
+--color-emerald-hover: #256B4D;
 
-  --color-minimal-red: #C96A6A;
+--color-minimal-red: #C96A6A;
+--color-minimal-red-hover: #B85A5A;
 
   /* Cards */
   --color-card: #FFFFFF;
@@ -34,8 +38,8 @@
 
 
   /* Borders */
-  --color-border: #E5E7E9;
-  --color-border-soft: #F0F1F2;
+  --color-border: #D9DDE3;
+  --color-border-soft: #ECEEF2;
 
 
   /* Status */

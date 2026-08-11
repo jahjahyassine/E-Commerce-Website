@@ -1,13 +1,17 @@
 import { useNavigate, useParams } from "react-router-dom";
 import DotField from "../components/animation/DotField";
 import Navbar from "../components/Navbar";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FaStar } from "react-icons/fa6";
 import { useMemo, useState, useEffect } from "react";
 
 function ProductPage() {
     const { id } = useParams();
     const navigate = useNavigate();
+
+    const token = localStorage.getItem("access_token")
+
+    const queryClient = useQueryClient()
 
     const [quantity, setQuantity] = useState(1);
     const [selectedAttributes, setSelectedAttributes] = useState({});
@@ -59,7 +63,9 @@ function ProductPage() {
         mutationFn: addToCart,
 
         onSuccess: () => {
-            console.log("Item added to cart");
+            queryClient.invalidateQueries({
+                queryKey: ["cart"],
+            })
         },
     });
 
@@ -133,6 +139,30 @@ function ProductPage() {
         queryFn: getProductReviews,
         enabled: !!id,
     });
+
+    const getCartItems = async () => {
+        const response = await fetch(
+            `${BASE_URL}/cart`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
+
+        const data = await response.json()
+
+        if (!response.ok) throw new Error(data.detail || "Failed to Retrieve Cart")
+        return data
+    }
+
+    const { data: cart } = useQuery({
+        queryKey: ["cart"],
+        queryFn: getCartItems,
+    });
+
 
     const selectedVariant = useMemo(() => {
         if (!productVariantsData?.length) {
@@ -241,6 +271,7 @@ function ProductPage() {
         );
     }
 
+
     const isInStock =
         selectedVariant?.inventory?.quantity > 0;
 
@@ -249,6 +280,11 @@ function ProductPage() {
 
     const isActive =
         selectedVariant?.is_active === true;
+
+    const isInCart = cart?.items?.some(
+        (item) => item.product_variant.id === selectedVariant?.id
+    ) ?? false;
+
 
     const averageRating =
         Number(product?.average_rating ?? 0);
@@ -748,7 +784,12 @@ function ProductPage() {
                                     disabled:hover:scale-100
                                 "
                             >
-                                {isPending ? "Adding..." : "Add to Cart"}
+                                {
+                                    isPending ?
+                                        "Adding..." :
+                                        isInCart ?
+                                            "In Cart" : "Add to Cart"
+                                }
                             </button>
 
                             {isError && (

@@ -148,7 +148,7 @@ function Login() {
                         </div>
 
                         {isError && (
-                            <p className="text-minimal-red text-sm text-center">
+                            <p className="text-minimal-red text-sm font-bold  text-center">
                                 {error?.message ||
                                     "Login failed."}
                             </p>
