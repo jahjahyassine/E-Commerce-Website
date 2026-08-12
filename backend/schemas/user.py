@@ -20,6 +20,7 @@ class UserResponse(BaseModel):
     username: str
     full_name: str
     email: EmailStr
+    phone: str
     role: str
     is_active: bool
     profile_pic_path: str
@@ -27,3 +28,15 @@ class UserResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
+
+class UserPatch (BaseModel):
+    username: str | None = None
+    full_name: str | None = None
+    email: EmailStr | None = None
+    phone: str | None = None
+    address: str | None = None
+
+
+

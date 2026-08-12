@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import getCurrentUser from "../hooks/CurrentUser";
+import { useQuery } from "@tanstack/react-query";
 
 function Navbar() {
     const navigate = useNavigate();
@@ -8,9 +9,7 @@ function Navbar() {
     const [toggleSearch, setToggleSearch] = useState(false);
     const [search, setSearch] = useState("");
     const [showCategories, setShowCategories] = useState(false);
-    const [isLogged, setIsLogged] = useState(false)
 
-    const [currentUser, setCurrentUser] = useState({})
 
     const searchRef = useRef(null);
 
@@ -33,14 +32,15 @@ function Navbar() {
         setToggleSearch(false);
     };
 
-    useEffect(() => {
-        const token = localStorage.getItem("access_token")
-
-        if (token) {
-            setCurrentUser(getCurrentUser())
-            setIsLogged(true)
-        }
-    }, [])
+    const {
+        data: currentUser,
+        isLoading,
+        isError,
+    } = useQuery({
+        queryKey: ["user"],
+        queryFn: getCurrentUser,
+        enabled: !!localStorage.getItem("access_token"),
+    });
 
     const categories = [
         {
@@ -394,7 +394,7 @@ function Navbar() {
                     </Link>
 
 
-                    {isLogged ? (
+                    {currentUser ? (
                         <Link
                             to="/profile"
                             className="
@@ -411,7 +411,7 @@ function Navbar() {
                         >
                             <div className="h-full w-full rounded-full overflow-hidden">
                                 <img
-                                    src={currentUser.profile_pic_path}
+                                    src={currentUser?.profile_pic_path}
                                     alt="Profile"
                                     className="w-full h-full object-cover"
                                 />
@@ -421,15 +421,15 @@ function Navbar() {
                         <Link
                             to="/login"
                             className="
-            bg-background-secondary
-            p-2
-            rounded-full
-            border
-            border-border-soft
-            hover:border-border
-            hover:bg-foreground/5
-            duration-300
-        "
+                                bg-background-secondary
+                                p-2
+                                rounded-full
+                                border
+                                border-border-soft
+                                hover:border-border
+                                hover:bg-foreground/5
+                                duration-300
+                            "
                             aria-label="Account"
                         >
                             <svg

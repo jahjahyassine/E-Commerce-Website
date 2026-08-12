@@ -6,6 +6,8 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+import Profile from './pages/ProfilePage/Profile';
+import OrdersHistory from './pages/ProfilePage/OrdersHistory';
 
 function App() {
   return (
@@ -17,6 +19,13 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/me/cart" element={<CartPage />} />
       <Route path='/checkout' element={<CheckoutPage />} />
+
+      <Route path="/profile">
+        <Route index element={<Profile />} />
+        <Route path="orders" element={<OrdersHistory />} />
+      </Route>
+
+
     </Routes>
   )
 }

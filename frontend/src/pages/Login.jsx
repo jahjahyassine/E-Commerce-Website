@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import DotField from "../components/animation/DotField";
 import { Link, useNavigate } from "react-router-dom";
@@ -53,13 +53,20 @@ function Login() {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-
         login({
             identifier,
             password,
             rememberOption
         });
     };
+
+
+    useEffect( () => {
+        const token = localStorage.getItem("access_token")
+        if (token) {
+            navigate("/profile")
+        }
+    }, [])
 
     return (
         <main className="bg-background min-h-screen">

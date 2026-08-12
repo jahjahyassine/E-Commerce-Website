@@ -49,8 +49,8 @@
 
 
   /* Shadows */
-  --shadow-product:
-      0 25px 60px rgba(27,36,42,0.15);
+  --shadow-product: 0 25px 60px rgba(27, 36, 42, 0.15);
+  --shadow-inner: inset 0 1px 4px rgba(0, 0, 0, 0.12);
 
 
   --radius-md: 18px;
