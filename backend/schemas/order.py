@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel
 
+from schemas.cart import CartResponse
 from schemas.product import ProductVariantResponse
 
 
@@ -19,3 +20,12 @@ class OrderResponse (BaseModel):
     model_config = {
         'from_attributes': True
     }
+
+
+
+class OrderCreate (BaseModel):
+    id: int
+    user_id: int
+    shipping_address: str
+
+    cart: CartResponse

@@ -29,7 +29,34 @@ function OrdersHistory() {
     }
 
 
-    
+    const fetchOrders = async () => {
+        const response = await fetch(
+            `${BASE_URL}/orders`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        )
+
+        const data = await response.json()
+
+        if (!response.ok) throw new Error(data.message || "Failed to retrieve Orders!")
+
+        return data
+    }
+
+
+    const {
+        data: orders
+    } = useQuery({
+        queryKey: fetchOrders,
+        queryKey: ["orders"]
+    })
+
+
+
 
 
     return (
@@ -59,7 +86,7 @@ function OrdersHistory() {
             </div>
 
             <section className="relative z-10 h-screen bg-card/20 backdrop-blur-xl flex">
-                <ProfileSidebar user={currentUser} />
+                <ProfileSidebar user={currentUser}  />
 
                 <section className="flex-1 flex flex-col pt-20 p-8">
                     <h2 className="text-3xl border-b border-border pb-2">
@@ -67,7 +94,13 @@ function OrdersHistory() {
                     </h2>
 
                     <div className="mt-6 flex gap-5">
-
+                        {
+                            orders?.map((order) => (
+                                <div>
+                                    {order.id}
+                                </div>
+                            ))
+                        }
                     </div>
 
                 </section>

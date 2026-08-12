@@ -25,3 +25,4 @@ class CartItemResponse (BaseModel):
     product_variant: ProductVariantResponse
     quantity: int
     price: Decimal
+

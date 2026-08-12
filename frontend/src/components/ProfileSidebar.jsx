@@ -13,7 +13,18 @@ import {
 import { useState } from "react";
 
 function ProfileSidebar({ user }) {
-    const [toggle, setToggle] = useState(false);
+    const [toggle, setToggle] = useState(
+        sessionStorage.getItem("toggle") === "true"
+    );
+
+    const handleToggle = () => {
+        setToggle((prev) => {
+            const newValue = !prev;
+            sessionStorage.setItem("toggle", String(newValue));
+            return newValue;
+        });
+    };
+
     const location = useLocation();
 
     const path = location.pathname;
@@ -70,7 +81,7 @@ function ProfileSidebar({ user }) {
         >
             <div className={`${toggle ? " items-center justify-center" : ""} flex flex-col`}>
                 <div className="self-end">
-                    <button onClick={() => setToggle((prev) => !prev)}
+                    <button onClick={handleToggle}
                         className="cursor-pointer"
                     >
                         {toggle ?
