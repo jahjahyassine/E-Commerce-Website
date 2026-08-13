@@ -8,6 +8,9 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import Profile from './pages/ProfilePage/Profile';
 import OrdersHistory from './pages/ProfilePage/OrdersHistory';
+import AdminApp from './admin/AdminApp';
+import ProfileCart from './pages/ProfilePage/ProfileCart';
+import Wishlist from './pages/ProfilePage/Wishlist';
 
 function App() {
   return (
@@ -23,7 +26,13 @@ function App() {
       <Route path="/profile">
         <Route index element={<Profile />} />
         <Route path="orders" element={<OrdersHistory />} />
+        <Route path="cart" element={<ProfileCart />} />
+        <Route path="wishlist" element={<Wishlist />} />
       </Route>
+
+
+
+      <Route path="/admin" element={<AdminApp />} />
 
 
     </Routes>

@@ -364,7 +364,7 @@ function Navbar() {
                     </div>
 
                     <Link
-                        to="/me/cart"
+                        to="/cart"
                         className="
                             bg-background-secondary
                             p-2

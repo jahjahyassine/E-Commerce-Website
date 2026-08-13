@@ -41,7 +41,7 @@ function ProfileSidebar({ user }) {
         {
             label: "Cart",
             icon: ShoppingCart,
-            to: "/cart"
+            to: "/profile/cart"
         },
         {
             label: "Wishlist",
