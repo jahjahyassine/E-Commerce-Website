@@ -20,10 +20,12 @@ class UserResponse(BaseModel):
     username: str
     full_name: str
     email: EmailStr
-    phone: str
-    role: str
+    role: str 
+    phone: str | None = None
+    address: str | None = None
     is_active: bool
     profile_pic_path: str
+
 
     model_config = {
         "from_attributes": True

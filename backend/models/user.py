@@ -1,13 +1,15 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+
 from core.database import Base
 from core.config import settings
 
 if TYPE_CHECKING:
-    from review import Review
-    from order import Order
-    from cart import Cart
+    from models.review import Review
+    from models.order import Order
+    from models.cart import Cart
+    from models.wishlist import Wishlist
 
 from sqlalchemy import Boolean, Integer, String, Enum, Text, DateTime, text
 from sqlalchemy.orm import mapped_column, Mapped, relationship
@@ -51,6 +53,8 @@ class User (Base):
     orders: Mapped[list["Order"]] = relationship("Order", back_populates="user")
 
     cart: Mapped["Cart"] = relationship("Cart", back_populates="user", uselist=False)
+
+    wishlist: Mapped["Wishlist"] = relationship("Wishlist", back_populates="user")
 
     @property
     def profile_pic_path(self) -> str:

@@ -137,8 +137,8 @@ class ProductVariantResponse(BaseModel):
     id: int
     sku: str
     price: Decimal
-    discount_percentage: Decimal | None
-    attributes: dict[str, Any] | None
+    discount_percentage: Decimal | None = None
+    attributes: dict[str, Any] | None = None
     is_active: bool
     product: ProductResponseBrief
 

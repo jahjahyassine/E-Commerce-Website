@@ -5,11 +5,13 @@ from typing import Any
 from core.database import Base
 
 if TYPE_CHECKING:
-    from review import Review
-    from order import OrderItem
-    from inventory import Inventory, StockChange
-    from cart import CartItem
+    from models.review import Review
+    from models.order import OrderItem
+    from models.inventory import Inventory, StockChange
+    from models.cart import CartItem
+    from models.wishlist import WishlistProduct
 
+    
 from sqlalchemy import Boolean, CheckConstraint, Column, ForeignKey, Integer, Numeric, String, Table, Text, DateTime, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 from sqlalchemy import func
@@ -53,6 +55,8 @@ class Product (Base):
     tags: Mapped[list["Tag"]] = relationship("Tag", secondary="product_tags",  back_populates="products")
 
     reviews: Mapped[list["Review"]] = relationship("Review", back_populates="product", cascade="all, delete-orphan")
+
+    wishlist_items: Mapped[list["WishlistProduct"]] = relationship("WishlistProduct", back_populates="product", cascade="all, delete-orphan")
 
     product_variants: Mapped[list["ProductVariant"]] = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
 

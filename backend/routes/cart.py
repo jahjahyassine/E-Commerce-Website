@@ -104,6 +104,15 @@ def get_cart(
 
     cart = db.query(Cart).filter(Cart.user_id == user_id).first()
 
+    if not cart:
+        cart = Cart(
+            user_id=user_id,
+        )
+        db.add(cart)
+        db.commit()
+
+        db.refresh(cart)
+
     return cart
 
 

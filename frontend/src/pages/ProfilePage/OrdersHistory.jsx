@@ -51,7 +51,7 @@ function OrdersHistory() {
     const {
         data: orders
     } = useQuery({
-        queryKey: fetchOrders,
+        queryFn: fetchOrders,
         queryKey: ["orders"]
     })
 

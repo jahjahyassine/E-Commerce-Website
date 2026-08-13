@@ -7,6 +7,7 @@ import { data, useNavigate } from "react-router-dom";
 import { Upload, Edit3Icon } from "lucide-react";
 import { useState, useEffect } from "react";
 import ProfilePictureModal from "../../modals/ProfilePictureModal";
+import { queryClient } from "../../lib/queryClient";
 
 function Profile() {
 
@@ -73,7 +74,12 @@ function Profile() {
         mutate: updateUserInfos,
         error: errorPatch
     } = useMutation({
-        mutationFn: updateUserInfosFunction
+        mutationFn: updateUserInfosFunction,
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["user"]
+            })
+        }
     })
 
 

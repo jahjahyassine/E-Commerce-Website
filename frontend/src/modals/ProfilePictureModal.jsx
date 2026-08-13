@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Upload, ImagePlus } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 function ProfilePictureModal({ isOpen, onClose, currentImage }) {
+    const queryClient = useQueryClient()
+
     const BASE_URL = import.meta.env.VITE_BASE_URL;
     const token = localStorage.getItem("access_token");
 
@@ -74,6 +76,9 @@ function ProfilePictureModal({ isOpen, onClose, currentImage }) {
         mutationFn: uploadFile,
         onSuccess: () => {
             handleClose();
+            queryClient.invalidateQueries({
+                queryKey: ["user"]
+            })
         },
     });
 

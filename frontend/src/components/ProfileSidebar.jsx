@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
     CircleUserRound,
     Package,
@@ -8,7 +8,8 @@ import {
     Settings,
     LogOut,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    ShoppingCart
 } from "lucide-react";
 import { useState } from "react";
 
@@ -25,10 +26,6 @@ function ProfileSidebar({ user }) {
         });
     };
 
-    const location = useLocation();
-
-    const path = location.pathname;
-
 
     const menuItems = [
         {
@@ -40,6 +37,11 @@ function ProfileSidebar({ user }) {
             label: "Orders",
             icon: Package,
             to: "/profile/orders",
+        },
+        {
+            label: "Cart",
+            icon: ShoppingCart,
+            to: "/cart"
         },
         {
             label: "Wishlist",
@@ -55,7 +57,7 @@ function ProfileSidebar({ user }) {
             label: "Addresses",
             icon: MapPin,
             to: "/profile/addresses",
-        },
+        }
     ];
 
     return (
@@ -149,20 +151,21 @@ function ProfileSidebar({ user }) {
 
                     <div className="flex flex-col gap-1">
                         {menuItems.map(({ label, icon: Icon, to }) => (
-                            <Link
+                            <NavLink
                                 key={label}
                                 to={to}
-                                className={`
+                                end={to === "/profile"}
+                                className={({ isActive }) => `
                                     flex
                                     gap-3
                                     items-center
                                     rounded-xl
                                     p-2
                                     hover:bg-chip
-                                    ${path == to ? "bg-chip" : ""}
                                     duration-300
                                     ease-in-out
                                     cursor-pointer
+                                    ${isActive ? "bg-chip" : ""}
                                     ${toggle ? "justify-center" : ""}
                                 `}
                             >
@@ -187,7 +190,7 @@ function ProfileSidebar({ user }) {
                                 >
                                     {label}
                                 </p>
-                            </Link>
+                            </NavLink>
                         ))}
                     </div>
                 </div>
