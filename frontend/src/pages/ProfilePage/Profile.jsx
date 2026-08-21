@@ -15,6 +15,16 @@ function Profile() {
     const token = localStorage.getItem("access_token")
     const navigate = useNavigate()
 
+    useEffect( () => {
+        const token = localStorage.getItem("access_token")
+        if (!token) {
+            navigate("/login")
+            return
+        }
+    })
+
+    
+
     const {
         data: currentUser,
         isLoading,

@@ -128,6 +128,8 @@ class Brand (Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String, unique=True)
 
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"))
+
     products: Mapped[list["Product"]] = relationship("Product", back_populates="brand")
 
 
@@ -138,6 +140,8 @@ class Category (Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String, unique=True)
+
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"))
 
     products: Mapped[list["Product"]] = relationship("Product", back_populates="category")
 

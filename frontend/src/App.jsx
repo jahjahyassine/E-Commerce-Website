@@ -11,6 +11,7 @@ import OrdersHistory from './pages/ProfilePage/OrdersHistory';
 import AdminApp from './admin/AdminApp';
 import ProfileCart from './pages/ProfilePage/ProfileCart';
 import Wishlist from './pages/ProfilePage/Wishlist';
+import { ProductList } from './admin/resources/pages/products/ProductList';
 
 function App() {
   return (
@@ -32,7 +33,7 @@ function App() {
 
 
 
-      <Route path="/admin" element={<AdminApp />} />
+      <Route path="/admin/*" element={<AdminApp />} />
 
 
     </Routes>

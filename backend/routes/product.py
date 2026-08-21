@@ -2,14 +2,15 @@ from enum import Enum
 import json
 from typing import Annotated, List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
-from models.product import Media, Product, Brand, Category, ProductVariant
+from core.cloudinary import cloudinary
+from models.product import Media, Product, Brand, Category, ProductVariant, Tag
 from models.review import Review
-from schemas.product import ProductCreateRequest, CategoryCreate, BrandCreate, ProductResponse, ProductVariantCreate, ProductVariantCreateRequest, ProductVariantResponse
+from schemas.product import ProductCreateRequest, CategoryCreate, BrandCreate, ProductResponse, ProductVariantCreate, ProductVariantCreateRequest, ProductVariantResponse, TagCreate
 from core.database import get_db
-
+from sqlalchemy import exists, func, or_
 
 
 router = APIRouter()
@@ -23,36 +24,37 @@ class SortBy(str, Enum):
     rating = "rating"
     
 
-@router.post("/admin/products")
-def add_product(data: ProductCreateRequest, db: Annotated[Session, Depends(get_db)]):
-    new_product = Product (
-        name=data.product.name,
-        description=data.product.description,
-        specifications=data.product.specifications,
-        brand_id=data.product.brand_id,
-        category_id=data.product.category_id
+
+
+
+
+@router.delete("/admin/products/{product_id}")
+def delete_product(
+    db: Annotated[Session, Depends(get_db)],
+    product_id: int
+):
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id)
+        .first()
     )
 
-    db.add(new_product)
-    db.flush()
-
-    product_id = new_product.id
-
-    for image in data.media:
-        new_image = Media (
-            media_url=image,
-            product_id=product_id
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found"
         )
-        db.add(new_image)
 
+    db.delete(product)
     db.commit()
-    db.refresh(new_product)
 
-    return new_product
+    return {
+        "message": "Product deleted successfully"
+    }
 
 
 
-from sqlalchemy import exists, func
+
 
 
 @router.get("/products", response_model=List[ProductResponse])
@@ -62,42 +64,67 @@ def get_products(
     brand_id: int | None = None,
     min_rating: int | None = None,
     min_price: float | None = None,
-    max_price: float | None = None
+    max_price: float | None = None,
+    search: str | None = None,
+    is_active: bool | None = None,
 ):
-
     query = db.query(Product)
 
+    # SEARCH
+    if search and search.strip():
+        search = search.strip()
+        search_pattern = f"%{search}%"
+
+        query = query.filter(
+            or_(
+                Product.name.ilike(search_pattern),
+                Product.description.ilike(search_pattern),
+            )
+        )
+
+    # CATEGORY
     if category_id is not None:
-        query = query.filter(Product.category_id == category_id)
+        query = query.filter(
+            Product.category_id == category_id
+        )
 
+    # BRAND
     if brand_id is not None:
-        query = query.filter(Product.brand_id == brand_id)
+        query = query.filter(
+            Product.brand_id == brand_id
+        )
 
+    # MIN PRICE
     if min_price is not None:
         query = query.filter(
             exists().where(
                 ProductVariant.product_id == Product.id,
-                ProductVariant.price >= min_price
+                ProductVariant.price >= min_price,
             )
         )
 
+    # MAX PRICE
     if max_price is not None:
         query = query.filter(
             exists().where(
                 ProductVariant.product_id == Product.id,
-                ProductVariant.price <= max_price
+                ProductVariant.price <= max_price,
             )
         )
 
+    # RATING
     if min_rating is not None:
         query = query.filter(
             Product.average_rating >= min_rating
         )
 
-    products = query.all()
+    # STATUS
+    if is_active is not None:
+        query = query.filter(
+            Product.is_active == is_active
+        )
 
-    return products
-
+    return query.all()
 
 
 @router.get("/products/{product_id}", response_model=ProductResponse)
@@ -134,62 +161,20 @@ def get_reviews(db: Annotated[Session, Depends(get_db)], product_id: int):
 
 
 
-@router.post("/admin/products/{product_id}/variants")
-def add_product_variant(db: Annotated[Session, Depends(get_db)], product_id: int, data: ProductVariantCreateRequest):
-    new_variant = ProductVariant(
-        product_id=product_id,
-        sku=data.product.sku,
-        price=data.product.price,
-        discount_percentage=data.product.discount_percentage,
-        attributes=data.product.attributes,
-    )
-    db.add(new_variant)
-    db.flush()
-
-    min_price = db.query(func.min(ProductVariant.price)).filter(ProductVariant.product_id == product_id, ProductVariant.is_active == True).scalar()
-
-    product = db.query(Product).filter(Product.id == product_id).first()
-    product.min_price = min_price
-
-
-    variant_id = new_variant.id
-
-    for image in data.media:
-        new_image = Media (
-            media_url=image,
-            variant_id=variant_id,
-        )
-        db.add(new_image)
-
-    db.commit()
 
 
 
 
 
 
-@router.post("/admin/categories")
-def add_brand(category: CategoryCreate, db: Annotated[Session, Depends(get_db)]):
-    new_category = Category (
-        name=category.name
-    )
-
-    db.add(new_category)
-    db.commit()
-
-    db.refresh(new_category)
 
 
-@router.post("/admin/brands")
-def add_brand(brand: BrandCreate, db: Annotated[Session, Depends(get_db)]):
-    new_brand = Brand (
-        name=brand.name
-    )
 
-    db.add(new_brand)
-    db.commit()
+@router.get("/tags")
+def get_tags(db: Annotated[Session, Depends(get_db)]):
+    tags = db.query(Tag).all()
 
-    db.refresh(new_brand)
+    return tags
 
 
 

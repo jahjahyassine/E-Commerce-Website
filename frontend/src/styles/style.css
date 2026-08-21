@@ -53,10 +53,44 @@
   --shadow-inner: inset 0 1px 4px rgba(0, 0, 0, 0.12);
 
 
-  --radius-md: 18px;
-  --radius-lg: 28px;
-
   --font-cormorant: "Cormorant"
+
+
+
+  /* ========================================
+     ADMIN DASHBOARD — DARK SLATE
+     ======================================== */
+
+    --color-admin-background: #0F172A; /* Main dashboard background */
+    --color-admin-surface: #1E293B;    /* Cards and table surface */
+    --color-admin-surface-hover: #334155; /* Hovered rows/components */
+
+    --color-admin-border: #334155;     /* Borders */
+    --color-admin-border-hover: #475569;
+    --color-admin-text: #F8FAFC;       /* Main text */
+    --color-admin-muted: #94A3B8;      /* Secondary text */
+
+    --color-admin-primary: #3B82F6;    /* Buttons, selected states */
+   --color-admin-primary-border: #60A5FA;
+    --color-admin-primary-hover: #2563EB;
+    --color-admin-success: #22C55E;    /* Active/success */
+    --color-admin-success-hover: #16A34A;
+    --color-admin-warning: #F59E0B;    /* Warnings */
+    --color-admin-warning-hover: #D97706;
+    --color-admin-danger: #EF4444;     /* Errors/delete */
+    --color-admin-danger-hover: #DC2626;
+
+    --color-admin-input: #263449;
+--color-admin-input-hover: #2D3B50;
+--color-admin-input-border: #3B4A60;
+    --color-admin-active: #4ADE80;
+--color-admin-active-hover: #22C55E;
+
+--color-admin-inactive: #F87171;
+--color-admin-inactive-hover: #EF4444;
+
+--color-admin-reviews: #FACC15;
+--color-admin-reviews-hover: #EAB308;
 
 }
 
