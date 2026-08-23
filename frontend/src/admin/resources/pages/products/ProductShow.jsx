@@ -2,7 +2,6 @@ import {
     useShow,
     useUpdate,
     useList,
-    useCreate,
     useDelete,
     useApiUrl,
 } from "@refinedev/core";
@@ -25,6 +24,7 @@ import {
     Trash2,
     ImagePlus,
     Upload,
+    Boxes,
 } from "lucide-react";
 
 import AdminSidebar from "../../components/AdminSidebar";
@@ -36,6 +36,10 @@ export function ProductShow() {
     const navigate = useNavigate();
     const apiUrl = useApiUrl();
 
+    /* -----------------------------------------------------------
+       Product editing
+    ----------------------------------------------------------- */
+
     const [isEditing, setIsEditing] = useState(false);
 
     const [form, setForm] = useState({
@@ -46,12 +50,18 @@ export function ProductShow() {
         is_active: true,
     });
 
+    /* -----------------------------------------------------------
+       Variant editing
+    ----------------------------------------------------------- */
+
     const [editingVariantId, setEditingVariantId] = useState(null);
+    const [isAddingVariant, setIsAddingVariant] = useState(false);
 
     const [variantForm, setVariantForm] = useState({
         sku: "",
         price: "",
         discount_percentage: "",
+        quantity: "",
         attributes: "{}",
         is_active: true,
     });
@@ -59,14 +69,12 @@ export function ProductShow() {
     const [variantMedia, setVariantMedia] = useState([]);
     const [variantMediaPreviews, setVariantMediaPreviews] = useState([]);
 
-    const [isAddingVariant, setIsAddingVariant] = useState(false);
-    const [isUploadingVariant, setIsUploadingVariant] = useState(false);
+    const [isUploadingVariant, setIsUploadingVariant] =
+        useState(false);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Product
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Product
+    ----------------------------------------------------------- */
 
     const {
         query: {
@@ -83,11 +91,9 @@ export function ProductShow() {
 
     const product = productResponse?.data;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Mutations
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Mutations
+    ----------------------------------------------------------- */
 
     const {
         mutate: updateProduct,
@@ -104,11 +110,9 @@ export function ProductShow() {
         isPending: isDeletingVariant,
     } = useDelete();
 
-    /*
-    |--------------------------------------------------------------------------
-    | Categories
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Categories
+    ----------------------------------------------------------- */
 
     const {
         query: {
@@ -121,11 +125,9 @@ export function ProductShow() {
         },
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Brands
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Brands
+    ----------------------------------------------------------- */
 
     const {
         query: {
@@ -141,11 +143,9 @@ export function ProductShow() {
     const categories = categoriesResponse?.data ?? [];
     const brands = brandsResponse?.data ?? [];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Product form
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Product form
+    ----------------------------------------------------------- */
 
     useEffect(() => {
         if (!product) return;
@@ -160,21 +160,34 @@ export function ProductShow() {
     }, [product]);
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
+        const {
+            name,
+            value,
+            type,
+            checked,
+        } = e.target;
 
         setForm((prev) => ({
             ...prev,
-            [name]: type === "checkbox" ? checked : value,
+            [name]:
+                type === "checkbox"
+                    ? checked
+                    : value,
         }));
     };
 
     const handleSave = () => {
+        if (!form.name.trim()) {
+            alert("Product name is required.");
+            return;
+        }
+
         updateProduct(
             {
                 resource: "products",
                 id,
                 values: {
-                    name: form.name,
+                    name: form.name.trim(),
                     description: form.description,
                     category_id: Number(form.category_id),
                     brand_id: Number(form.brand_id),
@@ -204,17 +217,22 @@ export function ProductShow() {
         setIsEditing(false);
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | Variant form
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Variant form
+    ----------------------------------------------------------- */
 
     const resetVariantForm = () => {
+        variantMediaPreviews.forEach((preview) => {
+            if (preview.url) {
+                URL.revokeObjectURL(preview.url);
+            }
+        });
+
         setVariantForm({
             sku: "",
             price: "",
             discount_percentage: "",
+            quantity: "",
             attributes: "{}",
             is_active: true,
         });
@@ -224,33 +242,47 @@ export function ProductShow() {
     };
 
     const handleVariantChange = (e) => {
-        const { name, value, type, checked } = e.target;
+        const {
+            name,
+            value,
+            type,
+            checked,
+        } = e.target;
 
         setVariantForm((prev) => ({
             ...prev,
-            [name]: type === "checkbox" ? checked : value,
+            [name]:
+                type === "checkbox"
+                    ? checked
+                    : value,
         }));
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | Variant image handling
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Variant media
+    ----------------------------------------------------------- */
 
     const handleVariantMediaChange = (e) => {
-        const files = Array.from(e.target.files || []);
+        const files = Array.from(
+            e.target.files || []
+        );
 
         if (!files.length) return;
 
         const validFiles = files.filter((file) => {
             if (!file.type.startsWith("image/")) {
-                alert(`${file.name} is not an image.`);
+                alert(
+                    `${file.name} is not an image.`
+                );
+
                 return false;
             }
 
             if (file.size > 10 * 1024 * 1024) {
-                alert(`${file.name} is larger than 10MB.`);
+                alert(
+                    `${file.name} is larger than 10MB.`
+                );
+
                 return false;
             }
 
@@ -262,10 +294,12 @@ export function ProductShow() {
             ...validFiles,
         ]);
 
-        const newPreviews = validFiles.map((file) => ({
-            file,
-            url: URL.createObjectURL(file),
-        }));
+        const newPreviews = validFiles.map(
+            (file) => ({
+                file,
+                url: URL.createObjectURL(file),
+            })
+        );
 
         setVariantMediaPreviews((prev) => [
             ...prev,
@@ -284,18 +318,20 @@ export function ProductShow() {
             const removed = prev[index];
 
             if (removed?.url) {
-                URL.revokeObjectURL(removed.url);
+                URL.revokeObjectURL(
+                    removed.url
+                );
             }
 
-            return prev.filter((_, i) => i !== index);
+            return prev.filter(
+                (_, i) => i !== index
+            );
         });
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | Variant controls
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Start adding variant
+    ----------------------------------------------------------- */
 
     const handleStartAddVariant = () => {
         resetVariantForm();
@@ -304,39 +340,59 @@ export function ProductShow() {
         setIsAddingVariant(true);
     };
 
+    /* -----------------------------------------------------------
+       Start editing variant
+    ----------------------------------------------------------- */
+
     const handleStartEditVariant = (variant) => {
         setEditingVariantId(variant.id);
         setIsAddingVariant(false);
 
         setVariantForm({
             sku: variant.sku ?? "",
-            price: variant.price ?? "",
+
+            price:
+                variant.price ?? "",
+
             discount_percentage:
                 variant.discount_percentage ?? "",
+
+            quantity:
+                variant.inventory?.quantity ?? 0,
+
             attributes: JSON.stringify(
                 variant.attributes ?? {},
                 null,
                 2
             ),
-            is_active: variant.is_active ?? true,
+
+            is_active:
+                variant.is_active ?? true,
         });
 
         /*
-         * We don't put existing Cloudinary images into
-         * variantMedia because those are URLs, not Files.
-         *
-         * Existing media can be displayed separately.
+         * Existing Cloudinary images are URLs,
+         * not Files, so they remain displayed
+         * in the variant table.
          */
         setVariantMedia([]);
         setVariantMediaPreviews([]);
     };
 
+    /* -----------------------------------------------------------
+       Cancel variant
+    ----------------------------------------------------------- */
+
     const handleCancelVariant = () => {
-        variantMediaPreviews.forEach((preview) => {
-            if (preview.url) {
-                URL.revokeObjectURL(preview.url);
+        variantMediaPreviews.forEach(
+            (preview) => {
+                if (preview.url) {
+                    URL.revokeObjectURL(
+                        preview.url
+                    );
+                }
             }
-        });
+        );
 
         resetVariantForm();
 
@@ -344,11 +400,9 @@ export function ProductShow() {
         setIsAddingVariant(false);
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | Attributes
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Parse attributes
+    ----------------------------------------------------------- */
 
     const parseAttributes = () => {
         try {
@@ -362,7 +416,7 @@ export function ProductShow() {
                 Array.isArray(parsed)
             ) {
                 throw new Error(
-                    "Attributes must be a JSON object."
+                    "Attributes must be an object."
                 );
             }
 
@@ -376,13 +430,67 @@ export function ProductShow() {
         }
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | Create variant with images
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Validate variant
+    ----------------------------------------------------------- */
 
-    const handleCreateVariant = async (attributes) => {
+    const validateVariant = () => {
+        if (!variantForm.sku.trim()) {
+            alert("SKU is required.");
+            return false;
+        }
+
+        if (
+            variantForm.price === "" ||
+            Number(variantForm.price) < 0
+        ) {
+            alert(
+                "Price must be a valid positive number."
+            );
+
+            return false;
+        }
+
+        if (
+            variantForm.discount_percentage === "" ||
+            Number(
+                variantForm.discount_percentage
+            ) < 0 ||
+            Number(
+                variantForm.discount_percentage
+            ) > 100
+        ) {
+            alert(
+                "Discount must be between 0 and 100."
+            );
+
+            return false;
+        }
+
+        if (
+            variantForm.quantity === "" ||
+            Number(variantForm.quantity) < 0 ||
+            !Number.isInteger(
+                Number(variantForm.quantity)
+            )
+        ) {
+            alert(
+                "Stock quantity must be a whole number greater than or equal to 0."
+            );
+
+            return false;
+        }
+
+        return true;
+    };
+
+    /* -----------------------------------------------------------
+       Create variant
+    ----------------------------------------------------------- */
+
+    const handleCreateVariant = async (
+        attributes
+    ) => {
         setIsUploadingVariant(true);
 
         try {
@@ -392,37 +500,47 @@ export function ProductShow() {
                 "variant",
                 JSON.stringify({
                     sku: variantForm.sku.trim(),
-                    price: Number(variantForm.price),
-                    discount_percentage: Number(
-                        variantForm.discount_percentage
+
+                    price: Number(
+                        variantForm.price
                     ),
+
+                    discount_percentage:
+                        Number(
+                            variantForm.discount_percentage
+                        ),
+
+                    quantity: Number(
+                        variantForm.quantity
+                    ),
+
                     attributes,
-                    is_active: variantForm.is_active,
+
+                    is_active:
+                        variantForm.is_active,
                 })
             );
 
             variantMedia.forEach((file) => {
-                formData.append("media", file);
+                formData.append(
+                    "media",
+                    file
+                );
             });
 
-            /*
-             * IMPORTANT:
-             *
-             * If your project uses JWT authentication,
-             * this request must include your auth token.
-             *
-             * The example below checks common localStorage
-             * locations.
-             */
-
             const token =
-                localStorage.getItem("access_token") ||
-                localStorage.getItem("token");
+                localStorage.getItem(
+                    "access_token"
+                ) ||
+                localStorage.getItem(
+                    "token"
+                );
 
             const headers = {};
 
             if (token) {
-                headers.Authorization = `Bearer ${token}`;
+                headers.Authorization =
+                    `Bearer ${token}`;
             }
 
             const response = await fetch(
@@ -446,15 +564,18 @@ export function ProductShow() {
                         errorData.detail ||
                         errorMessage;
                 } catch {
-                    // Ignore invalid JSON error responses
+                    // Ignore invalid JSON
                 }
 
-                throw new Error(errorMessage);
+                throw new Error(
+                    errorMessage
+                );
             }
 
             await response.json();
 
             handleCancelVariant();
+
             await refetch();
         } catch (err) {
             console.error(
@@ -471,63 +592,52 @@ export function ProductShow() {
         }
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | Save variant
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Save variant
+    ----------------------------------------------------------- */
 
     const handleSaveVariant = () => {
-        if (!variantForm.sku.trim()) {
-            alert("SKU is required.");
+        if (!validateVariant()) {
             return;
         }
 
-        if (
-            variantForm.price === "" ||
-            Number(variantForm.price) < 0
-        ) {
-            alert(
-                "Price must be a valid positive number."
-            );
-            return;
-        }
-
-        if (
-            variantForm.discount_percentage === "" ||
-            Number(variantForm.discount_percentage) < 0 ||
-            Number(variantForm.discount_percentage) > 100
-        ) {
-            alert(
-                "Discount must be between 0 and 100."
-            );
-            return;
-        }
-
-        const attributes = parseAttributes();
+        const attributes =
+            parseAttributes();
 
         if (attributes === null) {
             return;
         }
 
-        /*
-         * EDIT EXISTING VARIANT
-         */
+        /* -----------------------------------------
+           Edit existing variant
+        ----------------------------------------- */
+
         if (editingVariantId) {
             updateVariant(
                 {
-                    resource: `products/${id}/variants`,
+                    resource:
+                        `products/${id}/variants`,
+
                     id: editingVariantId,
+
                     values: {
                         sku: variantForm.sku.trim(),
+
                         price: Number(
                             variantForm.price
                         ),
+
                         discount_percentage:
                             Number(
                                 variantForm.discount_percentage
                             ),
+
+                        quantity: Number(
+                            variantForm.quantity
+                        ),
+
                         attributes,
+
                         is_active:
                             variantForm.is_active,
                     },
@@ -537,36 +647,50 @@ export function ProductShow() {
                         handleCancelVariant();
                         refetch();
                     },
+
+                    onError: (error) => {
+                        console.error(
+                            "Variant update error:",
+                            error
+                        );
+
+                        alert(
+                            error?.message ||
+                                "Failed to update variant."
+                        );
+                    },
                 }
             );
 
             return;
         }
 
-        /*
-         * CREATE NEW VARIANT
-         *
-         * Uses FormData because images are files.
-         */
+        /* -----------------------------------------
+           Create new variant
+        ----------------------------------------- */
+
         handleCreateVariant(attributes);
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | Delete variant
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Delete variant
+    ----------------------------------------------------------- */
 
-    const handleDeleteVariant = (variant) => {
-        const confirmed = window.confirm(
-            `Delete variant "${variant.sku}"?`
-        );
+    const handleDeleteVariant = (
+        variant
+    ) => {
+        const confirmed =
+            window.confirm(
+                `Delete variant "${variant.sku}"?`
+            );
 
         if (!confirmed) return;
 
         deleteVariant(
             {
-                resource: `products/${id}/variants`,
+                resource:
+                    `products/${id}/variants`,
+
                 id: variant.id,
             },
             {
@@ -580,97 +704,144 @@ export function ProductShow() {
 
                     refetch();
                 },
+
+                onError: (error) => {
+                    console.error(
+                        "Variant deletion error:",
+                        error
+                    );
+
+                    alert(
+                        error?.message ||
+                            "Failed to delete variant."
+                    );
+                },
             }
         );
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | Calculations
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Calculations
+    ----------------------------------------------------------- */
 
     const variants =
         product?.product_variants ?? [];
 
-    const totalStock = variants.reduce(
-        (total, variant) =>
-            total +
-            Number(
-                variant.inventory?.quantity || 0
-            ),
-        0
-    );
+    const totalStock =
+        variants.reduce(
+            (total, variant) =>
+                total +
+                Number(
+                    variant.inventory
+                        ?.quantity || 0
+                ),
+            0
+        );
 
-    const totalSales = variants.reduce(
-        (total, variant) =>
-            total +
-            (variant.order_items?.reduce(
-                (sum, item) =>
-                    sum +
-                    Number(
-                        item.quantity || 0
-                    ),
-                0
-            ) ?? 0),
-        0
-    );
+    const totalSales =
+        variants.reduce(
+            (total, variant) =>
+                total +
+                (
+                    variant.order_items
+                        ?.reduce(
+                            (
+                                sum,
+                                item
+                            ) =>
+                                sum +
+                                Number(
+                                    item.quantity ||
+                                        0
+                                ),
+                            0
+                        ) ?? 0
+                ),
+            0
+        );
 
-    const totalRevenue = variants.reduce(
-        (total, variant) =>
-            total +
-            (variant.order_items?.reduce(
-                (sum, item) =>
-                    sum +
-                    Number(
-                        item.quantity || 0
-                    ) *
-                        Number(
-                            item.price || 0
-                        ),
-                0
-            ) ?? 0),
-        0
-    );
+    const totalRevenue =
+        variants.reduce(
+            (total, variant) =>
+                total +
+                (
+                    variant.order_items
+                        ?.reduce(
+                            (
+                                sum,
+                                item
+                            ) =>
+                                sum +
+                                Number(
+                                    item.quantity ||
+                                        0
+                                ) *
+                                    Number(
+                                        item.price ||
+                                            0
+                                    ),
+                            0
+                        ) ?? 0
+                ),
+            0
+        );
 
-    const category = categories.find(
-        (category) =>
-            Number(category.id) ===
-            Number(product?.category_id)
-    );
+    const category =
+        categories.find(
+            (category) =>
+                Number(category.id) ===
+                Number(
+                    product?.category_id
+                )
+        );
 
-    const brand = brands.find(
-        (brand) =>
-            Number(brand.id) ===
-            Number(product?.brand_id)
-    );
+    const brand =
+        brands.find(
+            (brand) =>
+                Number(brand.id) ===
+                Number(
+                    product?.brand_id
+                )
+        );
 
-    /*
-    |--------------------------------------------------------------------------
-    | Loading
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Loading
+    ----------------------------------------------------------- */
 
     if (isLoading) {
         return (
-            <section className="h-screen bg-[#0F172A] text-admin-text flex items-center justify-center">
+            <section className="
+                h-screen
+                bg-[#0F172A]
+                text-admin-text
+                flex
+                items-center
+                justify-center
+            ">
                 Loading product...
             </section>
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Error
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Error
+    ----------------------------------------------------------- */
 
     if (isError) {
         return (
-            <section className="h-screen bg-[#0F172A] text-admin-text flex items-center justify-center">
+            <section className="
+                h-screen
+                bg-[#0F172A]
+                text-admin-text
+                flex
+                items-center
+                justify-center
+            ">
                 <div className="text-center">
+
                     <p className="text-red-400 mb-4">
-                        Error: {error?.message}
+                        Error:{" "}
+                        {error?.message}
                     </p>
 
                     <button
@@ -688,46 +859,64 @@ export function ProductShow() {
                     >
                         Back to Products
                     </button>
+
                 </div>
             </section>
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Not found
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       Not found
+    ----------------------------------------------------------- */
 
     if (!product) {
         return (
-            <section className="h-screen bg-[#0F172A] text-admin-text flex items-center justify-center">
+            <section className="
+                h-screen
+                bg-[#0F172A]
+                text-admin-text
+                flex
+                items-center
+                justify-center
+            ">
                 Product not found.
             </section>
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | UI
-    |--------------------------------------------------------------------------
-    */
+    /* -----------------------------------------------------------
+       UI
+    ----------------------------------------------------------- */
 
     return (
-        <main className="h-screen max-w-full font-sans bg-[#0F172A] flex gap-4">
+        <main className="
+            h-screen
+            max-w-full
+            font-sans
+            bg-[#0F172A]
+            flex
+            gap-4
+        ">
 
             {/* Sidebar */}
 
-            <header className="relative z-10 h-screen">
+            <header className="
+                relative
+                z-10
+                h-screen
+            ">
                 <AdminSidebar />
             </header>
+
 
             {/* Background */}
 
             <div
                 className="
-                    fixed inset-0
-                    w-full h-full
+                    fixed
+                    inset-0
+                    w-full
+                    h-full
                     z-0
                     pointer-events-none
                 "
@@ -749,29 +938,37 @@ export function ProductShow() {
                 />
             </div>
 
+
             {/* Content */}
 
-            <section
-                className="
-                    relative z-10
-                    h-screen flex-1
-                    text-admin-text
-                    overflow-y-auto
-                    p-4
-                "
-            >
+            <section className="
+                relative
+                z-10
+                h-screen
+                flex-1
+                text-admin-text
+                overflow-y-auto
+                p-4
+            ">
 
                 {/* Header */}
 
-                <div
-                    className="
-                        flex items-center justify-between
-                        gap-4
-                        border-b border-admin-border
-                        pb-3 mb-6
-                    "
-                >
-                    <div className="flex items-center gap-3">
+                <div className="
+                    flex
+                    items-center
+                    justify-between
+                    gap-4
+                    border-b
+                    border-admin-border
+                    pb-3
+                    mb-6
+                ">
+
+                    <div className="
+                        flex
+                        items-center
+                        gap-3
+                    ">
 
                         <button
                             onClick={() =>
@@ -792,22 +989,37 @@ export function ProductShow() {
                         </button>
 
                         <div>
-                            <h1 className="text-3xl font-semibold">
+
+                            <h1 className="
+                                text-3xl
+                                font-semibold
+                            ">
                                 {isEditing
                                     ? "Edit Product"
                                     : "Product Details"}
                             </h1>
 
-                            <p className="text-sm text-admin-muted mt-1">
+                            <p className="
+                                text-sm
+                                text-admin-muted
+                                mt-1
+                            ">
                                 Product ID: #{product.id}
                             </p>
+
                         </div>
+
                     </div>
 
-                    <div className="flex gap-2">
+
+                    <div className="
+                        flex
+                        gap-2
+                    ">
 
                         {isEditing ? (
                             <>
+
                                 <button
                                     onClick={
                                         handleCancel
@@ -816,14 +1028,17 @@ export function ProductShow() {
                                         isUpdating
                                     }
                                     className="
-                                        flex items-center gap-2
-                                        px-4 py-2
+                                        flex
+                                        items-center
+                                        gap-2
+                                        px-4
+                                        py-2
                                         rounded-xl
-                                        border border-admin-border
+                                        border
+                                        border-admin-border
                                         text-admin-muted
                                         hover:text-admin-text
                                         hover:bg-slate-800
-                                        transition-colors
                                     "
                                 >
                                     <X className="h-4 w-4" />
@@ -838,13 +1053,16 @@ export function ProductShow() {
                                         isUpdating
                                     }
                                     className="
-                                        flex items-center gap-2
-                                        px-4 py-2
+                                        flex
+                                        items-center
+                                        gap-2
+                                        px-4
+                                        py-2
                                         rounded-xl
                                         bg-admin-primary
-                                        border border-admin-primary-border
+                                        border
+                                        border-admin-primary-border
                                         hover:bg-admin-primary-hover
-                                        transition-colors
                                         font-semibold
                                     "
                                 >
@@ -854,8 +1072,10 @@ export function ProductShow() {
                                         ? "Saving..."
                                         : "Save Changes"}
                                 </button>
+
                             </>
                         ) : (
+
                             <button
                                 onClick={() =>
                                     setIsEditing(
@@ -863,77 +1083,116 @@ export function ProductShow() {
                                     )
                                 }
                                 className="
-                                    flex items-center gap-2
-                                    px-4 py-2
+                                    flex
+                                    items-center
+                                    gap-2
+                                    px-4
+                                    py-2
                                     rounded-xl
                                     bg-admin-primary
-                                    border border-admin-primary-border
+                                    border
+                                    border-admin-primary-border
                                     hover:bg-admin-primary-hover
-                                    transition-colors
                                     font-semibold
                                 "
                             >
                                 <Edit className="h-4 w-4" />
                                 Edit Product
                             </button>
+
                         )}
 
                     </div>
+
                 </div>
+
 
                 {/* Product Information */}
 
-                <div
-                    className="
-                        border border-admin-border
-                        bg-admin-surface
-                        rounded-2xl
-                        p-6
-                        mb-4
-                    "
-                >
+                <div className="
+                    border
+                    border-admin-border
+                    bg-admin-surface
+                    rounded-2xl
+                    p-6
+                    mb-4
+                ">
 
-                    <div className="flex items-center gap-2 mb-6">
-                        <Package className="h-5 w-5 text-admin-primary" />
+                    <div className="
+                        flex
+                        items-center
+                        gap-2
+                        mb-6
+                    ">
+                        <Package className="
+                            h-5
+                            w-5
+                            text-admin-primary
+                        " />
 
-                        <h2 className="text-lg font-semibold">
+                        <h2 className="
+                            text-lg
+                            font-semibold
+                        ">
                             Product Information
                         </h2>
                     </div>
 
+
                     {isEditing ? (
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="
+                            grid
+                            grid-cols-1
+                            md:grid-cols-2
+                            gap-5
+                        ">
 
-                            <div className="md:col-span-2">
-
-                                <label className="block text-sm text-admin-muted mb-2">
+                            <div className="
+                                md:col-span-2
+                            ">
+                                <label className="
+                                    block
+                                    text-sm
+                                    text-admin-muted
+                                    mb-2
+                                ">
                                     Product Name
                                 </label>
 
                                 <input
                                     name="name"
-                                    value={form.name}
+                                    value={
+                                        form.name
+                                    }
                                     onChange={
                                         handleChange
                                     }
                                     className="
                                         w-full
-                                        px-4 py-3
+                                        px-4
+                                        py-3
                                         rounded-lg
                                         bg-slate-900
-                                        border border-admin-border
+                                        border
+                                        border-admin-border
                                         text-admin-text
                                         outline-none
                                         focus:border-admin-primary
                                     "
                                 />
-
                             </div>
 
-                            <div className="md:col-span-2">
 
-                                <label className="block text-sm text-admin-muted mb-2">
+                            <div className="
+                                md:col-span-2
+                            ">
+                                <label className="
+                                    block
+                                    text-sm
+                                    text-admin-muted
+                                    mb-2
+                                ">
                                     Description
                                 </label>
 
@@ -948,22 +1207,29 @@ export function ProductShow() {
                                     rows={5}
                                     className="
                                         w-full
-                                        px-4 py-3
+                                        px-4
+                                        py-3
                                         rounded-lg
                                         bg-slate-900
-                                        border border-admin-border
+                                        border
+                                        border-admin-border
                                         text-admin-text
                                         outline-none
                                         resize-none
                                         focus:border-admin-primary
                                     "
                                 />
-
                             </div>
+
 
                             <div>
 
-                                <label className="block text-sm text-admin-muted mb-2">
+                                <label className="
+                                    block
+                                    text-sm
+                                    text-admin-muted
+                                    mb-2
+                                ">
                                     Category
                                 </label>
 
@@ -977,15 +1243,17 @@ export function ProductShow() {
                                     }
                                     className="
                                         w-full
-                                        px-4 py-3
+                                        px-4
+                                        py-3
                                         rounded-lg
                                         bg-slate-900
-                                        border border-admin-border
+                                        border
+                                        border-admin-border
                                         text-admin-text
                                         outline-none
-                                        focus:border-admin-primary
                                     "
                                 >
+
                                     <option value="">
                                         Select category
                                     </option>
@@ -1006,13 +1274,20 @@ export function ProductShow() {
                                             </option>
                                         )
                                     )}
+
                                 </select>
 
                             </div>
 
+
                             <div>
 
-                                <label className="block text-sm text-admin-muted mb-2">
+                                <label className="
+                                    block
+                                    text-sm
+                                    text-admin-muted
+                                    mb-2
+                                ">
                                     Brand
                                 </label>
 
@@ -1026,15 +1301,17 @@ export function ProductShow() {
                                     }
                                     className="
                                         w-full
-                                        px-4 py-3
+                                        px-4
+                                        py-3
                                         rounded-lg
                                         bg-slate-900
-                                        border border-admin-border
+                                        border
+                                        border-admin-border
                                         text-admin-text
                                         outline-none
-                                        focus:border-admin-primary
                                     "
                                 >
+
                                     <option value="">
                                         Select brand
                                     </option>
@@ -1055,13 +1332,22 @@ export function ProductShow() {
                                             </option>
                                         )
                                     )}
+
                                 </select>
 
                             </div>
 
-                            <div className="md:col-span-2">
 
-                                <label className="flex items-center gap-3 cursor-pointer">
+                            <div className="
+                                md:col-span-2
+                            ">
+
+                                <label className="
+                                    flex
+                                    items-center
+                                    gap-3
+                                    cursor-pointer
+                                ">
 
                                     <input
                                         type="checkbox"
@@ -1073,7 +1359,8 @@ export function ProductShow() {
                                             handleChange
                                         }
                                         className="
-                                            h-4 w-4
+                                            h-4
+                                            w-4
                                             cursor-pointer
                                             accent-blue-500
                                         "
@@ -1091,30 +1378,58 @@ export function ProductShow() {
 
                     ) : (
 
-                        <div className="space-y-6">
+                        <div className="
+                            space-y-6
+                        ">
 
                             <div>
-                                <p className="text-sm text-admin-muted mb-1">
+
+                                <p className="
+                                    text-sm
+                                    text-admin-muted
+                                    mb-1
+                                ">
                                     Name
                                 </p>
 
-                                <h2 className="text-2xl font-semibold">
+                                <h2 className="
+                                    text-2xl
+                                    font-semibold
+                                ">
                                     {product.name}
                                 </h2>
+
                             </div>
 
+
                             <div>
-                                <p className="text-sm text-admin-muted mb-2">
+
+                                <p className="
+                                    text-sm
+                                    text-admin-muted
+                                    mb-2
+                                ">
                                     Description
                                 </p>
 
-                                <p className="text-sm leading-7 text-slate-300">
+                                <p className="
+                                    text-sm
+                                    leading-7
+                                    text-slate-300
+                                ">
                                     {product.description ||
                                         "No description available."}
                                 </p>
+
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                            <div className="
+                                grid
+                                grid-cols-1
+                                md:grid-cols-4
+                                gap-4
+                            ">
 
                                 <InfoCard
                                     icon={
@@ -1171,17 +1486,16 @@ export function ProductShow() {
 
                 </div>
 
+
                 {/* Statistics */}
 
-                <div
-                    className="
-                        grid
-                        grid-cols-1
-                        md:grid-cols-4
-                        gap-4
-                        mb-4
-                    "
-                >
+                <div className="
+                    grid
+                    grid-cols-1
+                    md:grid-cols-4
+                    gap-4
+                    mb-4
+                ">
 
                     <StatCard
                         icon={
@@ -1219,90 +1533,123 @@ export function ProductShow() {
 
                 </div>
 
+
                 {/* Variants */}
 
-                <div
-                    className="
-                        border border-admin-border
-                        bg-admin-surface
-                        rounded-2xl
-                        overflow-hidden
-                    "
-                >
+                <div className="
+                    border
+                    border-admin-border
+                    bg-admin-surface
+                    rounded-2xl
+                    overflow-hidden
+                ">
 
                     {/* Variant Header */}
 
-                    <div
-                        className="
-                            p-6
-                            border-b border-admin-border
-                            flex items-center justify-between
-                        "
-                    >
+                    <div className="
+                        p-6
+                        border-b
+                        border-admin-border
+                        flex
+                        items-center
+                        justify-between
+                    ">
 
-                        <div className="flex items-center gap-2">
+                        <div className="
+                            flex
+                            items-center
+                            gap-2
+                        ">
 
-                            <Layers className="h-5 w-5 text-admin-primary" />
+                            <Layers className="
+                                h-5
+                                w-5
+                                text-admin-primary
+                            " />
 
-                            <h2 className="text-lg font-semibold">
+                            <h2 className="
+                                text-lg
+                                font-semibold
+                            ">
                                 Product Variants
                             </h2>
 
                         </div>
 
+
                         {!isAddingVariant &&
                             !editingVariantId && (
+
                                 <button
                                     onClick={
                                         handleStartAddVariant
                                     }
                                     className="
-                                        flex items-center gap-2
-                                        px-4 py-2
+                                        flex
+                                        items-center
+                                        gap-2
+                                        px-4
+                                        py-2
                                         rounded-xl
                                         bg-admin-primary
-                                        border border-admin-primary-border
+                                        border
+                                        border-admin-primary-border
                                         hover:bg-admin-primary-hover
-                                        transition-colors
                                         font-semibold
                                     "
                                 >
                                     <Plus className="h-4 w-4" />
                                     Add Variant
                                 </button>
+
                             )}
 
                     </div>
+
 
                     {/* Variant Form */}
 
                     {(isAddingVariant ||
                         editingVariantId) && (
 
-                        <div
-                            className="
-                                p-6
-                                border-b border-admin-border
-                                bg-slate-900/40
-                            "
-                        >
+                        <div className="
+                            p-6
+                            border-b
+                            border-admin-border
+                            bg-slate-900/40
+                        ">
 
-                            <div className="flex items-center justify-between mb-5">
+                            <div className="
+                                flex
+                                items-center
+                                justify-between
+                                mb-5
+                            ">
 
                                 <div>
-                                    <h3 className="font-semibold">
+
+                                    <h3 className="
+                                        font-semibold
+                                    ">
                                         {editingVariantId
                                             ? "Edit Variant"
                                             : "Add Variant"}
                                     </h3>
 
                                     {!editingVariantId && (
-                                        <p className="text-xs text-admin-muted mt-1">
-                                            Add variant details and
+                                        <p className="
+                                            text-xs
+                                            text-admin-muted
+                                            mt-1
+                                        ">
+                                            Add variant,
+                                            inventory and
                                             product images.
                                         </p>
                                     )}
+
                                 </div>
+
 
                                 <button
                                     onClick={
@@ -1321,15 +1668,17 @@ export function ProductShow() {
 
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                            <div className="
+                                grid
+                                grid-cols-1
+                                md:grid-cols-2
+                                gap-5
+                            ">
 
                                 {/* SKU */}
 
-                                <div>
-
-                                    <label className="block text-sm text-admin-muted mb-2">
-                                        SKU
-                                    </label>
+                                <FormField label="SKU">
 
                                     <input
                                         name="sku"
@@ -1339,27 +1688,16 @@ export function ProductShow() {
                                         onChange={
                                             handleVariantChange
                                         }
-                                        className="
-                                            w-full
-                                            px-4 py-3
-                                            rounded-lg
-                                            bg-slate-900
-                                            border border-admin-border
-                                            text-admin-text
-                                            outline-none
-                                            focus:border-admin-primary
-                                        "
+                                        placeholder="e.g. IP15-BLK-128"
+                                        className={inputClass}
                                     />
 
-                                </div>
+                                </FormField>
+
 
                                 {/* Price */}
 
-                                <div>
-
-                                    <label className="block text-sm text-admin-muted mb-2">
-                                        Price
-                                    </label>
+                                <FormField label="Price">
 
                                     <input
                                         type="number"
@@ -1372,27 +1710,16 @@ export function ProductShow() {
                                         onChange={
                                             handleVariantChange
                                         }
-                                        className="
-                                            w-full
-                                            px-4 py-3
-                                            rounded-lg
-                                            bg-slate-900
-                                            border border-admin-border
-                                            text-admin-text
-                                            outline-none
-                                            focus:border-admin-primary
-                                        "
+                                        placeholder="0.00"
+                                        className={inputClass}
                                     />
 
-                                </div>
+                                </FormField>
+
 
                                 {/* Discount */}
 
-                                <div>
-
-                                    <label className="block text-sm text-admin-muted mb-2">
-                                        Discount %
-                                    </label>
+                                <FormField label="Discount %">
 
                                     <input
                                         type="number"
@@ -1406,27 +1733,61 @@ export function ProductShow() {
                                         onChange={
                                             handleVariantChange
                                         }
-                                        className="
-                                            w-full
-                                            px-4 py-3
-                                            rounded-lg
-                                            bg-slate-900
-                                            border border-admin-border
-                                            text-admin-text
-                                            outline-none
-                                            focus:border-admin-primary
-                                        "
+                                        placeholder="0"
+                                        className={inputClass}
                                     />
 
-                                </div>
+                                </FormField>
+
+
+                                {/* Inventory */}
+
+                                <FormField
+                                    label="Stock Quantity"
+                                >
+
+                                    <div className="
+                                        relative
+                                    ">
+
+                                        <Boxes className="
+                                            absolute
+                                            left-3
+                                            top-1/2
+                                            -translate-y-1/2
+                                            h-4
+                                            w-4
+                                            text-admin-muted
+                                        " />
+
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            name="quantity"
+                                            value={
+                                                variantForm.quantity
+                                            }
+                                            onChange={
+                                                handleVariantChange
+                                            }
+                                            placeholder="0"
+                                            className={`
+                                                ${inputClass}
+                                                pl-10
+                                            `}
+                                        />
+
+                                    </div>
+
+                                </FormField>
+
 
                                 {/* Attributes */}
 
-                                <div>
-
-                                    <label className="block text-sm text-admin-muted mb-2">
-                                        Attributes
-                                    </label>
+                                <FormField
+                                    label="Attributes"
+                                >
 
                                     <textarea
                                         name="attributes"
@@ -1440,10 +1801,12 @@ export function ProductShow() {
                                         placeholder='{"color":"Black","storage":"256GB"}'
                                         className="
                                             w-full
-                                            px-4 py-3
+                                            px-4
+                                            py-3
                                             rounded-lg
                                             bg-slate-900
-                                            border border-admin-border
+                                            border
+                                            border-admin-border
                                             text-admin-text
                                             outline-none
                                             resize-none
@@ -1453,52 +1816,65 @@ export function ProductShow() {
                                         "
                                     />
 
-                                </div>
+                                </FormField>
+
 
                                 {/* Images */}
 
                                 {!editingVariantId && (
 
-                                    <div className="md:col-span-2">
+                                    <div className="
+                                        md:col-span-2
+                                    ">
 
-                                        <label className="block text-sm text-admin-muted mb-2">
+                                        <label className="
+                                            block
+                                            text-sm
+                                            text-admin-muted
+                                            mb-2
+                                        ">
                                             Variant Images
                                         </label>
 
-                                        <label
-                                            className="
-                                                group
-                                                flex flex-col
-                                                items-center justify-center
-                                                w-full
-                                                min-h-[180px]
-                                                rounded-xl
-                                                border-2
-                                                border-dashed
-                                                border-admin-border
-                                                bg-slate-900/50
-                                                hover:bg-slate-900
-                                                hover:border-admin-primary
-                                                cursor-pointer
-                                                transition-all
-                                            "
-                                        >
+                                        <label className="
+                                            group
+                                            flex
+                                            flex-col
+                                            items-center
+                                            justify-center
+                                            w-full
+                                            min-h-[180px]
+                                            rounded-xl
+                                            border-2
+                                            border-dashed
+                                            border-admin-border
+                                            bg-slate-900/50
+                                            hover:bg-slate-900
+                                            hover:border-admin-primary
+                                            cursor-pointer
+                                            transition-all
+                                        ">
 
-                                            <ImagePlus
-                                                className="
-                                                    h-10 w-10
-                                                    text-admin-muted
-                                                    group-hover:text-admin-primary
-                                                    mb-3
-                                                    transition-colors
-                                                "
-                                            />
+                                            <ImagePlus className="
+                                                h-10
+                                                w-10
+                                                text-admin-muted
+                                                group-hover:text-admin-primary
+                                                mb-3
+                                            " />
 
-                                            <span className="text-sm font-medium">
+                                            <span className="
+                                                text-sm
+                                                font-medium
+                                            ">
                                                 Click to upload images
                                             </span>
 
-                                            <span className="text-xs text-admin-muted mt-1">
+                                            <span className="
+                                                text-xs
+                                                text-admin-muted
+                                                mt-1
+                                            ">
                                                 PNG, JPG, WEBP up to 10MB
                                             </span>
 
@@ -1514,12 +1890,21 @@ export function ProductShow() {
 
                                         </label>
 
-                                        {/* Image previews */}
+
+                                        {/* Previews */}
 
                                         {variantMediaPreviews.length >
                                             0 && (
 
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
+                                            <div className="
+                                                grid
+                                                grid-cols-2
+                                                sm:grid-cols-3
+                                                md:grid-cols-4
+                                                lg:grid-cols-5
+                                                gap-4
+                                                mt-4
+                                            ">
 
                                                 {variantMediaPreviews.map(
                                                     (
@@ -1572,30 +1957,30 @@ export function ProductShow() {
                                                                     text-white
                                                                     opacity-0
                                                                     group-hover:opacity-100
-                                                                    transition-opacity
                                                                     hover:bg-red-500
                                                                 "
                                                             >
                                                                 <X className="h-4 w-4" />
                                                             </button>
 
+
                                                             {index ===
                                                                 0 && (
-                                                                <span
-                                                                    className="
-                                                                        absolute
-                                                                        bottom-2
-                                                                        left-2
-                                                                        px-2
-                                                                        py-1
-                                                                        rounded-md
-                                                                        bg-black/70
-                                                                        text-xs
-                                                                        text-white
-                                                                    "
-                                                                >
+
+                                                                <span className="
+                                                                    absolute
+                                                                    bottom-2
+                                                                    left-2
+                                                                    px-2
+                                                                    py-1
+                                                                    rounded-md
+                                                                    bg-black/70
+                                                                    text-xs
+                                                                    text-white
+                                                                ">
                                                                     Main image
                                                                 </span>
+
                                                             )}
 
                                                         </div>
@@ -1611,11 +1996,19 @@ export function ProductShow() {
 
                                 )}
 
+
                                 {/* Active */}
 
-                                <div className="md:col-span-2">
+                                <div className="
+                                    md:col-span-2
+                                ">
 
-                                    <label className="flex items-center gap-3 cursor-pointer">
+                                    <label className="
+                                        flex
+                                        items-center
+                                        gap-3
+                                        cursor-pointer
+                                    ">
 
                                         <input
                                             type="checkbox"
@@ -1627,13 +2020,16 @@ export function ProductShow() {
                                                 handleVariantChange
                                             }
                                             className="
-                                                h-4 w-4
+                                                h-4
+                                                w-4
                                                 cursor-pointer
                                                 accent-blue-500
                                             "
                                         />
 
-                                        <span className="text-sm">
+                                        <span className="
+                                            text-sm
+                                        ">
                                             Variant is active
                                         </span>
 
@@ -1643,9 +2039,15 @@ export function ProductShow() {
 
                             </div>
 
+
                             {/* Buttons */}
 
-                            <div className="flex justify-end gap-2 mt-6">
+                            <div className="
+                                flex
+                                justify-end
+                                gap-2
+                                mt-6
+                            ">
 
                                 <button
                                     onClick={
@@ -1656,10 +2058,14 @@ export function ProductShow() {
                                         isUpdatingVariant
                                     }
                                     className="
-                                        flex items-center gap-2
-                                        px-4 py-2
+                                        flex
+                                        items-center
+                                        gap-2
+                                        px-4
+                                        py-2
                                         rounded-xl
-                                        border border-admin-border
+                                        border
+                                        border-admin-border
                                         text-admin-muted
                                         hover:text-admin-text
                                         hover:bg-slate-800
@@ -1668,6 +2074,7 @@ export function ProductShow() {
                                     <X className="h-4 w-4" />
                                     Cancel
                                 </button>
+
 
                                 <button
                                     onClick={
@@ -1678,20 +2085,29 @@ export function ProductShow() {
                                         isUpdatingVariant
                                     }
                                     className="
-                                        flex items-center gap-2
-                                        px-4 py-2
+                                        flex
+                                        items-center
+                                        gap-2
+                                        px-4
+                                        py-2
                                         rounded-xl
                                         bg-admin-primary
-                                        border border-admin-primary-border
+                                        border
+                                        border-admin-primary-border
                                         hover:bg-admin-primary-hover
                                         font-semibold
                                         disabled:opacity-50
                                         disabled:cursor-not-allowed
                                     "
                                 >
+
                                     {isUploadingVariant ? (
                                         <>
-                                            <Upload className="h-4 w-4 animate-pulse" />
+                                            <Upload className="
+                                                h-4
+                                                w-4
+                                                animate-pulse
+                                            " />
                                             Uploading...
                                         </>
                                     ) : isUpdatingVariant ? (
@@ -1705,60 +2121,73 @@ export function ProductShow() {
                                             Save Variant
                                         </>
                                     )}
+
                                 </button>
 
                             </div>
 
                         </div>
+
                     )}
+
 
                     {/* Variant table */}
 
                     {variants.length > 0 ? (
 
-                        <div className="overflow-x-auto">
+                        <div className="
+                            overflow-x-auto
+                        ">
 
-                            <table className="w-full text-left">
+                            <table className="
+                                w-full
+                                text-left
+                            ">
 
-                                <thead className="bg-slate-900 border-b border-admin-border">
+                                <thead className="
+                                    bg-slate-900
+                                    border-b
+                                    border-admin-border
+                                ">
 
                                     <tr>
 
-                                        <th className="px-6 py-4 text-sm text-admin-muted">
+                                        <TableHeader>
                                             SKU
-                                        </th>
+                                        </TableHeader>
 
-                                        <th className="px-6 py-4 text-sm text-admin-muted">
+                                        <TableHeader>
                                             Images
-                                        </th>
+                                        </TableHeader>
 
-                                        <th className="px-6 py-4 text-sm text-admin-muted">
+                                        <TableHeader>
                                             Attributes
-                                        </th>
+                                        </TableHeader>
 
-                                        <th className="px-6 py-4 text-sm text-admin-muted">
+                                        <TableHeader>
                                             Price
-                                        </th>
+                                        </TableHeader>
 
-                                        <th className="px-6 py-4 text-sm text-admin-muted">
+                                        <TableHeader>
                                             Discount
-                                        </th>
+                                        </TableHeader>
 
-                                        <th className="px-6 py-4 text-sm text-admin-muted">
+                                        <TableHeader>
                                             Stock
-                                        </th>
+                                        </TableHeader>
 
-                                        <th className="px-6 py-4 text-sm text-admin-muted">
+                                        <TableHeader>
                                             Status
-                                        </th>
+                                        </TableHeader>
 
-                                        <th className="px-6 py-4 text-sm text-admin-muted text-right">
+                                        <TableHeader align="right">
                                             Actions
-                                        </th>
+                                        </TableHeader>
 
                                     </tr>
 
                                 </thead>
+
 
                                 <tbody>
 
@@ -1806,20 +2235,33 @@ export function ProductShow() {
 
                                                     {/* SKU */}
 
-                                                    <td className="px-6 py-5 text-sm font-medium">
+                                                    <td className="
+                                                        px-6
+                                                        py-5
+                                                        text-sm
+                                                        font-medium
+                                                    ">
                                                         {
                                                             variant.sku
                                                         }
                                                     </td>
 
+
                                                     {/* Images */}
 
-                                                    <td className="px-6 py-5">
+                                                    <td className="
+                                                        px-6
+                                                        py-5
+                                                    ">
 
                                                         {media.length >
                                                         0 ? (
 
-                                                            <div className="flex items-center -space-x-2">
+                                                            <div className="
+                                                                flex
+                                                                items-center
+                                                                -space-x-2
+                                                            ">
 
                                                                 {media
                                                                     .slice(
@@ -1857,45 +2299,43 @@ export function ProductShow() {
 
                                                                 {media.length >
                                                                     3 && (
-                                                                    <span
-                                                                        className="
-                                                                            flex
-                                                                            items-center
-                                                                            justify-center
-                                                                            h-10
-                                                                            w-10
-                                                                            rounded-lg
-                                                                            bg-slate-700
-                                                                            border-2
-                                                                            border-slate-800
-                                                                            text-xs
-                                                                            font-medium
-                                                                        "
-                                                                    >
+
+                                                                    <span className="
+                                                                        flex
+                                                                        items-center
+                                                                        justify-center
+                                                                        h-10
+                                                                        w-10
+                                                                        rounded-lg
+                                                                        bg-slate-700
+                                                                        border-2
+                                                                        border-slate-800
+                                                                        text-xs
+                                                                        font-medium
+                                                                    ">
                                                                         +
                                                                         {media.length -
                                                                             3}
                                                                     </span>
+
                                                                 )}
 
                                                             </div>
 
                                                         ) : (
 
-                                                            <div
-                                                                className="
-                                                                    flex
-                                                                    items-center
-                                                                    justify-center
-                                                                    h-10
-                                                                    w-10
-                                                                    rounded-lg
-                                                                    bg-slate-900
-                                                                    border
-                                                                    border-admin-border
-                                                                    text-admin-muted
-                                                                "
-                                                            >
+                                                            <div className="
+                                                                flex
+                                                                items-center
+                                                                justify-center
+                                                                h-10
+                                                                w-10
+                                                                rounded-lg
+                                                                bg-slate-900
+                                                                border
+                                                                border-admin-border
+                                                                text-admin-muted
+                                                            ">
                                                                 <ImagePlus className="h-4 w-4" />
                                                             </div>
 
@@ -1903,9 +2343,15 @@ export function ProductShow() {
 
                                                     </td>
 
+
                                                     {/* Attributes */}
 
-                                                    <td className="px-6 py-5 text-sm text-admin-muted">
+                                                    <td className="
+                                                        px-6
+                                                        py-5
+                                                        text-sm
+                                                        text-admin-muted
+                                                    ">
 
                                                         {variant.attributes &&
                                                         Object.keys(
@@ -1929,10 +2375,14 @@ export function ProductShow() {
 
                                                     </td>
 
+
                                                     {/* Price */}
 
-                                                    <td className="px-6 py-5 text-sm">
-
+                                                    <td className="
+                                                        px-6
+                                                        py-5
+                                                        text-sm
+                                                    ">
                                                         $
                                                         {Number(
                                                             variant.price ||
@@ -1940,36 +2390,75 @@ export function ProductShow() {
                                                         ).toFixed(
                                                             2
                                                         )}
-
                                                     </td>
+
 
                                                     {/* Discount */}
 
-                                                    <td className="px-6 py-5 text-sm">
-
+                                                    <td className="
+                                                        px-6
+                                                        py-5
+                                                        text-sm
+                                                    ">
                                                         {Number(
                                                             variant.discount_percentage ||
                                                                 0
                                                         )}
                                                         %
-
                                                     </td>
+
 
                                                     {/* Stock */}
 
-                                                    <td className="px-6 py-5 text-sm">
-                                                        {stock} pcs
+                                                    <td className="
+                                                        px-6
+                                                        py-5
+                                                        text-sm
+                                                    ">
+
+                                                        <div className="
+                                                            flex
+                                                            items-center
+                                                            gap-2
+                                                        ">
+
+                                                            <Package className="
+                                                                h-4
+                                                                w-4
+                                                                text-admin-muted
+                                                            " />
+
+                                                            <span>
+                                                                {stock} pcs
+                                                            </span>
+
+                                                        </div>
+
                                                     </td>
+
 
                                                     {/* Status */}
 
-                                                    <td className="px-6 py-5">
+                                                    <td className="
+                                                        px-6
+                                                        py-5
+                                                    ">
 
                                                         {active ? (
 
-                                                            <span className="flex items-center gap-2 text-admin-active">
+                                                            <span className="
+                                                                flex
+                                                                items-center
+                                                                gap-2
+                                                                text-admin-active
+                                                            ">
 
-                                                                <span className="h-1.5 w-1.5 rounded-full bg-admin-active" />
+                                                                <span className="
+                                                                    h-1.5
+                                                                    w-1.5
+                                                                    rounded-full
+                                                                    bg-admin-active
+                                                                " />
 
                                                                 Active
 
@@ -1977,11 +2466,23 @@ export function ProductShow() {
 
                                                         ) : (
 
-                                                            <span className="flex items-center gap-2 text-admin-inactive">
+                                                            <span className="
+                                                                flex
+                                                                items-center
+                                                                gap-2
+                                                                text-admin-inactive
+                                                            ">
 
-                                                                <span className="h-1.5 w-1.5 rounded-full bg-minimal-red" />
+                                                                <span className="
+                                                                    h-1.5
+                                                                    w-1.5
+                                                                    rounded-full
+                                                                    bg-minimal-red
+                                                                " />
 
-                                                                Inactive
+                                                                {stock === 0
+                                                                    ? "Out of Stock"
+                                                                    : "Inactive"}
 
                                                             </span>
 
@@ -1989,11 +2490,19 @@ export function ProductShow() {
 
                                                     </td>
 
+
                                                     {/* Actions */}
 
-                                                    <td className="px-6 py-5">
+                                                    <td className="
+                                                        px-6
+                                                        py-5
+                                                    ">
 
-                                                        <div className="flex justify-end gap-2">
+                                                        <div className="
+                                                            flex
+                                                            justify-end
+                                                            gap-2
+                                                        ">
 
                                                             <button
                                                                 onClick={() =>
@@ -2015,6 +2524,7 @@ export function ProductShow() {
                                                             >
                                                                 <Edit className="h-4 w-4" />
                                                             </button>
+
 
                                                             <button
                                                                 onClick={() =>
@@ -2055,22 +2565,37 @@ export function ProductShow() {
 
                     ) : (
 
-                        <div className="px-6 py-12 text-center text-admin-muted">
+                        <div className="
+                            px-6
+                            py-12
+                            text-center
+                            text-admin-muted
+                        ">
 
-                            <Layers className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                            <Layers className="
+                                h-10
+                                w-10
+                                mx-auto
+                                mb-3
+                                opacity-40
+                            " />
 
                             <p className="mb-4">
                                 No variants found.
                             </p>
 
                             {!isAddingVariant && (
+
                                 <button
                                     onClick={
                                         handleStartAddVariant
                                     }
                                     className="
-                                        inline-flex items-center gap-2
-                                        px-4 py-2
+                                        inline-flex
+                                        items-center
+                                        gap-2
+                                        px-4
+                                        py-2
                                         rounded-xl
                                         bg-admin-primary
                                         hover:bg-admin-primary-hover
@@ -2080,6 +2605,7 @@ export function ProductShow() {
                                     <Plus className="h-4 w-4" />
                                     Add Variant
                                 </button>
+
                             )}
 
                         </div>
@@ -2095,29 +2621,102 @@ export function ProductShow() {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| Info Card
-|--------------------------------------------------------------------------
-*/
+/* ============================================================
+   Form Field
+============================================================ */
 
-function InfoCard({ icon, label, value }) {
+function FormField({
+    label,
+    children,
+}) {
     return (
-        <div
-            className="
-                p-4
-                rounded-xl
-                bg-slate-900/60
-                border border-admin-border
-            "
+        <div>
+            <label className="
+                block
+                text-sm
+                text-admin-muted
+                mb-2
+            ">
+                {label}
+            </label>
+
+            {children}
+        </div>
+    );
+}
+
+
+/* ============================================================
+   Shared input class
+============================================================ */
+
+const inputClass = `
+    w-full
+    px-4
+    py-3
+    rounded-lg
+    bg-slate-900
+    border
+    border-admin-border
+    text-admin-text
+    outline-none
+    focus:border-admin-primary
+`;
+
+
+/* ============================================================
+   Table Header
+============================================================ */
+
+function TableHeader({
+    children,
+    align = "left",
+}) {
+    return (
+        <th
+            className={`
+                px-6
+                py-4
+                text-sm
+                text-admin-muted
+                ${
+                    align === "right"
+                        ? "text-right"
+                        : "text-left"
+                }
+            `}
         >
-            <div
-                className="
-                    flex items-center gap-2
-                    text-admin-muted
-                    mb-2
-                "
-            >
+            {children}
+        </th>
+    );
+}
+
+
+/* ============================================================
+   Info Card
+============================================================ */
+
+function InfoCard({
+    icon,
+    label,
+    value,
+}) {
+    return (
+        <div className="
+            p-4
+            rounded-xl
+            bg-slate-900/60
+            border
+            border-admin-border
+        ">
+
+            <div className="
+                flex
+                items-center
+                gap-2
+                text-admin-muted
+                mb-2
+            ">
                 {icon}
 
                 <span className="text-xs">
@@ -2128,34 +2727,37 @@ function InfoCard({ icon, label, value }) {
             <p className="font-semibold">
                 {value}
             </p>
+
         </div>
     );
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| Stat Card
-|--------------------------------------------------------------------------
-*/
+/* ============================================================
+   Stat Card
+============================================================ */
 
-function StatCard({ icon, label, value }) {
+function StatCard({
+    icon,
+    label,
+    value,
+}) {
     return (
-        <div
-            className="
-                border border-admin-border
-                bg-admin-surface
-                rounded-2xl
-                p-5
-            "
-        >
-            <div
-                className="
-                    flex items-center gap-2
-                    text-admin-muted
-                    mb-3
-                "
-            >
+        <div className="
+            border
+            border-admin-border
+            bg-admin-surface
+            rounded-2xl
+            p-5
+        ">
+
+            <div className="
+                flex
+                items-center
+                gap-2
+                text-admin-muted
+                mb-3
+            ">
                 {icon}
 
                 <span className="text-sm">
@@ -2163,9 +2765,13 @@ function StatCard({ icon, label, value }) {
                 </span>
             </div>
 
-            <p className="text-2xl font-bold">
+            <p className="
+                text-2xl
+                font-bold
+            ">
                 {value}
             </p>
+
         </div>
     );
 }

@@ -15,6 +15,10 @@ class BrandResponse(BaseModel):
     is_active: bool
     model_config = ConfigDict(from_attributes=True)
 
+class BrandPatchRequest (BaseModel):
+    name: str | None = None
+    is_active: bool | None = None
+
 
 class CategoryCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -25,6 +29,10 @@ class CategoryResponse(BaseModel):
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+class CategoryPatchRequest (BaseModel):
+    name: str | None = None
+    is_active: bool | None = None
 
 class TagCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)

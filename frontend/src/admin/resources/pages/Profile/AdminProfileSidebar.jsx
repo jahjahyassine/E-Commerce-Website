@@ -9,7 +9,11 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    ShoppingCart
+    ShoppingCart,
+    Package,
+    Boxes,
+    History,
+    Truck,
 } from "lucide-react";
 import { useState } from "react";
 

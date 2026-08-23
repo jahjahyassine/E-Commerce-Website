@@ -11,6 +11,8 @@ import {
     Star,
     BadgePercent,
     BarChart3,
+    Truck,
+    History,
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
@@ -52,6 +54,7 @@ function AdminSidebar() {
                 },
             ],
         },
+
         {
             title: "CATALOG",
             items: [
@@ -77,6 +80,7 @@ function AdminSidebar() {
                 },
             ],
         },
+
         {
             title: "SALES",
             items: [
@@ -92,6 +96,23 @@ function AdminSidebar() {
                 },
             ],
         },
+
+        {
+            title: "OPERATIONS",
+            items: [
+                {
+                    label: "Suppliers",
+                    to: "/admin/suppliers",
+                    icon: Truck,
+                },
+                {
+                    label: "Stock History",
+                    to: "/admin/inventory/history",
+                    icon: History,
+                },
+            ],
+        },
+
         {
             title: "ENGAGEMENT",
             items: [
@@ -107,6 +128,7 @@ function AdminSidebar() {
                 },
             ],
         },
+
         {
             title: "INSIGHTS",
             items: [

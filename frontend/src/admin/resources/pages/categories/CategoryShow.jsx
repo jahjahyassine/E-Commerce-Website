@@ -102,7 +102,9 @@ export function CategoryShow() {
 
     const {
         mutate: updateCategory,
-        isPending: isUpdating,
+        mutation: {
+            isPending: isUpdating,
+        },
     } = useUpdate();
 
     useEffect(() => {
@@ -134,6 +136,12 @@ export function CategoryShow() {
             return;
         }
 
+        console.log("Updating category:", {
+            id,
+            name: form.name.trim(),
+            is_active: form.is_active,
+        });
+
         updateCategory(
             {
                 resource: "categories",
@@ -144,9 +152,18 @@ export function CategoryShow() {
                 },
             },
             {
-                onSuccess: () => {
+                onSuccess: (data) => {
+                    console.log("✅ Category updated:", data);
                     setIsEditing(false);
                     refetch();
+                },
+
+                onError: (error) => {
+                    console.error("❌ Category update failed:", error);
+                    alert(
+                        error?.message ||
+                        "Failed to update category."
+                    );
                 },
             }
         );

@@ -9,7 +9,7 @@ from models.inventory import Inventory
 from schemas.user import UserResponse
 from models.product import Brand, Category, Media, Product, ProductVariant, Tag
 from models.user import User
-from schemas.product import BrandCreate, BrandResponse, CategoryCreate, CategoryResponse, ProductCreateRequest, ProductResponse, ProductUpdate, ProductVariantCreateRequest, TagCreate
+from schemas.product import BrandCreate, BrandPatchRequest, BrandResponse, CategoryCreate, CategoryPatchRequest, CategoryResponse, ProductCreateRequest, ProductResponse, ProductUpdate, ProductVariantCreateRequest, TagCreate
 from core.database import get_db
 from core.security import decode_access_token
 
@@ -399,46 +399,180 @@ async def add_product_variant(
 
 
 
+
+
 @router.post("/admin/categories")
-def add_brand(category: CategoryCreate, db: Annotated[Session, Depends(get_db)]):
-    new_category = Category (
+def add_category(
+    category: CategoryCreate,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    user_id = user_infos.get("id")
+
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if user.role != "CUSTOMER":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized Action",
+        )
+
+    existing_category = (
+        db.query(Category)
+        .filter(
+            func.lower(Category.name) == category.name.strip().lower())
+        .first()
+    )
+
+    if existing_category:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Category already exists",
+        )
+
+    new_category = Category(
         name=category.name
     )
 
     db.add(new_category)
     db.commit()
-
     db.refresh(new_category)
+
+    return new_category
 
 
 @router.post("/admin/brands")
-def add_brand(brand: BrandCreate, db: Annotated[Session, Depends(get_db)]):
-    new_brand = Brand (
+def add_brand(
+    brand: BrandCreate,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    user_id = user_infos.get("id")
+
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if user.role != "CUSTOMER":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized Action",
+        )
+
+    existing_brand = (
+        db.query(Brand)
+        .filter(
+            func.lower(Brand.name) == brand.name.strip().lower())
+        .first()
+    )
+
+    if existing_brand:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Brand already exists",
+        )
+
+    new_brand = Brand(
         name=brand.name
     )
 
     db.add(new_brand)
     db.commit()
-
     db.refresh(new_brand)
+
+    return new_brand
 
 
 @router.post("/admin/tags")
-def add_tag(tag: TagCreate, db: Annotated[Session, Depends(get_db)]):
-    new_tag = Tag (
+def add_tag(
+    tag: TagCreate,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    user_id = user_infos.get("id")
+
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if user.role != "CUSTOMER":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized Action",
+        )
+
+    # Check duplicate name
+    existing_tag = (
+        db.query(Tag)
+        .filter(
+            func.lower(Tag.name) == tag.name.strip().lower())
+        .first()
+    )
+
+    if existing_tag:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Tag already exists",
+        )
+
+    new_tag = Tag(
         name=tag.name
     )
 
     db.add(new_tag)
     db.commit()
-
     db.refresh(new_tag)
+
+    return new_tag
+
+
+
+
+
 
 
 
 @router.get("/admin/categories", response_model=list[CategoryResponse])
-def get_categories(db: Annotated[Session, Depends(get_db)]):
-    categories = db.query(Category).all()
+def get_categories(
+    db: Annotated[Session, Depends(get_db)],
+    name: str | None = None,
+    is_active: bool | None = None
+):
+    query = db.query(Category)
+
+    if name is not None:
+        query = query.filter(Category.name.ilike(f"%{name}%"))
+
+    if is_active is not None:
+        query = query.filter(Category.is_active == is_active)
+
+    categories = query.all()
 
     return categories
 
@@ -453,11 +587,127 @@ def get_category(
     return category
 
 
-@router.get("/admin/brands", response_model=list[BrandResponse])
-def get_brands(db: Annotated[Session, Depends(get_db)]):
-    brands = db.query(Brand).all()
+@router.patch("/admin/categories/{category_id}", response_model=CategoryResponse)
+def patch_category(
+    db: Annotated[Session, Depends(get_db)],
+    category_id: int,
+    category_data: CategoryPatchRequest,
+    user_infos: Annotated[dict, Depends(decode_access_token)]
+):
+    user_id = user_infos.get("id")
 
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    if user.role != "CUSTOMER":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized Action"
+        )
+    
+    category = db.query(Category).filter(Category.id == category_id).first()
+
+
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+
+    category_data = category_data.model_dump(
+        exclude_unset=True
+    )
+
+    for field, value in category_data.items():
+        setattr(category, field, value)
+
+    db.commit()
+    db.refresh(category)
+
+    return category
+
+
+# =================== Brand ====================
+
+@router.get("/admin/brands", response_model=list[BrandResponse])
+def get_brands(
+    db: Annotated[Session, Depends(get_db)],
+    name: str | None = None,
+    is_active: bool | None = None
+):
+    query = db.query(Brand)
+
+    if name is not None:
+        query = query.filter(Brand.name.ilike(f"%{name}%"))
+
+    if is_active is not None:
+        query = query.filter(Brand.is_active == is_active)
+
+    brands = query.all()
+    
     return brands
+
+
+
+
+@router.get("/admin/brands/{brand_id}", response_model=BrandResponse)
+def get_brand(
+    db: Annotated[Session, Depends(get_db)],
+    brand_id: int
+):
+    brand = db.query(Brand).filter(Brand.id == brand_id).first()
+
+    return brand
+
+
+@router.patch("/admin/brands/{brand_id}", response_model=BrandResponse)
+def patch_brand(
+    db: Annotated[Session, Depends(get_db)],
+    brand_id: int,
+    brand_data: BrandPatchRequest,
+    user_infos: Annotated[dict, Depends(decode_access_token)]
+):
+    user_id = user_infos.get("id")
+
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    if user.role != "CUSTOMER":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized Action"
+        )
+    
+    brand = db.query(Brand).filter(Brand.id == brand_id).first()
+
+
+    if not brand:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="brand not found"
+        )
+
+    brand_data = brand_data.model_dump(
+        exclude_unset=True
+    )
+
+    for field, value in brand_data.items():
+        setattr(brand, field, value)
+
+    db.commit()
+    db.refresh(brand)
+
+    return brand
 
 @router.get("/admin/tags")
 def get_tags(db: Annotated[Session, Depends(get_db)]):

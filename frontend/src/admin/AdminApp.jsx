@@ -7,6 +7,8 @@ import { ProductCreate } from "./resources/pages/products/ProductCreate";
 import AdminProfile from "./resources/pages/Profile/AdminProfile";
 import { CategoryList } from "./resources/pages/categories/CategoryList";
 import { CategoryShow } from "./resources/pages/categories/CategoryShow";
+import { BrandList } from "./resources/pages/brands/BrandList";
+import { BrandShow } from "./resources/pages/brands/BrandShow";
 
 function AdminApp() {
     return (
@@ -56,6 +58,10 @@ function AdminApp() {
 
                 <Route path="categories" element={<CategoryList />} />
                 <Route path="categories/:id" element={<CategoryShow />} />
+
+
+                <Route path="brands" element={<BrandList />} />
+                <Route path="brands/:id" element={<BrandShow />} />
 
                 <Route index element={<AdminProfile />} />
             </Routes>
