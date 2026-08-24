@@ -9,6 +9,8 @@ import { CategoryList } from "./resources/pages/categories/CategoryList";
 import { CategoryShow } from "./resources/pages/categories/CategoryShow";
 import { BrandList } from "./resources/pages/brands/BrandList";
 import { BrandShow } from "./resources/pages/brands/BrandShow";
+import { InventoryList } from "./resources/pages/inventory products/InventoryList";
+import { ProductVariantShow } from "./resources/pages/inventory products/ProductShow";
 
 function AdminApp() {
     return (
@@ -62,6 +64,10 @@ function AdminApp() {
 
                 <Route path="brands" element={<BrandList />} />
                 <Route path="brands/:id" element={<BrandShow />} />
+
+
+                <Route path="inventory" element={<InventoryList />} />
+                <Route path="products/:id/variants/:variantId" element={<ProductVariantShow />} />
 
                 <Route index element={<AdminProfile />} />
             </Routes>

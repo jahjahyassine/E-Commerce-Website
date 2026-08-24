@@ -62,15 +62,70 @@ export function ProductShow() {
         price: "",
         discount_percentage: "",
         quantity: "",
-        attributes: "{}",
+        attributes: [],
         is_active: true,
     });
 
     const [variantMedia, setVariantMedia] = useState([]);
     const [variantMediaPreviews, setVariantMediaPreviews] = useState([]);
 
-    const [isUploadingVariant, setIsUploadingVariant] =
-        useState(false);
+    const [isUploadingVariant, setIsUploadingVariant] = useState(false);
+
+
+    const addAttribute = () => {
+        setVariantForm((prev) => ({
+            ...prev,
+            attributes: [
+                ...prev.attributes,
+                {
+                    key: "",
+                    value: "",
+                },
+            ],
+        }));
+    };
+
+    const updateAttribute = (index, field, value) => {
+        setVariantForm((prev) => ({
+            ...prev,
+            attributes: prev.attributes.map(
+                (attribute, i) =>
+                    i === index
+                        ? {
+                            ...attribute,
+                            [field]: value,
+                        }
+                        : attribute
+            ),
+        }));
+    };
+
+    const removeAttribute = (index) => {
+        setVariantForm((prev) => ({
+            ...prev,
+            attributes: prev.attributes.filter(
+                (_, i) => i !== index
+            ),
+        }));
+    };
+
+
+    const buildAttributes = () => {
+        const attributes = {};
+
+        variantForm.attributes.forEach(
+            ({ key, value }) => {
+                const cleanKey = key.trim();
+
+                if (cleanKey && value.trim()) {
+                    attributes[cleanKey] =
+                        value.trim();
+                }
+            }
+        );
+
+        return attributes;
+    };
 
     /* -----------------------------------------------------------
        Product
@@ -233,7 +288,7 @@ export function ProductShow() {
             price: "",
             discount_percentage: "",
             quantity: "",
-            attributes: "{}",
+            attributes: [],
             is_active: true,
         });
 
@@ -360,11 +415,12 @@ export function ProductShow() {
             quantity:
                 variant.inventory?.quantity ?? 0,
 
-            attributes: JSON.stringify(
-                variant.attributes ?? {},
-                null,
-                2
-            ),
+            attributes: Object.entries(
+                variant.attributes ?? {}
+            ).map(([key, value]) => ({
+                key,
+                value: String(value),
+            })),
 
             is_active:
                 variant.is_active ?? true,
@@ -400,35 +456,7 @@ export function ProductShow() {
         setIsAddingVariant(false);
     };
 
-    /* -----------------------------------------------------------
-       Parse attributes
-    ----------------------------------------------------------- */
 
-    const parseAttributes = () => {
-        try {
-            const parsed = JSON.parse(
-                variantForm.attributes || "{}"
-            );
-
-            if (
-                parsed === null ||
-                typeof parsed !== "object" ||
-                Array.isArray(parsed)
-            ) {
-                throw new Error(
-                    "Attributes must be an object."
-                );
-            }
-
-            return parsed;
-        } catch {
-            alert(
-                'Invalid attributes JSON. Example: {"color":"Black","storage":"256GB"}'
-            );
-
-            return null;
-        }
-    };
 
     /* -----------------------------------------------------------
        Validate variant
@@ -585,7 +613,7 @@ export function ProductShow() {
 
             alert(
                 err?.message ||
-                    "Failed to create variant."
+                "Failed to create variant."
             );
         } finally {
             setIsUploadingVariant(false);
@@ -602,7 +630,7 @@ export function ProductShow() {
         }
 
         const attributes =
-            parseAttributes();
+            buildAttributes();
 
         if (attributes === null) {
             return;
@@ -656,7 +684,7 @@ export function ProductShow() {
 
                         alert(
                             error?.message ||
-                                "Failed to update variant."
+                            "Failed to update variant."
                         );
                     },
                 }
@@ -713,7 +741,7 @@ export function ProductShow() {
 
                     alert(
                         error?.message ||
-                            "Failed to delete variant."
+                        "Failed to delete variant."
                     );
                 },
             }
@@ -752,7 +780,7 @@ export function ProductShow() {
                                 sum +
                                 Number(
                                     item.quantity ||
-                                        0
+                                    0
                                 ),
                             0
                         ) ?? 0
@@ -774,12 +802,12 @@ export function ProductShow() {
                                 sum +
                                 Number(
                                     item.quantity ||
-                                        0
+                                    0
                                 ) *
-                                    Number(
-                                        item.price ||
-                                            0
-                                    ),
+                                Number(
+                                    item.price ||
+                                    0
+                                ),
                             0
                         ) ?? 0
                 ),
@@ -1462,7 +1490,7 @@ export function ProductShow() {
                                     label="Rating"
                                     value={`${Number(
                                         product.average_rating ||
-                                            0
+                                        0
                                     ).toFixed(1)} / 5`}
                                 />
 
@@ -1612,145 +1640,145 @@ export function ProductShow() {
                     {(isAddingVariant ||
                         editingVariantId) && (
 
-                        <div className="
+                            <div className="
                             p-6
                             border-b
                             border-admin-border
                             bg-slate-900/40
                         ">
 
-                            <div className="
+                                <div className="
                                 flex
                                 items-center
                                 justify-between
                                 mb-5
                             ">
 
-                                <div>
+                                    <div>
 
-                                    <h3 className="
+                                        <h3 className="
                                         font-semibold
                                     ">
-                                        {editingVariantId
-                                            ? "Edit Variant"
-                                            : "Add Variant"}
-                                    </h3>
+                                            {editingVariantId
+                                                ? "Edit Variant"
+                                                : "Add Variant"}
+                                        </h3>
 
-                                    {!editingVariantId && (
-                                        <p className="
+                                        {!editingVariantId && (
+                                            <p className="
                                             text-xs
                                             text-admin-muted
                                             mt-1
                                         ">
-                                            Add variant,
-                                            inventory and
-                                            product images.
-                                        </p>
-                                    )}
+                                                Add variant,
+                                                inventory and
+                                                product images.
+                                            </p>
+                                        )}
 
-                                </div>
+                                    </div>
 
 
-                                <button
-                                    onClick={
-                                        handleCancelVariant
-                                    }
-                                    className="
+                                    <button
+                                        onClick={
+                                            handleCancelVariant
+                                        }
+                                        className="
                                         p-2
                                         rounded-lg
                                         text-admin-muted
                                         hover:text-admin-text
                                         hover:bg-slate-800
                                     "
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </button>
 
-                            </div>
+                                </div>
 
 
-                            <div className="
+                                <div className="
                                 grid
                                 grid-cols-1
                                 md:grid-cols-2
                                 gap-5
                             ">
 
-                                {/* SKU */}
+                                    {/* SKU */}
 
-                                <FormField label="SKU">
+                                    <FormField label="SKU">
 
-                                    <input
-                                        name="sku"
-                                        value={
-                                            variantForm.sku
-                                        }
-                                        onChange={
-                                            handleVariantChange
-                                        }
-                                        placeholder="e.g. IP15-BLK-128"
-                                        className={inputClass}
-                                    />
+                                        <input
+                                            name="sku"
+                                            value={
+                                                variantForm.sku
+                                            }
+                                            onChange={
+                                                handleVariantChange
+                                            }
+                                            placeholder="e.g. IP15-BLK-128"
+                                            className={inputClass}
+                                        />
 
-                                </FormField>
-
-
-                                {/* Price */}
-
-                                <FormField label="Price">
-
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        name="price"
-                                        value={
-                                            variantForm.price
-                                        }
-                                        onChange={
-                                            handleVariantChange
-                                        }
-                                        placeholder="0.00"
-                                        className={inputClass}
-                                    />
-
-                                </FormField>
+                                    </FormField>
 
 
-                                {/* Discount */}
+                                    {/* Price */}
 
-                                <FormField label="Discount %">
+                                    <FormField label="Price">
 
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        step="0.01"
-                                        name="discount_percentage"
-                                        value={
-                                            variantForm.discount_percentage
-                                        }
-                                        onChange={
-                                            handleVariantChange
-                                        }
-                                        placeholder="0"
-                                        className={inputClass}
-                                    />
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            name="price"
+                                            value={
+                                                variantForm.price
+                                            }
+                                            onChange={
+                                                handleVariantChange
+                                            }
+                                            placeholder="0.00"
+                                            className={inputClass}
+                                        />
 
-                                </FormField>
+                                    </FormField>
 
 
-                                {/* Inventory */}
+                                    {/* Discount */}
 
-                                <FormField
-                                    label="Stock Quantity"
-                                >
+                                    <FormField label="Discount %">
 
-                                    <div className="
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.01"
+                                            name="discount_percentage"
+                                            value={
+                                                variantForm.discount_percentage
+                                            }
+                                            onChange={
+                                                handleVariantChange
+                                            }
+                                            placeholder="0"
+                                            className={inputClass}
+                                        />
+
+                                    </FormField>
+
+
+                                    {/* Inventory */}
+
+                                    <FormField
+                                        label="Stock Quantity"
+                                    >
+
+                                        <div className="
                                         relative
                                     ">
 
-                                        <Boxes className="
+                                            <Boxes className="
                                             absolute
                                             left-3
                                             top-1/2
@@ -1760,83 +1788,211 @@ export function ProductShow() {
                                             text-admin-muted
                                         " />
 
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="1"
-                                            name="quantity"
-                                            value={
-                                                variantForm.quantity
-                                            }
-                                            onChange={
-                                                handleVariantChange
-                                            }
-                                            placeholder="0"
-                                            className={`
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                name="quantity"
+                                                value={
+                                                    variantForm.quantity
+                                                }
+                                                onChange={
+                                                    handleVariantChange
+                                                }
+                                                placeholder="0"
+                                                className={`
                                                 ${inputClass}
                                                 pl-10
                                             `}
-                                        />
+                                            />
 
+                                        </div>
+
+                                    </FormField>
+
+
+                                    {/* Attributes */}
+
+                                    <div className="md:col-span-2">
+                                        <div className="
+        flex
+        items-center
+        justify-between
+        mb-3
+    ">
+                                            <div>
+                                                <label className="
+                block
+                text-sm
+                text-admin-muted
+            ">
+                                                    Variant Attributes
+                                                </label>
+
+                                                <p className="
+                text-xs
+                text-admin-muted
+                mt-1
+            ">
+                                                    Add specifications such as RAM,
+                                                    storage, color, or processor.
+                                                </p>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={addAttribute}
+                                                className="
+                flex
+                items-center
+                gap-1.5
+                px-3
+                py-2
+                rounded-lg
+                border
+                border-admin-border
+                text-sm
+                text-admin-muted
+                hover:text-admin-text
+                hover:bg-slate-800
+                transition-colors
+            "
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                Add Attribute
+                                            </button>
+                                        </div>
+
+                                        <div className="
+        rounded-xl
+        border
+        border-admin-border
+        bg-slate-900/50
+        overflow-hidden
+    ">
+
+                                            {variantForm.attributes.length === 0 ? (
+                                                <div className="
+                px-4
+                py-8
+                text-center
+                text-sm
+                text-admin-muted
+            ">
+                                                    No attributes added yet.
+                                                </div>
+                                            ) : (
+                                                <div className="divide-y divide-slate-800">
+
+                                                    {variantForm.attributes.map(
+                                                        (attribute, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className="
+                                flex
+                                items-center
+                                gap-3
+                                p-3
+                            "
+                                                            >
+
+                                                                <input
+                                                                    type="text"
+                                                                    value={attribute.key}
+                                                                    onChange={(e) =>
+                                                                        updateAttribute(
+                                                                            index,
+                                                                            "key",
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    placeholder="Attribute name"
+                                                                    className="
+                                    w-1/3
+                                    px-3
+                                    py-2.5
+                                    rounded-lg
+                                    bg-slate-900
+                                    border
+                                    border-admin-border
+                                    text-admin-text
+                                    text-sm
+                                    outline-none
+                                    focus:border-admin-primary
+                                "
+                                                                />
+
+                                                                <input
+                                                                    type="text"
+                                                                    value={attribute.value}
+                                                                    onChange={(e) =>
+                                                                        updateAttribute(
+                                                                            index,
+                                                                            "value",
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    placeholder="Value"
+                                                                    className="
+                                    flex-1
+                                    px-3
+                                    py-2.5
+                                    rounded-lg
+                                    bg-slate-900
+                                    border
+                                    border-admin-border
+                                    text-admin-text
+                                    text-sm
+                                    outline-none
+                                    focus:border-admin-primary
+                                "
+                                                                />
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        removeAttribute(index)
+                                                                    }
+                                                                    className="
+                                    p-2
+                                    rounded-lg
+                                    text-red-400
+                                    hover:text-red-300
+                                    hover:bg-red-500/10
+                                "
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </button>
+
+                                                            </div>
+                                                        )
+                                                    )}
+
+                                                </div>
+                                            )}
+
+                                        </div>
                                     </div>
 
-                                </FormField>
 
+                                    {/* Images */}
 
-                                {/* Attributes */}
+                                    {!editingVariantId && (
 
-                                <FormField
-                                    label="Attributes"
-                                >
-
-                                    <textarea
-                                        name="attributes"
-                                        value={
-                                            variantForm.attributes
-                                        }
-                                        onChange={
-                                            handleVariantChange
-                                        }
-                                        rows={4}
-                                        placeholder='{"color":"Black","storage":"256GB"}'
-                                        className="
-                                            w-full
-                                            px-4
-                                            py-3
-                                            rounded-lg
-                                            bg-slate-900
-                                            border
-                                            border-admin-border
-                                            text-admin-text
-                                            outline-none
-                                            resize-none
-                                            focus:border-admin-primary
-                                            font-mono
-                                            text-sm
-                                        "
-                                    />
-
-                                </FormField>
-
-
-                                {/* Images */}
-
-                                {!editingVariantId && (
-
-                                    <div className="
+                                        <div className="
                                         md:col-span-2
                                     ">
 
-                                        <label className="
+                                            <label className="
                                             block
                                             text-sm
                                             text-admin-muted
                                             mb-2
                                         ">
-                                            Variant Images
-                                        </label>
+                                                Variant Images
+                                            </label>
 
-                                        <label className="
+                                            <label className="
                                             group
                                             flex
                                             flex-col
@@ -1855,7 +2011,7 @@ export function ProductShow() {
                                             transition-all
                                         ">
 
-                                            <ImagePlus className="
+                                                <ImagePlus className="
                                                 h-10
                                                 w-10
                                                 text-admin-muted
@@ -1863,40 +2019,40 @@ export function ProductShow() {
                                                 mb-3
                                             " />
 
-                                            <span className="
+                                                <span className="
                                                 text-sm
                                                 font-medium
                                             ">
-                                                Click to upload images
-                                            </span>
+                                                    Click to upload images
+                                                </span>
 
-                                            <span className="
+                                                <span className="
                                                 text-xs
                                                 text-admin-muted
                                                 mt-1
                                             ">
-                                                PNG, JPG, WEBP up to 10MB
-                                            </span>
+                                                    PNG, JPG, WEBP up to 10MB
+                                                </span>
 
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                multiple
-                                                onChange={
-                                                    handleVariantMediaChange
-                                                }
-                                                className="hidden"
-                                            />
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    multiple
+                                                    onChange={
+                                                        handleVariantMediaChange
+                                                    }
+                                                    className="hidden"
+                                                />
 
-                                        </label>
+                                            </label>
 
 
-                                        {/* Previews */}
+                                            {/* Previews */}
 
-                                        {variantMediaPreviews.length >
-                                            0 && (
+                                            {variantMediaPreviews.length >
+                                                0 && (
 
-                                            <div className="
+                                                    <div className="
                                                 grid
                                                 grid-cols-2
                                                 sm:grid-cols-3
@@ -1906,15 +2062,15 @@ export function ProductShow() {
                                                 mt-4
                                             ">
 
-                                                {variantMediaPreviews.map(
-                                                    (
-                                                        preview,
-                                                        index
-                                                    ) => (
+                                                        {variantMediaPreviews.map(
+                                                            (
+                                                                preview,
+                                                                index
+                                                            ) => (
 
-                                                        <div
-                                                            key={`${preview.file.name}-${index}`}
-                                                            className="
+                                                                <div
+                                                                    key={`${preview.file.name}-${index}`}
+                                                                    className="
                                                                 group
                                                                 relative
                                                                 aspect-square
@@ -1924,30 +2080,30 @@ export function ProductShow() {
                                                                 border-admin-border
                                                                 bg-slate-900
                                                             "
-                                                        >
+                                                                >
 
-                                                            <img
-                                                                src={
-                                                                    preview.url
-                                                                }
-                                                                alt={
-                                                                    preview.file.name
-                                                                }
-                                                                className="
+                                                                    <img
+                                                                        src={
+                                                                            preview.url
+                                                                        }
+                                                                        alt={
+                                                                            preview.file.name
+                                                                        }
+                                                                        className="
                                                                     w-full
                                                                     h-full
                                                                     object-cover
                                                                 "
-                                                            />
+                                                                    />
 
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    handleRemoveVariantMedia(
-                                                                        index
-                                                                    )
-                                                                }
-                                                                className="
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            handleRemoveVariantMedia(
+                                                                                index
+                                                                            )
+                                                                        }
+                                                                        className="
                                                                     absolute
                                                                     top-2
                                                                     right-2
@@ -1959,15 +2115,15 @@ export function ProductShow() {
                                                                     group-hover:opacity-100
                                                                     hover:bg-red-500
                                                                 "
-                                                            >
-                                                                <X className="h-4 w-4" />
-                                                            </button>
+                                                                    >
+                                                                        <X className="h-4 w-4" />
+                                                                    </button>
 
 
-                                                            {index ===
-                                                                0 && (
+                                                                    {index ===
+                                                                        0 && (
 
-                                                                <span className="
+                                                                            <span className="
                                                                     absolute
                                                                     bottom-2
                                                                     left-2
@@ -1978,86 +2134,86 @@ export function ProductShow() {
                                                                     text-xs
                                                                     text-white
                                                                 ">
-                                                                    Main image
-                                                                </span>
+                                                                                Main image
+                                                                            </span>
 
-                                                            )}
+                                                                        )}
 
-                                                        </div>
+                                                                </div>
 
-                                                    )
+                                                            )
+                                                        )}
+
+                                                    </div>
+
                                                 )}
 
-                                            </div>
+                                        </div>
 
-                                        )}
-
-                                    </div>
-
-                                )}
+                                    )}
 
 
-                                {/* Active */}
+                                    {/* Active */}
 
-                                <div className="
+                                    <div className="
                                     md:col-span-2
                                 ">
 
-                                    <label className="
+                                        <label className="
                                         flex
                                         items-center
                                         gap-3
                                         cursor-pointer
                                     ">
 
-                                        <input
-                                            type="checkbox"
-                                            name="is_active"
-                                            checked={
-                                                variantForm.is_active
-                                            }
-                                            onChange={
-                                                handleVariantChange
-                                            }
-                                            className="
+                                            <input
+                                                type="checkbox"
+                                                name="is_active"
+                                                checked={
+                                                    variantForm.is_active
+                                                }
+                                                onChange={
+                                                    handleVariantChange
+                                                }
+                                                className="
                                                 h-4
                                                 w-4
                                                 cursor-pointer
                                                 accent-blue-500
                                             "
-                                        />
+                                            />
 
-                                        <span className="
+                                            <span className="
                                             text-sm
                                         ">
-                                            Variant is active
-                                        </span>
+                                                Variant is active
+                                            </span>
 
-                                    </label>
+                                        </label>
+
+                                    </div>
 
                                 </div>
 
-                            </div>
 
+                                {/* Buttons */}
 
-                            {/* Buttons */}
-
-                            <div className="
+                                <div className="
                                 flex
                                 justify-end
                                 gap-2
                                 mt-6
                             ">
 
-                                <button
-                                    onClick={
-                                        handleCancelVariant
-                                    }
-                                    disabled={
-                                        isUploadingVariant ||
-                                        isUpdatingVariant
-                                    }
-                                    className="
+                                    <button
+                                        onClick={
+                                            handleCancelVariant
+                                        }
+                                        disabled={
+                                            isUploadingVariant ||
+                                            isUpdatingVariant
+                                        }
+                                        className="
                                         flex
                                         items-center
                                         gap-2
@@ -2070,21 +2226,21 @@ export function ProductShow() {
                                         hover:text-admin-text
                                         hover:bg-slate-800
                                     "
-                                >
-                                    <X className="h-4 w-4" />
-                                    Cancel
-                                </button>
+                                    >
+                                        <X className="h-4 w-4" />
+                                        Cancel
+                                    </button>
 
 
-                                <button
-                                    onClick={
-                                        handleSaveVariant
-                                    }
-                                    disabled={
-                                        isUploadingVariant ||
-                                        isUpdatingVariant
-                                    }
-                                    className="
+                                    <button
+                                        onClick={
+                                            handleSaveVariant
+                                        }
+                                        disabled={
+                                            isUploadingVariant ||
+                                            isUpdatingVariant
+                                        }
+                                        className="
                                         flex
                                         items-center
                                         gap-2
@@ -2099,36 +2255,36 @@ export function ProductShow() {
                                         disabled:opacity-50
                                         disabled:cursor-not-allowed
                                     "
-                                >
+                                    >
 
-                                    {isUploadingVariant ? (
-                                        <>
-                                            <Upload className="
+                                        {isUploadingVariant ? (
+                                            <>
+                                                <Upload className="
                                                 h-4
                                                 w-4
                                                 animate-pulse
                                             " />
-                                            Uploading...
-                                        </>
-                                    ) : isUpdatingVariant ? (
-                                        <>
-                                            <Save className="h-4 w-4" />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4" />
-                                            Save Variant
-                                        </>
-                                    )}
+                                                Uploading...
+                                            </>
+                                        ) : isUpdatingVariant ? (
+                                            <>
+                                                <Save className="h-4 w-4" />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="h-4 w-4" />
+                                                Save Variant
+                                            </>
+                                        )}
 
-                                </button>
+                                    </button>
+
+                                </div>
 
                             </div>
 
-                        </div>
-
-                    )}
+                        )}
 
 
                     {/* Variant table */}
@@ -2199,7 +2355,7 @@ export function ProductShow() {
                                                     variant
                                                         .inventory
                                                         ?.quantity ||
-                                                        0
+                                                    0
                                                 );
 
                                             const active =
@@ -2225,10 +2381,9 @@ export function ProductShow() {
                                                         border-slate-700/70
                                                         hover:bg-slate-800/50
                                                         transition-colors
-                                                        ${
-                                                            isCurrentVariant
-                                                                ? "bg-slate-800/70"
-                                                                : ""
+                                                        ${isCurrentVariant
+                                                            ? "bg-slate-800/70"
+                                                            : ""
                                                         }
                                                     `}
                                                 >
@@ -2255,7 +2410,7 @@ export function ProductShow() {
                                                     ">
 
                                                         {media.length >
-                                                        0 ? (
+                                                            0 ? (
 
                                                             <div className="
                                                                 flex
@@ -2300,7 +2455,7 @@ export function ProductShow() {
                                                                 {media.length >
                                                                     3 && (
 
-                                                                    <span className="
+                                                                        <span className="
                                                                         flex
                                                                         items-center
                                                                         justify-center
@@ -2313,12 +2468,12 @@ export function ProductShow() {
                                                                         text-xs
                                                                         font-medium
                                                                     ">
-                                                                        +
-                                                                        {media.length -
-                                                                            3}
-                                                                    </span>
+                                                                            +
+                                                                            {media.length -
+                                                                                3}
+                                                                        </span>
 
-                                                                )}
+                                                                    )}
 
                                                             </div>
 
@@ -2354,23 +2509,23 @@ export function ProductShow() {
                                                     ">
 
                                                         {variant.attributes &&
-                                                        Object.keys(
-                                                            variant.attributes
-                                                        ).length >
+                                                            Object.keys(
+                                                                variant.attributes
+                                                            ).length >
                                                             0
                                                             ? Object.entries(
-                                                                  variant.attributes
-                                                              )
-                                                                  .map(
-                                                                      ([
-                                                                          key,
-                                                                          value,
-                                                                      ]) =>
-                                                                          `${key}: ${value}`
-                                                                  )
-                                                                  .join(
-                                                                      ", "
-                                                                  )
+                                                                variant.attributes
+                                                            )
+                                                                .map(
+                                                                    ([
+                                                                        key,
+                                                                        value,
+                                                                    ]) =>
+                                                                        `${key}: ${value}`
+                                                                )
+                                                                .join(
+                                                                    ", "
+                                                                )
                                                             : "—"}
 
                                                     </td>
@@ -2386,7 +2541,7 @@ export function ProductShow() {
                                                         $
                                                         {Number(
                                                             variant.price ||
-                                                                0
+                                                            0
                                                         ).toFixed(
                                                             2
                                                         )}
@@ -2402,7 +2557,7 @@ export function ProductShow() {
                                                     ">
                                                         {Number(
                                                             variant.discount_percentage ||
-                                                                0
+                                                            0
                                                         )}
                                                         %
                                                     </td>
@@ -2679,10 +2834,9 @@ function TableHeader({
                 py-4
                 text-sm
                 text-admin-muted
-                ${
-                    align === "right"
-                        ? "text-right"
-                        : "text-left"
+                ${align === "right"
+                    ? "text-right"
+                    : "text-left"
                 }
             `}
         >

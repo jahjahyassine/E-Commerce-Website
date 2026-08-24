@@ -112,7 +112,35 @@ class ProductResponseBrief (BaseModel):
     name: str
     description: str | None
 
+class InventoryStockResponse(BaseModel):
+    id: int
+    quantity: int | None = None
 
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InventoryProductResponse(BaseModel):
+    id: int
+    name: str
+    category_id: int | None = None
+    brand_id: int | None = None
+    average_rating: float | None = None
+    is_active: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InventoryResponse(BaseModel):
+    id: int
+    sku: str
+    product_id: int
+    price: Decimal | None = None
+    discount_percentage: Decimal | None = None
+
+    product: InventoryProductResponse
+    inventory: InventoryStockResponse | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductVariantCreate(BaseModel):

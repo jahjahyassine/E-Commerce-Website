@@ -9,7 +9,7 @@ from models.inventory import Inventory
 from schemas.user import UserResponse
 from models.product import Brand, Category, Media, Product, ProductVariant, Tag
 from models.user import User
-from schemas.product import BrandCreate, BrandPatchRequest, BrandResponse, CategoryCreate, CategoryPatchRequest, CategoryResponse, ProductCreateRequest, ProductResponse, ProductUpdate, ProductVariantCreateRequest, TagCreate
+from schemas.product import BrandCreate, BrandPatchRequest, BrandResponse, CategoryCreate, CategoryPatchRequest, CategoryResponse, InventoryResponse, ProductCreateRequest, ProductResponse, ProductUpdate, ProductVariantCreateRequest, TagCreate
 from core.database import get_db
 from core.security import decode_access_token
 
@@ -284,6 +284,85 @@ def get_products(
 
 
 
+
+@router.get("/admin/inventory", response_model=list[InventoryResponse])
+def get_inventory(
+    db: Annotated[Session, Depends(get_db)],
+    category_id: int | None = None,
+    brand_id: int | None = None,
+    min_rating: float | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    search: str | None = None,
+    is_active: bool | None = None,
+):
+    query = (
+        db.query(ProductVariant)
+        .join(Product, ProductVariant.product_id == Product.id)
+    )
+
+    if search and search.strip():
+        search_pattern = f"%{search.strip()}%"
+
+        query = query.filter(
+            or_(
+                ProductVariant.name.ilike(search_pattern),
+                Product.name.ilike(search_pattern),
+            )
+        )
+
+    if category_id is not None:
+        query = query.filter(
+            Product.category_id == category_id
+        )
+
+    if brand_id is not None:
+        query = query.filter(
+            Product.brand_id == brand_id
+        )
+
+    if min_price is not None:
+        query = query.filter(
+            ProductVariant.price >= min_price
+        )
+
+    if max_price is not None:
+        query = query.filter(
+            ProductVariant.price <= max_price
+        )
+
+    if min_rating is not None:
+        query = query.filter(
+            Product.average_rating >= min_rating
+        )
+
+    if is_active is not None:
+
+        if is_active:
+            query = query.filter(
+                Product.is_active.is_(True),
+                exists().where(
+                    (Inventory.product_variant_id == ProductVariant.id)
+                    & (Inventory.quantity > 0)
+                )
+            )
+
+        else:
+            query = query.filter(
+                or_(
+                    Product.is_active.is_(False),
+                    ~exists().where(
+                        (Inventory.product_variant_id == ProductVariant.id)
+                        & (Inventory.quantity > 0)
+                    )
+                )
+            )
+
+    return query.all()
+
+
+
+
 @router.delete("/admin/products/{product_id}")
 def delete_products(
     db: Annotated[Session, Depends(get_db)],
@@ -317,10 +396,63 @@ def delete_products(
 
 
     db.delete(product)
+    db.commit()
 
     return {
         "message": "Product deleted successfully"
     }
+
+
+
+
+
+
+@router.delete("/admin/products/{product_id}/variants/{variant_id}")
+def delete_variants(
+    db: Annotated[Session, Depends(get_db)],
+    product_id: int,
+    variant_id: int,
+    user_infos: Annotated[dict, Depends(decode_access_token)]
+):
+    user_id = user_infos.get("id")
+
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    if user.role != "CUSTOMER":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized Action"
+        )
+    
+    variant = db.query(ProductVariant).filter(
+        or_(ProductVariant.id == variant_id,
+            ProductVariant.product_id == product_id)
+    ).first()
+
+
+    if not variant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Variant not found for this product"
+        )
+
+
+    db.delete(variant)
+    db.commit()
+
+    return {
+        "message": "Variant deleted successfully"
+    }
+
+
+
+
 
 
 
