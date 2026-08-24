@@ -9,7 +9,7 @@ from models.inventory import Inventory
 from schemas.user import UserResponse
 from models.product import Brand, Category, Media, Product, ProductVariant, Tag
 from models.user import User
-from schemas.product import BrandCreate, BrandPatchRequest, BrandResponse, CategoryCreate, CategoryPatchRequest, CategoryResponse, InventoryResponse, ProductCreateRequest, ProductResponse, ProductUpdate, ProductVariantCreateRequest, TagCreate
+from schemas.product import BrandCreate, BrandPatchRequest, BrandResponse, CategoryCreate, CategoryPatchRequest, CategoryResponse, InventoryResponse, ProductCreateRequest, ProductResponse, ProductUpdate, ProductVariantCreateRequest, ProductVariantResponse, ProductVariantUpdate, TagCreate
 from core.database import get_db
 from core.security import decode_access_token
 
@@ -525,6 +525,90 @@ async def add_product_variant(
     db.refresh(new_variant)
 
     return new_variant
+
+
+
+@router.patch("/admin/products/{product_id}/variants/{variant_id}")
+def update_variant(
+    product_id: int,
+    variant_id: int,
+    variant_data: ProductVariantUpdate,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)] 
+):
+    user_id = user_infos.get("id")
+    
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    if user.role != "CUSTOMER":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized Action"
+        )
+    
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id)
+        .first()
+    )
+
+    if product is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found"
+        )
+
+
+    product_variant = (
+            db.query(ProductVariant)
+            .filter(
+                ProductVariant.id == variant_id,
+                ProductVariant.product_id == product_id
+            )
+            .first()
+        )
+    
+    if product_variant is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Variant not found"
+        )
+
+    update_data = variant_data.model_dump(
+        exclude_unset=True
+    )
+
+    for field, value in update_data.items():
+        if field.lower() == "quantity":
+            inventory = db.query(Inventory).filter(
+                Inventory.product_variant_id == variant_id
+            ).first()
+
+            if inventory is None:
+                inventory = Inventory(
+                    product_variant_id=product_variant.id,
+                    quantity=value
+                )
+                db.add(inventory)
+            else:
+                inventory.quantity = value
+
+        else:
+            setattr(product_variant, field, value)
+
+    db.commit()
+    db.refresh(product_variant)
+
+    return {
+        "product": product_variant,
+        "data": variant_data
+    }
 
 
 

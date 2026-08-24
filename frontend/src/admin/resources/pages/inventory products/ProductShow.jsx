@@ -180,6 +180,11 @@ export function ProductVariantShow() {
         isPending: isUpdatingVariant,
     } = useUpdate();
 
+    const {
+        mutate: updateVariantStock,
+        isPending: isUpdatingStock,
+    } = useUpdate();
+
 
     const {
         mutate: deleteVariant,
@@ -409,11 +414,11 @@ export function ProductVariantShow() {
 
             attributes:
                 variant.attributes &&
-                typeof variant.attributes ===
+                    typeof variant.attributes ===
                     "object" &&
-                !Array.isArray(
-                    variant.attributes
-                )
+                    !Array.isArray(
+                        variant.attributes
+                    )
                     ? Object.entries(
                         variant.attributes
                     ).map(
@@ -466,7 +471,7 @@ export function ProductVariantShow() {
 
         if (
             variantForm.discount_percentage ===
-                "" ||
+            "" ||
             Number(
                 variantForm.discount_percentage
             ) < 0 ||
@@ -579,7 +584,7 @@ export function ProductVariantShow() {
 
         setIsAddingStockPending(true);
 
-        updateVariant(
+        updateVariantStock(
             {
                 resource:
                     `products/${id}/variants`,
@@ -2032,9 +2037,8 @@ export function ProductVariantShow() {
                                     >
                                         {isAddingStockPending
                                             ? "Adding..."
-                                            : `Add ${
-                                                stockAmount ||
-                                                "0"
+                                            : `Add ${stockAmount ||
+                                            "0"
                                             } pcs`}
                                     </button>
 
@@ -2332,7 +2336,7 @@ export function ProductVariantShow() {
                                     >
 
                                         {variantForm.attributes.length ===
-                                        0 ? (
+                                            0 ? (
 
                                             <div
                                                 className="
@@ -2838,14 +2842,14 @@ export function ProductVariantShow() {
 
 
                                 {selectedVariant.attributes &&
-                                typeof selectedVariant.attributes ===
+                                    typeof selectedVariant.attributes ===
                                     "object" &&
-                                !Array.isArray(
-                                    selectedVariant.attributes
-                                ) &&
-                                Object.keys(
-                                    selectedVariant.attributes
-                                ).length > 0 ? (
+                                    !Array.isArray(
+                                        selectedVariant.attributes
+                                    ) &&
+                                    Object.keys(
+                                        selectedVariant.attributes
+                                    ).length > 0 ? (
 
                                     <div
                                         className="
@@ -2968,10 +2972,9 @@ export function ProductVariantShow() {
                                                 h-2
                                                 w-2
                                                 rounded-full
-                                                ${
-                                                    variantActive
-                                                        ? "bg-admin-active"
-                                                        : "bg-minimal-red"
+                                                ${variantActive
+                                                    ? "bg-admin-active"
+                                                    : "bg-minimal-red"
                                                 }
                                             `}
                                         />
@@ -2980,16 +2983,15 @@ export function ProductVariantShow() {
                                             className={`
                                                 text-sm
                                                 font-medium
-                                                ${
-                                                    variantActive
-                                                        ? "text-admin-active"
-                                                        : "text-admin-inactive"
+                                                ${variantActive
+                                                    ? "text-admin-active"
+                                                    : "text-admin-inactive"
                                                 }
                                             `}
                                         >
                                             {selectedVariant.is_active
                                                 ? currentStock >
-                                                  0
+                                                    0
                                                     ? "Active"
                                                     : "Out of Stock"
                                                 : "Inactive"}

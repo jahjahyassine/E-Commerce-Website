@@ -1,68 +1,109 @@
 from decimal import Decimal
 from typing import Any
 
-from fastapi import File, UploadFile
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+)
+
+from schemas.inventory import InventoryStockResponse
 
 
+# ============================================================
+# BRAND
+# ============================================================
 
 class BrandCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
+    name: str = Field(
+        min_length=1,
+        max_length=100
+    )
+
 
 class BrandResponse(BaseModel):
     id: int
     name: str
     is_active: bool
-    model_config = ConfigDict(from_attributes=True)
 
-class BrandPatchRequest (BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+
+class BrandPatchRequest(BaseModel):
     name: str | None = None
     is_active: bool | None = None
 
 
+# ============================================================
+# CATEGORY
+# ============================================================
+
 class CategoryCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
+    name: str = Field(
+        min_length=1,
+        max_length=100
+    )
+
 
 class CategoryResponse(BaseModel):
     id: int
     name: str
     is_active: bool
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
-class CategoryPatchRequest (BaseModel):
+
+class CategoryPatchRequest(BaseModel):
     name: str | None = None
     is_active: bool | None = None
 
+
+# ============================================================
+# TAG
+# ============================================================
+
 class TagCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
+    name: str = Field(
+        min_length=1,
+        max_length=100
+    )
+
+
+# ============================================================
+# MEDIA
+# ============================================================
 
 class MediaResponse(BaseModel):
     id: int
     media_url: str
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
 
-
-class InventoryCreateRequest(BaseModel):
-    quantity: int = Field(ge=0)
-
-class InventoryResponse(BaseModel):
-    quantity: int
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-
+# ============================================================
+# PRODUCT
+# ============================================================
 
 class ProductCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=255)
+    name: str = Field(
+        min_length=1,
+        max_length=255
+    )
+
     description: str | None = None
+
     specifications: dict[str, Any] | None = None
+
     brand_id: int
     category_id: int
-    tags: list[str | None] = None
+
+    tags: list[str] | None = None
 
 
 class ProductUpdate(BaseModel):
@@ -73,89 +114,56 @@ class ProductUpdate(BaseModel):
     category_id: int | None = None
     is_active: bool | None = None
 
+
 class ProductCreateRequest(BaseModel):
     product: ProductCreate
-    media: list[UploadFile] = File(default_factory=list)
+
 
 class ProductUpdateRequest(BaseModel):
     product: ProductUpdate
     media: list[str] | None = None
 
-class ProductResponse(BaseModel):
+
+class ProductResponseBrief(BaseModel):
     id: int
     name: str
     description: str | None
 
-    min_price: Decimal
-    average_rating: Decimal
-    count_reviews: int
-
-    specifications: dict[str, Any] | None
-
-    brand_id: int
-    category_id: int
-
-    brand: BrandResponse
-    category: CategoryResponse
-
-    media: list[MediaResponse] = Field(default_factory=list)
-
-    product_variants: list[ProductVariantResponse] = Field(
-        default_factory=list
+    model_config = ConfigDict(
+        from_attributes=True
     )
 
-    model_config = ConfigDict(from_attributes=True)
 
+# ============================================================
+# PRODUCT VARIANT
+# ============================================================
 
-class ProductResponseBrief (BaseModel):
-    id: int
-    name: str
-    description: str | None
+class ProductVariantCreateRequest(BaseModel):
+    sku: str = Field(
+        min_length=1,
+        max_length=64,
+    )
 
-class InventoryStockResponse(BaseModel):
-    id: int
-    quantity: int | None = None
+    price: Decimal = Field(
+        ge=0,
+    )
 
-    model_config = ConfigDict(from_attributes=True)
-
-
-class InventoryProductResponse(BaseModel):
-    id: int
-    name: str
-    category_id: int | None = None
-    brand_id: int | None = None
-    average_rating: float | None = None
-    is_active: bool
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class InventoryResponse(BaseModel):
-    id: int
-    sku: str
-    product_id: int
-    price: Decimal | None = None
-    discount_percentage: Decimal | None = None
-
-    product: InventoryProductResponse
-    inventory: InventoryStockResponse | None = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ProductVariantCreate(BaseModel):
-    sku: str = Field(min_length=1, max_length=64)
-    price: Decimal = Field(ge=0)
-
-    discount_percentage: Decimal | None = Field(
+    discount_percentage: Decimal = Field(
         default=Decimal("0"),
         ge=0,
         le=100,
     )
 
-    attributes: dict[str, Any] | None = None
+    attributes: dict[str, Any] = Field(
+        default_factory=dict,
+    )
 
-class ProductVariantPatch(BaseModel):
+    is_active: bool = True
+
+
+class ProductVariantUpdate(BaseModel):
+    sku: str | None = None
+
     price: Decimal | None = Field(
         default=None,
         ge=0,
@@ -169,30 +177,12 @@ class ProductVariantPatch(BaseModel):
 
     attributes: dict[str, Any] | None = None
 
+    is_active: bool | None = None
 
-class ProductVariantCreateRequest(BaseModel):
-    sku: str
-    price: Decimal = Field(ge=0)
-    discount_percentage: Decimal = Field(
-        default=0,
+    quantity: int | None = Field(
+        default=None,
         ge=0,
-        le=100,
     )
-    attributes: dict[str, Any] = Field(default_factory=dict)
-    is_active: bool = True
-
-
-class ProductVariantPatchRequest(BaseModel):
-    product: ProductVariantPatch
-    media: list[str] | None = None
-
-
-
-class OrderItemResponse (BaseModel):
-    order_id: int
-    product_variant_id: int
-    quantity: int
-    price: Decimal
 
 
 class ProductVariantResponse(BaseModel):
@@ -202,14 +192,54 @@ class ProductVariantResponse(BaseModel):
     discount_percentage: Decimal | None = None
     attributes: dict[str, Any] | None = None
     is_active: bool
-    product: ProductResponseBrief
 
-    inventory: InventoryResponse | None = None
+    product: ProductResponseBrief | None = None
 
-    order_items: list[OrderItemResponse | None] = None
+    inventory: InventoryStockResponse | None = None
 
-    media: list[MediaResponse] = Field(default_factory=list)
+    media: list[MediaResponse] = Field(
+        default_factory=list
+    )
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
 
+# ============================================================
+# PRODUCT RESPONSE
+# ============================================================
+
+class ProductResponse(BaseModel):
+    id: int
+    name: str
+    description: str | None
+
+    # IMPORTANT:
+    # min_price belongs to Product.
+    # It is calculated from the product's active variants.
+
+    min_price: Decimal
+
+    average_rating: Decimal
+    count_reviews: int
+
+    specifications: dict[str, Any] | None
+
+    brand_id: int
+    category_id: int
+
+    brand: BrandResponse
+    category: CategoryResponse
+
+    media: list[MediaResponse] = Field(
+        default_factory=list
+    )
+
+    product_variants: list[ProductVariantResponse] = Field(
+        default_factory=list
+    )
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
