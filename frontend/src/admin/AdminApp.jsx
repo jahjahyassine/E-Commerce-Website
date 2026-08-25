@@ -11,6 +11,7 @@ import { BrandList } from "./resources/pages/brands/BrandList";
 import { BrandShow } from "./resources/pages/brands/BrandShow";
 import { InventoryList } from "./resources/pages/inventory products/InventoryList";
 import { ProductVariantShow } from "./resources/pages/inventory products/ProductShow";
+import { OrderList } from "./resources/pages/orders/OrderList";
 
 function AdminApp() {
     return (
@@ -68,6 +69,9 @@ function AdminApp() {
 
                 <Route path="inventory" element={<InventoryList />} />
                 <Route path="products/:id/variants/:variantId" element={<ProductVariantShow />} />
+
+                
+                <Route path="orders" element={<OrderList />} />
 
                 <Route index element={<AdminProfile />} />
             </Routes>

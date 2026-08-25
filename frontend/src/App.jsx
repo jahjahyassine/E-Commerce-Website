@@ -12,6 +12,7 @@ import AdminApp from './admin/AdminApp';
 import ProfileCart from './pages/ProfilePage/ProfileCart';
 import Wishlist from './pages/ProfilePage/Wishlist';
 import { ProductList } from './admin/resources/pages/products/ProductList';
+import OrderConfirmation from './pages/OrderConfirmation';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path='/checkout' element={<CheckoutPage />} />
+      <Route path='/order-confirmation/:orderId' element={<OrderConfirmation />} />
 
       <Route path="/profile">
         <Route index element={<Profile />} />

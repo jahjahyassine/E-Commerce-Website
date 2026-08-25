@@ -34,6 +34,9 @@ class User (Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str | None] = mapped_column(String(20))
     address: Mapped[str | None] = mapped_column(Text)
+    city: Mapped[str | None] = mapped_column(String(100))
+    region: Mapped[str | None] = mapped_column(String(100))
+    postal_code: Mapped[str | None] = mapped_column(String(20))
 
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), nullable=False, server_default=UserRole.CUSTOMER.value)
 

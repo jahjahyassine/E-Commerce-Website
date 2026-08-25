@@ -36,27 +36,101 @@ class PaymentStatus(str, Enum):
 
     
 
-class Order (Base):
+class Order(Base):
     __tablename__ = "orders"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    shipping_address: Mapped[str] = mapped_column(Text, nullable=False)
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    order_status: Mapped[OrderStatus] = mapped_column(SQLEnum(OrderStatus), nullable=False, server_default="PENDING")
-    shipping_status: Mapped[ShippingStatus] = mapped_column(SQLEnum(ShippingStatus), nullable=False, server_default="NOT_SHIPPED")
-    payment_status: Mapped[PaymentStatus] = mapped_column(SQLEnum(PaymentStatus), nullable=False, server_default="PENDING")
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        index=True
+    )
 
-    total_amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    # Customer snapshot
+    customer_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False
+    )
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    customer_phone: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False
+    )
 
-    user: Mapped[User] = relationship("User", back_populates="orders")
+    shipping_address: Mapped[str] = mapped_column(
+        Text,
+        nullable=False
+    )
 
-    items: Mapped[list["OrderItem"]] = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    shipping_city: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False
+    )
 
-    stock_changes: Mapped[list["StockChange"]] = relationship("StockChange", back_populates="order")
+    shipping_region: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False
+    )
+
+    shipping_postal_code: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True
+    )
+
+    order_status: Mapped[OrderStatus] = mapped_column(
+        SQLEnum(OrderStatus),
+        nullable=False,
+        server_default="PENDING"
+    )
+
+    shipping_status: Mapped[ShippingStatus] = mapped_column(
+        SQLEnum(ShippingStatus),
+        nullable=False,
+        server_default="NOT_SHIPPED"
+    )
+
+    payment_status: Mapped[PaymentStatus] = mapped_column(
+        SQLEnum(PaymentStatus),
+        nullable=False,
+        server_default="PENDING"
+    )
+
+    total_amount: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
+        nullable=False
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        index=True
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="orders"
+    )
+
+    items: Mapped[list["OrderItem"]] = relationship(
+        "OrderItem",
+        back_populates="order",
+        cascade="all, delete-orphan"
+    )
+
+    stock_changes: Mapped[list["StockChange"]] = relationship(
+        "StockChange",
+        back_populates="order"
+    )
 
     __table_args__ = (
         CheckConstraint(

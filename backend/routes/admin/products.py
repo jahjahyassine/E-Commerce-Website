@@ -15,6 +15,7 @@ from fastapi import (
 from sqlalchemy import exists, func, or_
 from sqlalchemy.orm import Session
 
+from services.auth import require_admin
 from core.cloudinary import cloudinary
 from core.database import get_db
 from core.security import decode_access_token
@@ -55,31 +56,6 @@ router = APIRouter(
 )
 
 
-def require_admin(
-    db: Session,
-    user_infos: dict,
-):
-    user_id = user_infos.get("id")
-
-    user = (
-        db.query(User)
-        .filter(User.id == user_id)
-        .first()
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-
-    if user.role != UserRole.CUSTOMER:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Unauthorized action",
-        )
-
-    return user
 
 
 @router.post("/products")
@@ -400,6 +376,13 @@ async def add_product_variant(
 
     db.add(new_variant)
     db.flush()
+
+    new_inventory = Inventory (
+        product_variant_id=new_variant.id,
+        quantity=variant_data.quantity
+    )
+
+    db.add(new_inventory)
 
     for image in media:
         if not image.filename:

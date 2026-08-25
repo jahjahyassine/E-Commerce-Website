@@ -18,14 +18,19 @@ class UserLogin (BaseModel):
 class UserResponse(BaseModel):
     id: int
     username: str
-    full_name: str
+    full_name: str | None
     email: EmailStr
-    role: str 
+    role: str
+
     phone: str | None = None
+
     address: str | None = None
+    city: str | None = None
+    region: str | None = None
+    postal_code: str | None = None
+
     is_active: bool
     profile_pic_path: str
-
 
     model_config = {
         "from_attributes": True
@@ -33,12 +38,16 @@ class UserResponse(BaseModel):
 
 
 
-class UserPatch (BaseModel):
+class UserPatch(BaseModel):
     username: str | None = None
     full_name: str | None = None
     email: EmailStr | None = None
     phone: str | None = None
+
     address: str | None = None
+    city: str | None = None
+    region: str | None = None
+    postal_code: str | None = None
 
 
 

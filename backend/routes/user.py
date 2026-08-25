@@ -32,17 +32,7 @@ def get_current_user(
             detail="User not Found"
         )
     
-    return {
-        "id": user.id,
-        "username": user.username,
-        "full_name": user.full_name,
-        "email": user.email,
-        "role": user.role,
-        "phone": user.phone,
-        "address": user.address,
-        "is_active": user.is_active,
-        "profile_pic_path": user.profile_pic_path
-    }
+    return user
 
 
 

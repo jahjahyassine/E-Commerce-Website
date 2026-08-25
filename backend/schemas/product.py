@@ -160,6 +160,11 @@ class ProductVariantCreateRequest(BaseModel):
 
     is_active: bool = True
 
+    quantity: int | None = Field(
+        default=None,
+        ge=0,
+    )
+
 
 class ProductVariantUpdate(BaseModel):
     sku: str | None = None

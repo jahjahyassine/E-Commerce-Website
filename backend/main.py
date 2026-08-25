@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from routes import product, inventory, auth, cart, user, wishlist
-from routes.admin import products as admin_product, inventory as admin_inventory
+from routes import product, inventory, auth, cart, user, wishlist, order
+from routes.admin import products as admin_product, inventory as admin_inventory, order as admin_order
 import models
 
 app = FastAPI()
@@ -29,6 +29,8 @@ app.include_router(user.router)
 app.include_router(wishlist.router)
 app.include_router(admin_product.router)
 app.include_router(admin_inventory.router)
+app.include_router(admin_order.router)
+app.include_router(order.router)
 
 
 if __name__ == "__main__":

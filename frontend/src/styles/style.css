@@ -2,50 +2,47 @@
 
 @theme {
 
-  /* Background */
-  --color-background: #F8F7F3;
-  --color-background-dark: #1B242A;
-  --color-background-black: #11181D;
+ /* Background */
+--color-background: #FFFFFF;
+--color-background-dark: #2F4156;
+--color-background-black: #243447;
 
 
-  /* Text */
-  --color-foreground: #1B242A;
-  --color-muted: #64748B;
-  --color-inverse: #FFFFFF;
+/* Text */
+--color-foreground: #2F4156;
+--color-muted: #607586;
+--color-inverse: #FFFFFF;
 
 
-  /* Brand */
-  --color-primary: #7EACB5;
-  --color-primary-hover: #6797A1;
+/* Brand */
+--color-primary: #567C8D;
+--color-primary-hover: #476B7A;
 
 
-  /* Premium accent */
- --color-premium: #F5E4C8;
---color-premium-hover: #EBD2A8;
-
---color-minimal-yellow: #F5C84C;
---color-minimal-yellow-hover: #E5B43C;
-
---color-emerald: #2E7D5A;
---color-emerald-hover: #256B4D;
-
---color-minimal-red: #C96A6A;
---color-minimal-red-hover: #B85A5A;
-
-  /* Cards */
-  --color-card: #FFFFFF;
-  --color-chip: #EEF2F3;
+/* Secondary */
+--color-secondary: #C8D9E6;
+--color-secondary-hover: #B5CBD9;
 
 
-  /* Borders */
-  --color-border: #D9DDE3;
-  --color-border-soft: #ECEEF2;
+/* Premium / Warm accent */
+--color-premium: #F5F0EB;
+--color-premium-hover: #EAE1D9;
 
 
-  /* Status */
-  --color-success: #4D8B5A;
-  --color-warning: #C89B3C;
-  --color-danger: #C94C4C;
+/* Cards */
+--color-card: #FFFFFF;
+--color-chip: #EEF3F6;
+
+
+/* Borders */
+--color-border: #D9E2E8;
+--color-border-soft: #EDF1F3;
+
+
+/* Status */
+--color-success: #4D8068;
+--color-warning: #B88A3B;
+--color-danger: #B85C5C;
 
 
   /* Shadows */
