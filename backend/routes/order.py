@@ -4,6 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from sqlalchemy.orm import Session
 
+from resend.exceptions import ResendError
+
+from services.email import send_confirmation_email
 from routes.cart import clear_cart
 from models.inventory import StockChange, StockChangeType
 from models.cart import Cart
@@ -202,6 +205,17 @@ def create_order(
         db.commit()
         db.refresh(new_order)
 
+        try:
+            send_confirmation_email(
+                customer_email=user.email,
+                order=new_order
+            )
+        except ResendError as error:
+            print(error)
+            raise HTTPException (
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to send confirmation email: {error}"
+            )
         return new_order
 
     except HTTPException:
