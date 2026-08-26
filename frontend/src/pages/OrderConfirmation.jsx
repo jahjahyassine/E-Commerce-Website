@@ -3,7 +3,7 @@ import DotField from "../components/animation/DotField";
 import Navbar from "../components/Navbar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { PackageCheck } from "lucide-react";
+import { PackageCheck, MailCheck, PackageSearch, ShoppingBag } from "lucide-react";
 import getCurrentUser from "../hooks/CurrentUser";
 
 function OrderConfirmation() {
@@ -15,11 +15,7 @@ function OrderConfirmation() {
 
     const [selectedItems, setSelectedItems] = useState([]);
 
-    useEffect(() => {
-        if (!token) {
-            navigate("/login");
-        }
-    }, [token, navigate]);
+
 
     const {
         data: currentUser,
@@ -31,9 +27,13 @@ function OrderConfirmation() {
         enabled: !!localStorage.getItem("access_token"),
     });
 
-    if (isErrorUser) {
-        navigate("/login")
-    }
+
+    useEffect(() => {
+        if (!token || isErrorUser) {
+            navigate("/login");
+        }
+    }, [token, isErrorUser, navigate]);
+
 
     const fetchOrder = async () => {
         const response = await fetch(
@@ -67,6 +67,9 @@ function OrderConfirmation() {
 
     const order = data ?? {}
     const items = order.items ?? []
+
+    const shippingCost = 10;
+    const subtotal = Number(order.total_amount ?? 0) - shippingCost;
 
 
     if (isLoading) {
@@ -115,7 +118,7 @@ function OrderConfirmation() {
                 />
             </div>
 
-            <section className="relative z-10 pt-20 px-6 flex flex-col gap-10">
+            <section className="relative z-10 pt-20 px-6 flex flex-col gap-5">
                 <section className="w-full flex flex-col items-center">
                     <h2 className="text-4xl font-bold tracking-wider mb-5">
                         Order Complete
@@ -147,41 +150,45 @@ function OrderConfirmation() {
 
                 <section className="flex-1 flex flex-col gap-2 flex-1">
 
-                    <section>
-                        <PackageCheck />
+                    <section className="flex flex-col items-center w-full">
+                        <PackageCheck className="text-success h-20 w-20" />
 
-                        <h3>
+                        <h3 className="text-xl font-bold">
                             Order Confirmed
                         </h3>
 
-                        <p>
+                        <p className="text-lg">
                             Thank you for your order! your product is on its way.
                         </p>
 
-                        <div className="bg-card p-2 rounded-2xl">
-                            <p>
-                                Order ID
+                        <div className="flex bg-card/10 backdrop-blur-xl p-2 w-1/4 justify-around items-center rounded-xl border border-border-soft hover:border-border duration-300 ease-in-out shadow-inner cursor-pointer">
+                            <p className="text-muted text-sm">
+                                Order ID:
                             </p>
 
-                            <p>
+                            <p className="text-lg font-semibold">
                                 #{order.id}
                             </p>
                         </div>
 
-                        <p>
+                        <p className="flex gap-1 text-muted font-semibold items-center">
+                            <MailCheck className="h-5 w-5" />
                             Order Confirmation sent to
-                            <span> {currentUser.email}</span>
+                            <span className="text-foreground font-bold"> {currentUser?.email}</span>
                         </p>
                     </section>
 
-                    <section className="bg-chip p-2 rounded-3xl">
+                    <section className="border border-border bg-card p-2 rounded-3xl gap-4 flex flex-col">
 
 
-                        <h3 className="text-center">
+                        <h3 className="text-center text-xl font-semibold mb-2">
                             Order Summary
                         </h3>
 
-                        <section className="max-h-[600px] flex flex-col bg-chip gap-4 p-2 rounded-3xl overflow-y-auto">
+                        <section className="max-h-[600px] flex flex-col bg-chip gap-4 p-4 rounded-3xl overflow-y-auto">
+                            <h3 className="text-lg font-semibold">
+                                Order Items
+                            </h3>
                             {items.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-20">
                                     <p className="text-xl font-bold">
@@ -273,15 +280,10 @@ function OrderConfirmation() {
                                                     ))}
                                                 </div>
 
-                                                <p className="text-xs text-muted font-semibold mt-1 flex gap-1">
-                                                    <p>
-                                                        Quantity: 
-                                                    </p>
-
-                                                    <p>{
-                                                        item.quantity}
-                                                    </p>
-                                                </p>
+                                                <div className="text-xs text-muted font-semibold mt-1 flex gap-1">
+                                                    <span>Quantity:</span>
+                                                    <span>{item.quantity}</span>
+                                                </div>
                                             </div>
 
                                             <div className="ml-auto shrink-0">
@@ -296,50 +298,109 @@ function OrderConfirmation() {
 
                         </section>
 
+                        <section className="max-h-[600px] flex flex-col bg-chip gap-4 p-4 rounded-3xl">
 
-                        <button
-                            className="flex bg-primary text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-primary-hover duration-300 ease-in-out cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            onClick={() => {
-                                navigate("/track-order");
-                            }}
-                        >
-                            <p>Track Order</p>
+                            <h3 className="text-lg font-semibold">
+                                Order Information
+                            </h3>
 
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                fill="currentColor"
-                                viewBox="0 0 16 16"
+
+
+                            {order.shipping_address && (
+                                <div className="bg-card border border-border-soft rounded-xl p-3">
+                                    <p className="text-xs text-muted font-semibold mb-2">
+                                        Shipping Address
+                                    </p>
+
+                                    <div className="text-sm font-semibold space-y-1">
+                                        {order.shipping_address && (
+                                            <p>{order.shipping_address}</p>
+                                        )}
+
+                                        {order.shipping_address.address && (
+                                            <p>{order.shipping_address.address}</p>
+                                        )}
+
+                                        {(order.shipping_city ||
+                                            order.shipping_region) && (
+                                                <p>
+                                                    {[
+                                                        order.shipping_city,
+                                                        order.shipping_region,
+                                                    ]
+                                                        .filter(Boolean)
+                                                        .join(", ")}
+                                                </p>
+                                            )}
+
+                                        {order.shipping_postal_code && (
+                                            <p>
+                                                {order.shipping_postal_code}
+                                            </p>
+                                        )}
+
+                                        {currentUser?.phone && (
+                                            <p className="text-muted">
+                                                {currentUser?.phone}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Price Breakdown */}
+                            <div className="bg-card border border-border-soft rounded-xl p-3">
+
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted">
+                                        Subtotal
+                                    </span>
+                                    <span className="font-semibold">
+                                        ${Number(subtotal ?? 0).toFixed(2)}
+                                    </span>
+                                </div>
+
+                                <div className="flex justify-between text-sm mt-2">
+                                    <span className="text-muted">
+                                        Shipping
+                                    </span>
+                                    <span className="font-semibold">
+                                        ${Number(shippingCost).toFixed(2)}
+                                    </span>
+                                </div>
+
+                                <div className="h-px bg-border my-3" />
+
+                                <div className="flex justify-between">
+                                    <span className="font-bold">
+                                        Total
+                                    </span>
+                                    <span className="text-lg font-bold text-emerald">
+                                        ${Number(order.total_amount ?? 0).toFixed(2)}
+                                    </span>
+                                </div>
+
+                            </div>
+
+                        </section>
+
+                        <section className="flex justify-end gap-2">
+                            <button
+                                className="flex bg-primary text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-primary-hover duration-300 ease-in-out cursor-pointer"
+                                onClick={() => navigate(`/track-order/${order.id}`)}
                             >
-                                <path
-                                    fillRule="evenodd"
-                                    d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"
-                                />
-                            </svg>
-                        </button>
+                                <p>Track Order</p>
+                                <PackageSearch className="h-4 w-4" />
+                            </button>
 
-                        <button
-                            className="flex bg-primary text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-primary-hover duration-300 ease-in-out cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            onClick={() => {
-                                navigate("/products");
-                            }}
-                        >
-                            <p>Continue Shopping</p>
-
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                fill="currentColor"
-                                viewBox="0 0 16 16"
+                            <button
+                                className="flex bg-premium text-foreground p-2 justify-center rounded-lg items-center gap-2 hover:bg-premium-hover duration-300 ease-in-out cursor-pointer border border-muted hover:border-foreground"
+                                onClick={() => navigate("/products")}
                             >
-                                <path
-                                    fillRule="evenodd"
-                                    d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"
-                                />
-                            </svg>
-                        </button>
+                                <ShoppingBag className="h-4 w-4" />
+                                <p>Continue Shopping</p>
+                            </button>
+                        </section>
 
                     </section>
                 </section>
