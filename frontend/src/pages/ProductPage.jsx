@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FaStar } from "react-icons/fa6";
 import { useMemo, useState, useEffect } from "react";
-import { Send } from "lucide-react"
+import { Send, Trash, Trash2 } from "lucide-react"
 import getCurrentUser from "../hooks/CurrentUser";
 
 function ProductPage() {
@@ -363,6 +363,50 @@ function ProductPage() {
             review: review.trim(),
         });
     };
+
+
+
+
+
+    const deleteReviewFunction = async (reviewId) => {
+        const response = await fetch(`${BASE_URL}/reviews/${reviewId}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json()
+
+        if (!response.ok) throw new Error(data.detail || "Failed to Delete Review")
+
+        return data
+    }
+
+    const {
+        mutate: deleteReview,
+    } = useMutation({
+        mutationFn: deleteReviewFunction,
+
+        onSuccess: () => {
+            setReview("");
+            setRating(0);
+
+            queryClient.invalidateQueries({
+                queryKey: ["products", id, "reviews"],
+            });
+
+            queryClient.invalidateQueries({
+                queryKey: ["products", id],
+            });
+
+            queryClient.invalidateQueries({
+                queryKey: ["products", id, "reviews", currentUser?.id],
+            });
+        },
+    });
+
 
 
     if (productLoading || variantsLoading) {
@@ -1096,65 +1140,93 @@ function ProductPage() {
                                     <article
                                         key={review.id}
                                         className="
-                                            border border-border
-                                            rounded-3xl
-                                            bg-card/60
-                                            backdrop-blur-xl
-                                            p-6
-                                        "
+                                                group
+                                                border border-border
+                                                rounded-3xl
+                                                bg-card/60
+                                                backdrop-blur-xl
+                                                p-6
+                                                transition-all
+                                                duration-300
+                                                hover:bg-card/80
+                                            "
                                     >
-
-                                        <div className="flex items-start justify-between">
-
-                                            <div>
-
-                                                <p className="font-bold text-lg">
-                                                    {review.user?.name ??
-                                                        "Anonymous"}
+                                        {/* Header */}
+                                        <div className="flex items-start justify-between gap-4">
+                                            {/* User + Rating */}
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-lg text-foreground truncate">
+                                                    {review.user?.username ?? "Anonymous"}
                                                 </p>
 
-                                                <div className="flex items-center gap-1 mt-1">
-
-                                                    {Array.from({
-                                                        length: 5,
-                                                    }).map(
-                                                        (_, index) => (
-                                                            <FaStar
-                                                                key={index}
-                                                                className={
-                                                                    index <
-                                                                        Number(
-                                                                            review.rating
-                                                                        )
-                                                                        ? "text-minimal-yellow text-sm"
-                                                                        : "text-muted/30 text-sm"
+                                                <div className="flex items-center gap-1 mt-2">
+                                                    {Array.from({ length: 5 }).map((_, index) => (
+                                                        <FaStar
+                                                            key={index}
+                                                            className={`
+                                                                    w-4 h-4
+                                                                    transition-colors
+                                                                    duration-200
+                                                                    ${index < Number(review.rating)
+                                                                    ? "text-minimal-yellow"
+                                                                    : "text-muted/20"
                                                                 }
-                                                            />
-                                                        )
-                                                    )}
+                                                                `}
+                                                        />
+                                                    ))}
 
+                                                    <span className="ml-1 text-xs font-semibold text-muted">
+                                                        {review.rating}/5
+                                                    </span>
                                                 </div>
-
                                             </div>
 
-                                            {review.created_at && (
-                                                <p className="text-sm text-muted">
-                                                    {new Date(
-                                                        review.created_at
-                                                    ).toLocaleDateString()}
-                                                </p>
-                                            )}
+                                            {/* Date + Delete */}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                {review.created_at && (
+                                                    <span className="text-xs text-muted">
+                                                        {new Date(
+                                                            review.created_at
+                                                        ).toLocaleDateString()}
+                                                    </span>
+                                                )}
 
+                                                {currentUser?.id === review.user?.id && (
+                                                    <button
+                                                        type="button"
+                                                        aria-label="Delete review"
+                                                        
+                                                        onClick={() => deleteReview(review.id)}
+                                                        className="
+                                                            w-8 h-8
+                                                            flex items-center justify-center
+                                                            rounded-lg
+                                                            text-muted
+                                                            cursor-pointer
+                                                            transition-all
+                                                            duration-200
+                                                            hover:bg-minimal-red/10
+                                                            hover:text-minimal-red
+                                                            hover:scale-105
+                                                            active:scale-95
+                                                            disabled:opacity-40
+                                                            disabled:cursor-not-allowed
+                                                            disabled:hover:scale-100
+                                                        "
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
 
-                                        <p className="mt-4 text-foreground/80 leading-relaxed">
-                                            {review.comment}
-                                        </p>
-
+                                        <div className="mt-5 pt-5 border-t border-border/60">
+                                            <p className="text-foreground/80 leading-relaxed">
+                                                {review.review}
+                                            </p>
+                                        </div>
                                     </article>
-                                )
-                                )}
-
+                                ))}
                         </div>
 
                         <div className="flex flex-col gap-3">

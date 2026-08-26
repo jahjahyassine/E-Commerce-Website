@@ -13,6 +13,8 @@ from fastapi import (
 from sqlalchemy import exists, or_
 from sqlalchemy.orm import Session
 
+from models.review import Review
+from schemas.review import ReviewResponse
 from core.database import get_db
 
 from models.product import (
@@ -306,6 +308,7 @@ def get_product_variant(
 
 @router.get(
     "/products/{product_id}/reviews",
+    response_model=list[ReviewResponse]
 )
 def get_reviews(
     db: Annotated[
@@ -328,7 +331,11 @@ def get_reviews(
             detail="Product not found",
         )
 
-    return product.reviews
+    reviews = db.query(Review).filter(
+        Review.product_id == product.id
+    ).all()
+
+    return reviews
 
 
 # ============================================================

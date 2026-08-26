@@ -83,7 +83,6 @@ def create_review(
 
 
 
-
 @router.get("/reviews/{product_id}/user/{user_id}", response_model=Optional[ReviewResponse])
 def get_user_review(
     db: Annotated[Session, Depends(get_db)],
@@ -121,6 +120,70 @@ def get_user_review(
         Review.product_id == product_id
     ).first()
 
-    
-
     return review
+
+
+
+
+
+
+
+@router.post("/reviews/{review_id}")
+def create_review(
+    db: Annotated[Session, Depends(get_db)],
+    review_id: int,
+    user_infos: Annotated[dict, Depends(decode_access_token)]
+):
+    user_id = user_infos["id"]
+
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    review = db.query(Review).filter(
+        Review.id == review_id,
+        Review.user_id == user_id
+    ).first()
+
+    if review:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Coudn't Find Review"
+        )
+
+    product_id = review.product_id
+
+    product = (
+        db.query(Product)
+        .filter(
+            Product.id == product_id
+        )
+        .first()
+    )
+
+    if product is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found",
+        )
+
+    product.count_reviews -= 1
+    average_rating = (product.average_rating - review.rating) / product.count_reviews
+
+    product.average_rating = average_rating
+
+    db.delete(review)
+    db.commit()
+
+
+    return {
+        "message": "Review Deleted Successfully"
+    }
