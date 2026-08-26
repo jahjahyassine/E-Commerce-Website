@@ -4,23 +4,26 @@ import Navbar from "../components/Navbar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FaStar } from "react-icons/fa6";
 import { useMemo, useState, useEffect } from "react";
+import { Send } from "lucide-react"
+import getCurrentUser from "../hooks/CurrentUser";
 
 function ProductPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-
-    const token = localStorage.getItem("access_token")
-
-    const queryClient = useQueryClient()
+    const token = localStorage.getItem("access_token");
+    const queryClient = useQueryClient();
 
     const [quantity, setQuantity] = useState(1);
     const [selectedAttributes, setSelectedAttributes] = useState({});
 
+    const [review, setReview] = useState("")
+    const [rating, setRating] = useState(0)
+
+    const BASE_URL = import.meta.env.VITE_BASE_URL;
+
     const updateCategory = (category) => {
         navigate(`/products?category=${category}`);
     };
-
-    const BASE_URL = import.meta.env.VITE_BASE_URL
 
     const addToCart = async ({ variant_id, quantity }) => {
         const token = localStorage.getItem("access_token");
@@ -53,7 +56,6 @@ function ProductPage() {
         return response.json();
     };
 
-
     const {
         mutate: addItem,
         isPending,
@@ -65,18 +67,13 @@ function ProductPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ["cart"],
-            })
+            });
         },
     });
 
-
-    const handleSubmit = () => {
-
-    }
-
     const getProductDetails = async () => {
         const response = await fetch(
-            `http://127.0.0.1:8000/products/${id}`
+            `${BASE_URL}/products/${id}`
         );
 
         if (!response.ok) {
@@ -88,7 +85,7 @@ function ProductPage() {
 
     const getProductVariantDetails = async () => {
         const response = await fetch(
-            `http://127.0.0.1:8000/products/${id}/variants`
+            `${BASE_URL}/products/${id}/variants`
         );
 
         if (!response.ok) {
@@ -100,7 +97,7 @@ function ProductPage() {
 
     const getProductReviews = async () => {
         const response = await fetch(
-            `http://127.0.0.1:8000/products/${id}/reviews`
+            `${BASE_URL}/products/${id}/reviews`
         );
 
         if (!response.ok) {
@@ -109,6 +106,52 @@ function ProductPage() {
 
         return response.json();
     };
+
+
+    const {
+        data: currentUser,
+        isLoading: isLoadingUser,
+        isError: isErrorUser,
+    } = useQuery({
+        queryKey: ["user"],
+        queryFn: getCurrentUser,
+        enabled: !!localStorage.getItem("access_token"),
+    });
+
+
+    useEffect(() => {
+        if (!token || isErrorUser) {
+            navigate("/login");
+        }
+    }, [token, isErrorUser, navigate]);
+
+
+    const getUserRating = async () => {
+        const response = await fetch(
+            `${BASE_URL}/reviews/${id}/user/${currentUser.id}`
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch product reviews");
+        }
+
+        return response.json();
+    };
+
+    const {
+        data: userReview,
+    } = useQuery({
+        queryKey: ["products", id, "reviews", currentUser?.id],
+        queryFn: getUserRating,
+        enabled: !!id && !!currentUser?.id,
+    });
+
+    useEffect(() => {
+        if (userReview) {
+            setRating(userReview.rating ?? 0);
+        }
+    }, [userReview]);
+
 
     const {
         data: product,
@@ -141,28 +184,30 @@ function ProductPage() {
     });
 
     const getCartItems = async () => {
-        const response = await fetch(
-            `${BASE_URL}/cart`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        )
+        const response = await fetch(`${BASE_URL}/cart`, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
 
-        const data = await response.json()
+        const data = await response.json();
 
-        if (!response.ok) throw new Error(data.detail || "Failed to Retrieve Cart")
-        return data
-    }
+        if (!response.ok) {
+            throw new Error(
+                data.detail || "Failed to retrieve cart"
+            );
+        }
+
+        return data;
+    };
 
     const { data: cart } = useQuery({
         queryKey: ["cart"],
         queryFn: getCartItems,
+        enabled: !!token,
     });
-
 
     const selectedVariant = useMemo(() => {
         if (!productVariantsData?.length) {
@@ -234,19 +279,95 @@ function ProductPage() {
         }));
     };
 
-    useEffect(() => {
-        setQuantity(1);
-    }, [selectedVariant?.id]);
-
     const media = selectedVariant?.media?.length
         ? selectedVariant.media
         : product?.media ?? [];
 
     const currentCategory = product?.category;
 
+
+    const isInStock =
+        selectedVariant?.inventory?.quantity > 0;
+
+    const stockQuantity =
+        selectedVariant?.inventory?.quantity;
+
+    const isActive =
+        selectedVariant?.is_active === true;
+
+    const isInCart =
+        cart?.items?.some(
+            (item) =>
+                item.product_variant.id === selectedVariant?.id
+        ) ?? false;
+
+    const averageRating =
+        Number(product?.average_rating ?? 0);
+
+    const reviewCount =
+        product?.count_reviews ?? reviews.length;
+
+    const fullStars =
+        Math.floor(averageRating);
+
+
+    const createReviewFunction = async (reviewData) => {
+        const response = await fetch(`${BASE_URL}/reviews`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(reviewData)
+        });
+
+        const data = await response.json()
+
+        if (!response.ok) throw new Error(data.detail || "Failed to Create Review")
+
+        return data
+    }
+
+    const {
+        mutate: addReview,
+        isPending: isReviewPending,
+        isError: isReviewError,
+        error: reviewError,
+    } = useMutation({
+        mutationFn: createReviewFunction,
+
+        onSuccess: () => {
+            setReview("");
+            setRating(0);
+
+            queryClient.invalidateQueries({
+                queryKey: ["products", id, "reviews"],
+            });
+
+            queryClient.invalidateQueries({
+                queryKey: ["products", id],
+            });
+
+            queryClient.invalidateQueries({
+                queryKey: ["products", id, "reviews", currentUser?.id],
+            });
+        },
+    });
+
+    const handleSubmitReview = () => {
+        if (!review.trim() || rating === 0) return;
+
+        addReview({
+            product_id: Number(id),
+            rating,
+            review: review.trim(),
+        });
+    };
+
+
     if (productLoading || variantsLoading) {
         return (
-            <main className="h-screen w-full flex items-center justify-center font-sans">
+            <main className="min-h-screen w-full flex items-center justify-center font-sans">
                 <p className="text-muted text-lg">
                     Loading product...
                 </p>
@@ -256,7 +377,7 @@ function ProductPage() {
 
     if (productError || variantsError) {
         return (
-            <main className="h-screen w-full flex flex-col gap-4 items-center justify-center font-sans">
+            <main className="min-h-screen w-full flex flex-col gap-4 items-center justify-center font-sans">
                 <p className="text-minimal-red text-lg">
                     Failed to load product.
                 </p>
@@ -272,34 +393,15 @@ function ProductPage() {
     }
 
 
-    const isInStock =
-        selectedVariant?.inventory?.quantity > 0;
-
-    const stockQuantity =
-        selectedVariant?.inventory?.quantity;
-
-    const isActive =
-        selectedVariant?.is_active === true;
-
-    const isInCart = cart?.items?.some(
-        (item) => item.product_variant.id === selectedVariant?.id
-    ) ?? false;
-
-
-    const averageRating =
-        Number(product?.average_rating ?? 0);
-
-    const reviewCount =
-        product?.count_reviews ?? reviews.length;
-
-    const fullStars = Math.floor(averageRating);
-
     return (
-        <main className="h-screen w-full font-sans">
+        <main className="min-h-screen w-full font-sans">
+
+            {/* Navbar */}
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
 
+            {/* Background */}
             <div
                 className="fixed inset-0 w-full h-full z-0 pointer-events-none"
                 aria-hidden="true"
@@ -320,9 +422,10 @@ function ProductPage() {
                 />
             </div>
 
-            <section className="relative z-10 pt-20 pb-8 px-6 h-screen overflow-hidden flex flex-col">
+            <section className="relative z-10 pt-20 pb-8 px-6">
 
-                <div className="w-full flex justify-between p-4 border-t border-b mb-4 shrink-0">
+                {/* Categories */}
+                <div className="w-full flex justify-between p-4 border-t border-b mb-6">
 
                     <button
                         onClick={() => navigate("/products")}
@@ -420,19 +523,20 @@ function ProductPage() {
                     >
                         Components
                     </button>
+
                 </div>
 
-                <div className="flex-1 w-full overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-none">
+                <section className="w-full flex items-start gap-6">
 
-                    <section className="snap-start shrink-0 h-full w-full flex">
+                    <div className="w-[40vw] max-w-[650px] min-w-[400px] shrink-0">
 
-                        <div className="w-[40vw] aspect-square overflow-x-scroll snap-x snap-mandatory flex border bg-card/70 rounded-3xl backdrop-blur-xl scrollbar-none scroll-smooth">
+                        <div className="w-full aspect-square overflow-x-auto flex border bg-card/70 rounded-3xl backdrop-blur-xl scrollbar-none scroll-smooth">
 
                             {media.length > 0 ? (
                                 media.map((image, index) => (
                                     <div
                                         key={index}
-                                        className="relative min-w-full aspect-square snap-start"
+                                        className="relative min-w-full aspect-square"
                                     >
                                         <img
                                             src={image.media_url}
@@ -452,382 +556,394 @@ function ProductPage() {
                                     </p>
                                 </div>
                             )}
+
                         </div>
 
-                        <div className="flex-1 gap-2 flex flex-col w-full pl-4 overflow-y-auto scrollbar-none">
+                    </div>
 
-                            <div>
-                                <p className="font-cormorant text-muted font-bold tracking-wider">
-                                    {product?.brand?.name}
-                                </p>
+                    {/* Product Information */}
+                    <div className="flex-1 gap-2 flex flex-col min-w-0">
 
-                                <h2 className="text-5xl font-bold text-foreground">
-                                    {product?.name}
-                                </h2>
-                            </div>
+                        <div>
+                            <p className="font-cormorant text-muted font-bold tracking-wider">
+                                {product?.brand?.name}
+                            </p>
 
-                            <div className="flex items-center">
+                            <h2 className="text-5xl font-bold text-foreground">
+                                {product?.name}
+                            </h2>
+                        </div>
 
-                                {Array.from({
-                                    length: fullStars,
-                                }).map((_, index) => (
-                                    <FaStar
-                                        key={index}
-                                        className="text-minimal-yellow text-xl"
-                                    />
-                                ))}
+                        {/* Rating */}
+                        <div className="flex items-center">
 
-                                <p className="pl-1 text-minimal-yellow">
-                                    {averageRating.toFixed(1)}
-                                </p>
+                            {Array.from({
+                                length: fullStars,
+                            }).map((_, index) => (
+                                <FaStar
+                                    key={index}
+                                    className="text-minimal-yellow text-xl"
+                                />
+                            ))}
 
-                                <p className="pl-2 text-muted">
-                                    ({reviewCount} reviews)
-                                </p>
+                            <p className="pl-1 text-minimal-yellow">
+                                {averageRating.toFixed(1)}
+                            </p>
 
-                            </div>
+                            <p className="pl-2 text-muted">
+                                ({reviewCount} reviews)
+                            </p>
 
-                            <div className="mt-5 flex items-end gap-3">
+                        </div>
 
-                                <p className="text-emerald text-4xl font-bold">
-                                    {selectedVariant?.price != null
-                                        ? `$${selectedVariant.price}`
-                                        : "Price unavailable"}
-                                </p>
+                        {/* Price */}
+                        <div className="mt-5 flex items-end gap-3">
 
-                                <div className="text-muted text-md font-bold">
+                            <p className="text-emerald text-4xl font-bold">
+                                {selectedVariant?.price != null
+                                    ? `$${selectedVariant.price}`
+                                    : "Price unavailable"}
+                            </p>
 
-                                    {!selectedVariant ? (
-                                        <span className="text-minimal-red">
-                                            Combination unavailable
-                                        </span>
-                                    ) : isInStock && isActive ? (
-                                        <span>
-                                            Available
-                                        </span>
-                                    ) : (
-                                        <span className="text-minimal-red">
-                                            Out of Stock
-                                        </span>
-                                    )}
+                            <div className="text-muted text-md font-bold">
 
-                                </div>
-                            </div>
-
-                            <div className="border-t border-b border-border/80 mt-5 text-foreground/80 py-3">
-                                {product?.description}
-                            </div>
-
-                            <div className="flex flex-col gap-4 mt-2">
-
-                                {Object.entries(attributeOptions).map(
-                                    ([key, values]) => (
-                                        <div
-                                            key={key}
-                                            className="flex items-center justify-between gap-4"
-                                        >
-
-                                            <p className="text-md font-bold text-muted">
-                                                {key.toUpperCase()}
-                                            </p>
-
-                                            <div className="flex gap-2 flex-wrap justify-end">
-
-                                                {values.map((value) => {
-
-                                                    const available =
-                                                        isAttributeAvailable(
-                                                            key,
-                                                            value
-                                                        );
-
-                                                    const selected =
-                                                        selectedAttributes[key] ===
-                                                        value;
-
-                                                    return (
-                                                        <button
-                                                            key={value}
-                                                            type="button"
-                                                            disabled={!available}
-                                                            onClick={() =>
-                                                                updateAttribute(
-                                                                    key,
-                                                                    value
-                                                                )
-                                                            }
-                                                            className={`
-                                                                py-2 px-3
-                                                                rounded-md
-                                                                border
-                                                                border-border
-                                                                transition
-                                                                duration-200
-                                                                ${selected
-                                                                    ? "bg-primary text-inverse"
-                                                                    : "bg-card/20 hover:bg-foreground/10"
-                                                                }
-                                                                ${!available
-                                                                    ? "opacity-30 cursor-not-allowed line-through"
-                                                                    : "cursor-pointer"
-                                                                }
-                                                            `}
-                                                        >
-                                                            {value}
-                                                        </button>
-                                                    );
-                                                })}
-
-                                            </div>
-                                        </div>
-                                    )
+                                {!selectedVariant ? (
+                                    <span className="text-minimal-red">
+                                        Combination unavailable
+                                    </span>
+                                ) : isInStock && isActive ? (
+                                    <span>
+                                        Available
+                                    </span>
+                                ) : (
+                                    <span className="text-minimal-red">
+                                        Out of Stock
+                                    </span>
                                 )}
 
                             </div>
 
-                            <div className="grid grid-cols-3 gap-3 mt-5">
+                        </div>
 
-                                <div className="bg-card/60 border border-border rounded-2xl p-4">
-                                    <p className="font-semibold">
-                                        🚚 Delivery
-                                    </p>
+                        {/* Description */}
+                        <div className="border-t border-b border-border/80 mt-5 text-foreground/80 py-3">
+                            {product?.description}
+                        </div>
 
-                                    <p className="text-sm text-muted">
-                                        Fast shipping
-                                    </p>
-                                </div>
+                        {/* Attributes */}
+                        <div className="flex flex-col gap-4 mt-2">
 
-                                <div className="bg-card/60 border border-border rounded-2xl p-4">
-                                    <p className="font-semibold">
-                                        ↩ Returns
-                                    </p>
-
-                                    <p className="text-sm text-muted">
-                                        30 days
-                                    </p>
-                                </div>
-
-                                <div className="bg-card/60 border border-border rounded-2xl p-4">
-                                    <p className="font-semibold">
-                                        🛡 Warranty
-                                    </p>
-
-                                    <p className="text-sm text-muted">
-                                        Official warranty
-                                    </p>
-                                </div>
-
-                            </div>
-
-                            <div className="mt-6 flex items-center w-full justify-between">
-
-                                <div className="flex items-center gap-5">
-
-                                    <label
-                                        htmlFor="quantity"
-                                        className="text-lg font-medium text-foreground"
+                            {Object.entries(attributeOptions).map(
+                                ([key, values]) => (
+                                    <div
+                                        key={key}
+                                        className="flex items-center justify-between gap-4"
                                     >
-                                        Quantity:
-                                    </label>
 
-                                    <div className="
-                                        flex items-center
-                                        rounded-2xl
-                                        border border-border/60
-                                        bg-card/60
-                                        backdrop-blur-xl
-                                        shadow-product
-                                        overflow-hidden
-                                    ">
+                                        <p className="text-md font-bold text-muted">
+                                            {key.toUpperCase()}
+                                        </p>
 
-                                        <button
-                                            type="button"
-                                            disabled={
-                                                quantity <= 1 ||
-                                                !selectedVariant?.is_active ||
-                                                !isInStock
-                                            }
-                                            onClick={() =>
-                                                setQuantity((prev) =>
-                                                    Math.max(1, prev - 1)
-                                                )
-                                            }
-                                            className="
-                                                h-11 w-11
-                                                flex items-center justify-center
-                                                text-foreground
-                                                transition
-                                                hover:bg-foreground/10
-                                                disabled:opacity-30
-                                                disabled:cursor-not-allowed
-                                            "
-                                        >
-                                            −
-                                        </button>
+                                        <div className="flex gap-2 flex-wrap justify-end">
 
-                                        <input
-                                            type="number"
-                                            id="quantity"
-                                            min="1"
-                                            max={stockQuantity ?? undefined}
-                                            value={quantity}
-                                            disabled={
-                                                !selectedVariant?.is_active ||
-                                                !isInStock
-                                            }
-                                            onChange={(e) => {
-                                                const value =
-                                                    Number(e.target.value);
+                                            {values.map((value) => {
 
-                                                if (Number.isNaN(value)) {
-                                                    return;
-                                                }
+                                                const available =
+                                                    isAttributeAvailable(
+                                                        key,
+                                                        value
+                                                    );
 
-                                                const maximum =
-                                                    stockQuantity ?? Infinity;
+                                                const selected =
+                                                    selectedAttributes[key] ===
+                                                    value;
 
-                                                setQuantity(
-                                                    Math.min(
-                                                        Math.max(1, value),
-                                                        maximum
-                                                    )
+                                                return (
+                                                    <button
+                                                        key={value}
+                                                        type="button"
+                                                        disabled={!available}
+                                                        onClick={() =>
+                                                            updateAttribute(
+                                                                key,
+                                                                value
+                                                            )
+                                                        }
+                                                        className={`
+                                                            py-2 px-3
+                                                            rounded-md
+                                                            border
+                                                            border-border
+                                                            transition
+                                                            duration-200
+                                                            ${selected
+                                                                ? "bg-primary text-inverse"
+                                                                : "bg-card/20 hover:bg-foreground/10"
+                                                            }
+                                                            ${!available
+                                                                ? "opacity-30 cursor-not-allowed line-through"
+                                                                : "cursor-pointer"
+                                                            }
+                                                        `}
+                                                    >
+                                                        {value}
+                                                    </button>
                                                 );
-                                            }}
-                                            className="
-                                                w-14
-                                                h-11
-                                                text-center
-                                                bg-transparent
-                                                text-lg
-                                                font-semibold
-                                                text-foreground
-                                                outline-none
-                                                border-x
-                                                border-border/60
-                                            "
-                                        />
+                                            })}
 
-                                        <button
-                                            type="button"
-                                            disabled={
-                                                !selectedVariant?.is_active ||
-                                                !isInStock ||
-                                                (stockQuantity !== null &&
-                                                    quantity >= stockQuantity)
-                                            }
-                                            onClick={() =>
-                                                setQuantity((prev) =>
-                                                    stockQuantity !== null
-                                                        ? Math.min(
-                                                            prev + 1,
-                                                            stockQuantity
-                                                        )
-                                                        : prev + 1
-                                                )
-                                            }
-                                            className="
-                                                h-11 w-11
-                                                flex items-center justify-center
-                                                text-foreground
-                                                transition
-                                                hover:bg-foreground/10
-                                                disabled:opacity-30
-                                                disabled:cursor-not-allowed
-                                            "
-                                        >
-                                            +
-                                        </button>
+                                        </div>
 
                                     </div>
-                                </div>
-
-                                <p className="text-2xl text-emerald font-bold">
-                                    {selectedVariant?.price != null
-                                        ? `$${(
-                                            selectedVariant.price *
-                                            quantity
-                                        ).toFixed(2)}`
-                                        : "—"}
-                                </p>
-
-                            </div>
-
-                            <button
-                                type="button"
-                                disabled={
-                                    !selectedVariant ||
-                                    !selectedVariant.is_active ||
-                                    !isInStock ||
-                                    isPending
-                                }
-                                onClick={() =>
-                                    addItem({
-                                        variant_id: selectedVariant.id,
-                                        quantity,
-                                    })
-                                }
-                                className="
-                                    mt-6
-                                    bg-primary
-                                    p-3
-                                    text-xl
-                                    text-inverse
-                                    font-bold
-                                    text-center
-                                    rounded-3xl
-                                    hover:scale-[1.02]
-                                    duration-300
-                                    cursor-pointer
-                                    shadow-product
-                                    disabled:opacity-40
-                                    disabled:cursor-not-allowed
-                                    disabled:hover:scale-100
-                                "
-                            >
-                                {
-                                    isPending ?
-                                        "Adding..." :
-                                        isInCart ?
-                                            "In Cart" : "Add to Cart"
-                                }
-                            </button>
-
-                            {isError && (
-                                <p className="text-minimal-red text-sm text-center mt-2">
-                                    {error.message}
-                                </p>
+                                )
                             )}
 
                         </div>
-                    </section>
 
-                    <section className="snap-start shrink-0 h-full w-full px-10 overflow-y-auto scrollbar-none">
+                        {/* Features */}
+                        <div className="grid grid-cols-3 gap-3 mt-5">
 
-                        <div className="max-w-5xl mx-auto py-10">
-
-                            <div className="mb-10">
-
-                                <p className="text-muted font-cormorant font-bold tracking-widest">
-                                    TECHNICAL DETAILS
+                            <div className="bg-card/60 border border-border rounded-2xl p-4">
+                                <p className="font-semibold">
+                                    🚚 Delivery
                                 </p>
-
-                                <h2 className="text-5xl font-bold text-foreground">
-                                    Specifications
-                                </h2>
-
-                                <p className="text-muted mt-2">
-                                    Everything you need to know about{" "}
-                                    {product?.name}.
+                                <p className="text-sm text-muted">
+                                    Fast shipping
                                 </p>
+                            </div>
+
+                            <div className="bg-card/60 border border-border rounded-2xl p-4">
+                                <p className="font-semibold">
+                                    ↩ Returns
+                                </p>
+                                <p className="text-sm text-muted">
+                                    30 days
+                                </p>
+                            </div>
+
+                            <div className="bg-card/60 border border-border rounded-2xl p-4">
+                                <p className="font-semibold">
+                                    🛡 Warranty
+                                </p>
+                                <p className="text-sm text-muted">
+                                    Official warranty
+                                </p>
+                            </div>
+
+                        </div>
+
+                        {/* Quantity */}
+                        <div className="mt-6 flex items-center w-full justify-between">
+
+                            <div className="flex items-center gap-5">
+
+                                <label
+                                    htmlFor="quantity"
+                                    className="text-lg font-medium text-foreground"
+                                >
+                                    Quantity:
+                                </label>
+
+                                <div className="
+                                    flex items-center
+                                    rounded-2xl
+                                    border border-border/60
+                                    bg-card/60
+                                    backdrop-blur-xl
+                                    shadow-product
+                                    overflow-hidden
+                                ">
+
+                                    <button
+                                        type="button"
+                                        disabled={
+                                            quantity <= 1 ||
+                                            !selectedVariant?.is_active ||
+                                            !isInStock
+                                        }
+                                        onClick={() =>
+                                            setQuantity((prev) =>
+                                                Math.max(1, prev - 1)
+                                            )
+                                        }
+                                        className="
+                                            h-11 w-11
+                                            flex items-center justify-center
+                                            text-foreground
+                                            transition
+                                            hover:bg-foreground/10
+                                            disabled:opacity-30
+                                            disabled:cursor-not-allowed
+                                        "
+                                    >
+                                        −
+                                    </button>
+
+                                    <input
+                                        type="number"
+                                        id="quantity"
+                                        min="1"
+                                        max={stockQuantity ?? undefined}
+                                        value={quantity}
+                                        disabled={
+                                            !selectedVariant?.is_active ||
+                                            !isInStock
+                                        }
+                                        onChange={(e) => {
+                                            const value =
+                                                Number(e.target.value);
+
+                                            if (Number.isNaN(value)) {
+                                                return;
+                                            }
+
+                                            const maximum =
+                                                stockQuantity ?? Infinity;
+
+                                            setQuantity(
+                                                Math.min(
+                                                    Math.max(1, value),
+                                                    maximum
+                                                )
+                                            );
+                                        }}
+                                        className="
+                                            w-14
+                                            h-11
+                                            text-center
+                                            bg-transparent
+                                            text-lg
+                                            font-semibold
+                                            text-foreground
+                                            outline-none
+                                            border-x
+                                            border-border/60
+                                        "
+                                    />
+
+                                    <button
+                                        type="button"
+                                        disabled={
+                                            !selectedVariant?.is_active ||
+                                            !isInStock ||
+                                            (
+                                                stockQuantity !== null &&
+                                                quantity >= stockQuantity
+                                            )
+                                        }
+                                        onClick={() =>
+                                            setQuantity((prev) =>
+                                                stockQuantity !== null
+                                                    ? Math.min(
+                                                        prev + 1,
+                                                        stockQuantity
+                                                    )
+                                                    : prev + 1
+                                            )
+                                        }
+                                        className="
+                                            h-11 w-11
+                                            flex items-center justify-center
+                                            text-foreground
+                                            transition
+                                            hover:bg-foreground/10
+                                            disabled:opacity-30
+                                            disabled:cursor-not-allowed
+                                        "
+                                    >
+                                        +
+                                    </button>
+
+                                </div>
 
                             </div>
 
-                            <div className="border border-border rounded-3xl overflow-hidden bg-card/50 backdrop-blur-xl">
+                            <p className="text-2xl text-emerald font-bold">
+                                {selectedVariant?.price != null
+                                    ? `$${(
+                                        selectedVariant.price * quantity
+                                    ).toFixed(2)}`
+                                    : "—"}
+                            </p>
 
-                                {Object.entries(
-                                    product?.specifications ?? {}
-                                ).map(([key, value], index, array) => (
+                        </div>
 
+                        {/* Add To Cart */}
+                        <button
+                            type="button"
+                            disabled={
+                                !selectedVariant ||
+                                !selectedVariant.is_active ||
+                                !isInStock ||
+                                isPending
+                            }
+                            onClick={() =>
+                                addItem({
+                                    variant_id: selectedVariant.id,
+                                    quantity,
+                                })
+                            }
+                            className="
+                                mt-6
+                                bg-primary
+                                p-3
+                                text-xl
+                                text-inverse
+                                font-bold
+                                text-center
+                                rounded-3xl
+                                hover:scale-[1.02]
+                                duration-300
+                                cursor-pointer
+                                shadow-product
+                                disabled:opacity-40
+                                disabled:cursor-not-allowed
+                                disabled:hover:scale-100
+                            "
+                        >
+                            {isPending
+                                ? "Adding..."
+                                : isInCart
+                                    ? "In Cart"
+                                    : "Add to Cart"}
+                        </button>
+
+                        {isError && (
+                            <p className="text-minimal-red text-sm text-center mt-2">
+                                {error.message}
+                            </p>
+                        )}
+
+                    </div>
+
+                </section>
+
+                <section className="w-full px-10 py-16">
+
+                    <div className="max-w-5xl mx-auto">
+
+                        <div className="mb-10">
+
+                            <p className="text-muted font-cormorant font-bold tracking-widest">
+                                TECHNICAL DETAILS
+                            </p>
+
+                            <h2 className="text-5xl font-bold text-foreground">
+                                Specifications
+                            </h2>
+
+                            <p className="text-muted mt-2">
+                                Everything you need to know about{" "}
+                                {product?.name}.
+                            </p>
+
+                        </div>
+
+                        <div className="border border-border rounded-3xl overflow-hidden bg-card/50 backdrop-blur-xl">
+
+                            {Object.entries(
+                                product?.specifications ?? {}
+                            ).map(
+                                ([key, value], index, array) => (
                                     <div
                                         key={key}
                                         className={`
@@ -851,85 +967,116 @@ function ProductPage() {
                                         </p>
 
                                     </div>
-
-                                ))}
-
-                            </div>
+                                )
+                            )}
 
                         </div>
-                    </section>
 
-                    <section className="snap-start shrink-0 h-full w-full px-10 overflow-y-auto scrollbar-none">
+                    </div>
 
-                        <div className="max-w-6xl mx-auto py-10">
+                </section>
 
-                            <div className="mb-10">
+                <section className="w-full px-10 py-16">
 
-                                <p className="text-muted font-cormorant font-bold tracking-widest">
-                                    CUSTOMER FEEDBACK
-                                </p>
+                    <div className="max-w-6xl mx-auto">
 
-                                <h2 className="text-5xl font-bold text-foreground">
-                                    Reviews
-                                </h2>
+                        <div className="mb-10">
 
-                                <p className="text-muted mt-2">
-                                    See what customers think about{" "}
-                                    {product?.name}.
-                                </p>
+                            <p className="text-muted font-cormorant font-bold tracking-widest">
+                                CUSTOMER FEEDBACK
+                            </p>
 
-                            </div>
+                            <h2 className="text-5xl font-bold text-foreground">
+                                Reviews
+                            </h2>
 
-                            <div className="border border-border rounded-3xl bg-card/60 backdrop-blur-xl p-8 mb-8">
+                            <p className="text-muted mt-2">
+                                See what customers think about{" "}
+                                {product?.name}.
+                            </p>
 
-                                <div className="flex items-center gap-6">
+                        </div>
 
-                                    <div>
+                        <div className="border border-border rounded-3xl bg-card/60 backdrop-blur-xl p-8 mb-8">
 
-                                        <p className="text-6xl font-bold text-foreground">
-                                            {averageRating.toFixed(1)}
-                                        </p>
+                            <div className="flex items-center gap-6">
 
-                                        <div className="flex mt-3">
+                                <div>
 
-                                            {Array.from({
-                                                length: 5,
-                                            }).map((_, index) => (
-                                                <FaStar
-                                                    key={index}
-                                                    className={
-                                                        index < fullStars
-                                                            ? "text-minimal-yellow text-xl"
-                                                            : "text-muted/30 text-xl"
-                                                    }
-                                                />
-                                            ))}
+                                    <p className="text-6xl font-bold text-foreground">
+                                        {averageRating.toFixed(1)}
+                                    </p>
 
-                                        </div>
+                                    <div className="flex mt-3">
 
-                                    </div>
-
-                                    <div className="h-16 w-px bg-border" />
-
-                                    <div>
-
-                                        <p className="text-lg font-semibold">
-                                            {reviewCount} reviews
-                                        </p>
-
-                                        <p className="text-muted">
-                                            Customer ratings and feedback
-                                        </p>
+                                        {Array.from({
+                                            length: 5,
+                                        }).map((_, index) => (
+                                            <FaStar
+                                                key={index}
+                                                className={
+                                                    index < fullStars
+                                                        ? "text-minimal-yellow text-xl"
+                                                        : "text-muted/30 text-xl"
+                                                }
+                                            />
+                                        ))}
 
                                     </div>
 
                                 </div>
 
+                                <div className="h-16 w-px bg-border" />
+
+                                <div>
+
+                                    <p className="text-lg font-semibold">
+                                        {reviewCount} reviews
+                                    </p>
+
+                                    <p className="text-muted">
+                                        Customer ratings and feedback
+                                    </p>
+
+                                </div>
+
                             </div>
 
-                            <div className="flex flex-col gap-4">
+                        </div>
 
-                                {reviewsLoading && (
+                        <div className="flex flex-col gap-4 mb-8">
+
+                            {reviewsLoading && (
+                                <div className="
+                                    border border-border
+                                    rounded-3xl
+                                    bg-card/60
+                                    p-8
+                                    text-center
+                                ">
+                                    <p className="text-muted">
+                                        Loading reviews...
+                                    </p>
+                                </div>
+                            )}
+
+                            {reviewsError && (
+                                <div className="
+                                    border border-border
+                                    rounded-3xl
+                                    bg-card/60
+                                    p-8
+                                    text-center
+                                ">
+                                    <p className="text-minimal-red">
+                                        Failed to load reviews.
+                                    </p>
+                                </div>
+                            )}
+
+                            {!reviewsLoading &&
+                                !reviewsError &&
+                                reviews.length === 0 && (
                                     <div className="
                                         border border-border
                                         rounded-3xl
@@ -938,115 +1085,201 @@ function ProductPage() {
                                         text-center
                                     ">
                                         <p className="text-muted">
-                                            Loading reviews...
+                                            No reviews yet.
                                         </p>
                                     </div>
                                 )}
 
-                                {reviewsError && (
-                                    <div className="
-                                        border border-border
-                                        rounded-3xl
-                                        bg-card/60
-                                        p-8
-                                        text-center
-                                    ">
-                                        <p className="text-minimal-red">
-                                            Failed to load reviews.
-                                        </p>
-                                    </div>
-                                )}
-
-                                {!reviewsLoading &&
-                                    !reviewsError &&
-                                    reviews.length === 0 && (
-                                        <div className="
+                            {!reviewsLoading &&
+                                !reviewsError &&
+                                reviews.map((review) => (
+                                    <article
+                                        key={review.id}
+                                        className="
                                             border border-border
                                             rounded-3xl
                                             bg-card/60
-                                            p-8
-                                            text-center
-                                        ">
-                                            <p className="text-muted">
-                                                No reviews yet.
-                                            </p>
-                                        </div>
-                                    )}
+                                            backdrop-blur-xl
+                                            p-6
+                                        "
+                                    >
 
-                                {!reviewsLoading &&
-                                    !reviewsError &&
-                                    reviews.map((review) => (
+                                        <div className="flex items-start justify-between">
 
-                                        <article
-                                            key={review.id}
-                                            className="
-                                                border border-border
-                                                rounded-3xl
-                                                bg-card/60
-                                                backdrop-blur-xl
-                                                p-6
-                                            "
-                                        >
+                                            <div>
 
-                                            <div className="flex items-start justify-between">
+                                                <p className="font-bold text-lg">
+                                                    {review.user?.name ??
+                                                        "Anonymous"}
+                                                </p>
 
-                                                <div>
+                                                <div className="flex items-center gap-1 mt-1">
 
-                                                    <p className="font-bold text-lg">
-                                                        {review.user?.name ??
-                                                            "Anonymous"}
-                                                    </p>
-
-                                                    <div className="flex items-center gap-1 mt-1">
-
-                                                        {Array.from({
-                                                            length: 5,
-                                                        }).map(
-                                                            (_, index) => (
-                                                                <FaStar
-                                                                    key={index}
-                                                                    className={
-                                                                        index <
-                                                                            Number(
-                                                                                review.rating
-                                                                            )
-                                                                            ? "text-minimal-yellow text-sm"
-                                                                            : "text-muted/30 text-sm"
-                                                                    }
-                                                                />
-                                                            )
-                                                        )}
-
-                                                    </div>
+                                                    {Array.from({
+                                                        length: 5,
+                                                    }).map(
+                                                        (_, index) => (
+                                                            <FaStar
+                                                                key={index}
+                                                                className={
+                                                                    index <
+                                                                        Number(
+                                                                            review.rating
+                                                                        )
+                                                                        ? "text-minimal-yellow text-sm"
+                                                                        : "text-muted/30 text-sm"
+                                                                }
+                                                            />
+                                                        )
+                                                    )}
 
                                                 </div>
 
-                                                {review.created_at && (
-                                                    <p className="text-sm text-muted">
-                                                        {new Date(
-                                                            review.created_at
-                                                        ).toLocaleDateString()}
-                                                    </p>
-                                                )}
-
                                             </div>
 
-                                            <p className="mt-4 text-foreground/80 leading-relaxed">
-                                                {review.comment}
-                                            </p>
+                                            {review.created_at && (
+                                                <p className="text-sm text-muted">
+                                                    {new Date(
+                                                        review.created_at
+                                                    ).toLocaleDateString()}
+                                                </p>
+                                            )}
 
-                                        </article>
+                                        </div>
 
-                                    ))}
+                                        <p className="mt-4 text-foreground/80 leading-relaxed">
+                                            {review.comment}
+                                        </p>
 
-                            </div>
+                                    </article>
+                                )
+                                )}
 
                         </div>
 
-                    </section>
+                        <div className="flex flex-col gap-3">
 
-                </div>
+                            <div className="
+                                    flex
+                                    items-center
+                                    gap-3
+                                    bg-chip
+                                    rounded-xl
+                                    border
+                                    border-border-soft
+                                    px-4
+                                    py-3
+                                ">
+                                <p className="text-sm font-semibold text-muted">
+                                    Your rating
+                                </p>
+
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: 5 }).map((_, index) => {
+                                        const value = index + 1;
+
+                                        return (
+                                            <button
+                                                key={value}
+                                                type="button"
+                                                onClick={() => setRating(value)}
+                                                className="cursor-pointer transition-transform duration-200 hover:scale-110"
+                                            >
+                                                <FaStar
+                                                    className={`
+                                                        w-5 h-5
+                                                        duration-200
+                                                        ${value <= rating
+                                                            ? "text-minimal-yellow"
+                                                            : "text-muted/30"
+                                                        }
+                            `}
+                                                />
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {rating > 0 && (
+                                    <span className="text-sm font-semibold text-muted">
+                                        {rating}/5
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="
+                                    relative
+                                    w-full
+                                    bg-chip
+                                    rounded-xl
+                                    border
+                                    border-border-soft
+                                    hover:border-border
+                                    focus-within:border-border
+                                    duration-300
+                                    ease-in-out
+                                ">
+                                <input
+                                    id="review"
+                                    type="text"
+                                    value={review}
+                                    onChange={(e) => setReview(e.target.value)}
+                                    placeholder="Write your review..."
+                                    className="
+                                            w-full
+                                            rounded-xl
+                                            bg-transparent
+                                            py-3
+                                            pl-4
+                                            pr-14
+                                            font-semibold
+                                            outline-none
+                                            placeholder:text-muted
+                                        "
+                                />
+
+                                <button
+                                    type="button"
+                                    disabled={review == ""}
+                                    className="
+                                            absolute
+                                            right-2
+                                            top-1/2
+                                            -translate-y-1/2
+                                            w-9
+                                            h-9
+                                            flex
+                                            items-center
+                                            justify-center
+                                            rounded-lg
+                                            bg-primary
+                                            text-inverse
+                                            cursor-pointer
+                                            transition-all
+                                            duration-300
+                                            hover:bg-primary-hover
+                                            hover:scale-105
+                                            active:scale-95
+                                        "
+                                    onClick={handleSubmitReview}
+                                >
+                                    {isReviewPending ? (
+                                        <span className="text-xs">...</span>
+                                    ) : (
+                                        <Send className="w-4 h-4" />
+                                    )}
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+
+                </section>
+
             </section>
+
         </main>
     );
 }

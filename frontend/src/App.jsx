@@ -4,15 +4,15 @@ import Explore from './pages/Explore';
 import ProductPage from './pages/ProductPage';
 import Register from './pages/Register';
 import Login from './pages/Login';
-import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
+import CartPage from './pages/Order/CartPage';
+import CheckoutPage from './pages/Order/CheckoutPage';
 import Profile from './pages/ProfilePage/Profile';
 import OrdersHistory from './pages/ProfilePage/OrdersHistory';
 import AdminApp from './admin/AdminApp';
 import ProfileCart from './pages/ProfilePage/ProfileCart';
 import Wishlist from './pages/ProfilePage/Wishlist';
 import { ProductList } from './admin/resources/pages/products/ProductList';
-import OrderConfirmation from './pages/OrderConfirmation';
+import OrderConfirmation from './pages/Order/OrderConfirmation';
 
 function App() {
   return (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import DotField from "../components/animation/DotField";
-import Navbar from "../components/Navbar";
-import getCurrentUser from "../hooks/CurrentUser";
+import DotField from "../../components/animation/DotField";
+import Navbar from "../../components/Navbar";
+import getCurrentUser from "../../hooks/CurrentUser";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 

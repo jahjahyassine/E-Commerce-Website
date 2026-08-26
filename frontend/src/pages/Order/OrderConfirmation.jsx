@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import DotField from "../components/animation/DotField";
-import Navbar from "../components/Navbar";
+import DotField from "../../components/animation/DotField";
+import Navbar from "../../components/Navbar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { PackageCheck, MailCheck, PackageSearch, ShoppingBag } from "lucide-react";
-import getCurrentUser from "../hooks/CurrentUser";
+import getCurrentUser from "../../hooks/CurrentUser";
 
 function OrderConfirmation() {
     const token = localStorage.getItem("access_token");

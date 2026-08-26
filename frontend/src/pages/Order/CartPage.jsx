@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import DotField from "../components/animation/DotField";
-import Navbar from "../components/Navbar";
+import DotField from "../../components/animation/DotField";
+import Navbar from "../../components/Navbar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
