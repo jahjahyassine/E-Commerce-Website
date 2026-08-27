@@ -1,63 +1,112 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "../../components/Navbar";
 import ProfileSidebar from "../../components/ProfileSidebar";
 import DotField from "../../components/animation/DotField";
 import getCurrentUser from "../../hooks/CurrentUser";
-import { data, useNavigate } from "react-router-dom";
-import { Upload, Edit3Icon } from "lucide-react";
-import { useState, useEffect } from "react";
-import ProfilePictureModal from "../../modals/ProfilePictureModal";
+import { useEffect } from "react";
 
 function OrdersHistory() {
-
-    const BASE_URL = import.meta.env.VITE_BASE_URL
-    const token = localStorage.getItem("access_token")
-    const navigate = useNavigate()
+    const BASE_URL = import.meta.env.VITE_BASE_URL;
+    const token = localStorage.getItem("access_token");
+    const navigate = useNavigate();
 
     const {
         data: currentUser,
-        isLoading,
-        isError,
+        isLoading: userLoading,
+        isError: userError,
     } = useQuery({
         queryKey: ["user"],
         queryFn: getCurrentUser,
-        enabled: !!localStorage.getItem("access_token"),
+        enabled: !!token,
     });
 
-    if (isError) {
-        navigate("/login")
-    }
-
+    useEffect(() => {
+        if (!token || userError) {
+            navigate("/login");
+        }
+    }, [token, userError, navigate]);
 
     const fetchOrders = async () => {
-        const response = await fetch(
-            `${BASE_URL}/orders`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            }
-        )
+        const response = await fetch(`${BASE_URL}/orders`, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
 
-        const data = await response.json()
+        const data = await response.json();
 
-        if (!response.ok) throw new Error(data.message || "Failed to retrieve Orders!")
+        if (!response.ok) {
+            throw new Error(
+                data.message || "Failed to retrieve Orders!"
+            );
+        }
 
-        return data
-    }
-
+        return data;
+    };
 
     const {
-        data: orders
+        data: orders = [],
+        isLoading: ordersLoading,
+        isError: ordersError,
     } = useQuery({
+        queryKey: ["orders"],
         queryFn: fetchOrders,
-        queryKey: ["orders"]
-    })
+        enabled: !!token,
+    });
 
+    const shippingStatusStyles = {
+        NOT_SHIPPED:
+            "text-warning bg-warning/10 border-warning/40",
 
+        SHIPPED:
+            "text-primary bg-primary/10 border-primary/40",
 
+        DELIVERED:
+            "text-success bg-success/10 border-success/40",
+    };
 
+    if (userLoading || ordersLoading) {
+        return (
+            <main className="min-h-screen w-full flex items-center justify-center font-sans">
+                <p className="text-muted text-lg">
+                    Loading your Orders...
+                </p>
+            </main>
+        );
+    }
+
+    if (ordersError) {
+        return (
+            <main className="min-h-screen w-full flex items-center justify-center font-sans">
+                <div className="text-center">
+                    <p className="text-minimal-red text-lg mb-4">
+                        Failed to load your orders.
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            window.location.reload()
+                        }
+                        className="
+                            px-5 py-2
+                            rounded-xl
+                            bg-primary
+                            text-inverse
+                            font-semibold
+                            cursor-pointer
+                            hover:opacity-90
+                            transition-opacity
+                        "
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main className="relative min-h-screen">
@@ -66,7 +115,14 @@ function OrdersHistory() {
             </header>
 
             <div
-                className="fixed inset-0 w-full h-full z-0 pointer-events-none"
+                className="
+                    fixed
+                    inset-0
+                    w-full
+                    h-full
+                    z-0
+                    pointer-events-none
+                "
                 aria-hidden="true"
             >
                 <DotField
@@ -85,29 +141,356 @@ function OrdersHistory() {
                 />
             </div>
 
-            <section className="relative z-10 h-screen bg-card/20 backdrop-blur-xl flex">
-                <ProfileSidebar user={currentUser}  />
+            <section
+                className="
+                    relative
+                    z-10
+                    h-screen
+                    bg-card/20
+                    backdrop-blur-xl
+                    flex
+                "
+            >
+                <ProfileSidebar user={currentUser} />
 
-                <section className="flex-1 flex flex-col pt-20 p-8">
+                <section
+                    className="
+                        flex-1
+                        flex
+                        flex-col
+                        pt-20
+                        p-8
+                        overflow-y-auto
+                        scrollbar-none
+                        scroll-smooth
+                    "
+                >
                     <h2 className="text-3xl border-b border-border pb-2">
                         Your Orders
                     </h2>
 
-                    <div className="mt-6 flex gap-5">
-                        {
-                            orders?.map((order) => (
-                                <div>
-                                    {order.id}
-                                </div>
-                            ))
-                        }
-                    </div>
+                    {orders.length === 0 ? (
+                        <div
+                            className="
+                                mt-6
+                                p-10
+                                bg-chip
+                                rounded-xl
+                                border
+                                border-border
+                                text-center
+                            "
+                        >
+                            <p className="text-muted">
+                                You haven't placed any orders yet.
+                            </p>
 
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    navigate("/products")
+                                }
+                                className="
+                                    mt-4
+                                    px-5
+                                    py-2
+                                    rounded-xl
+                                    bg-primary
+                                    text-inverse
+                                    font-semibold
+                                    cursor-pointer
+                                    hover:opacity-90
+                                    transition-opacity
+                                "
+                            >
+                                Browse Products
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="mt-6 flex flex-col gap-5 bg-chip p-2 rounded-xl">
+                            {orders.map((order) => (
+                                <div
+                                    key={order.id}
+                                    className="
+                                        p-3
+                                        bg-card
+                                        flex
+                                        flex-col
+                                        gap-3
+                                        rounded-lg
+                                        border
+                                        border-border-soft
+                                    "
+                                >
+                                    {/* Order Header */}
+                                    <div className="flex gap-2 justify-between">
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex gap-4">
+                                                <div className="flex gap-1 items-center">
+                                                    <p className="text-muted text-sm font-semibold">
+                                                        Order ID:
+                                                    </p>
+
+                                                    <p className="font-bold">
+                                                        #{order.id}
+                                                    </p>
+                                                </div>
+
+                                                <p>
+                                                    {order.created_at && (
+                                                        <span className="text-xs text-muted">
+                                                            {new Date(
+                                                                order.created_at
+                                                            ).toLocaleDateString()}
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            </div>
+
+                                            {/* Shipping Status + Tracking */}
+                                            <div className="flex gap-2">
+                                                <p
+                                                    className={`
+                                                        px-3
+                                                        py-1
+                                                        rounded-full
+                                                        text-sm
+                                                        font-semibold
+                                                        border
+                                                        transition-all
+                                                        duration-300
+                                                        ${
+                                                            shippingStatusStyles[
+                                                                order
+                                                                    .shipping_status
+                                                            ] ??
+                                                            "text-muted bg-muted/10 border-border"
+                                                        }
+                                                    `}
+                                                >
+                                                    {order.shipping_status}
+                                                </p>
+
+                                                <button
+                                                    type="button"
+                                                    className="
+                                                        px-3
+                                                        py-1
+                                                        rounded-full
+                                                        cursor-pointer
+                                                        text-sm
+                                                        font-semibold
+                                                        text-success
+                                                        duration-300
+                                                        ease-in-out
+                                                        border
+                                                        border-success/40
+                                                        bg-success/10
+                                                        transition-all
+                                                        hover:bg-success/20
+                                                        hover:scale-[1.02]
+                                                        active:scale-95
+                                                    "
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/track/order/${order.id}`
+                                                        )
+                                                    }
+                                                >
+                                                    Track Order
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Order Total */}
+                                        <p className="font-bold">
+                                            ${Number(
+                                                order.total_amount
+                                            ).toFixed(2)}
+                                        </p>
+                                    </div>
+
+                                    {/* Order Items */}
+                                    <div className="flex flex-col gap-1 pl-4">
+                                        {order.items?.map((item) => {
+                                            const variant =
+                                                item.product_variant;
+
+                                            const image =
+                                                variant?.media?.[0]
+                                                    ?.media_url;
+
+                                            return (
+                                                <div
+                                                    key={
+                                                        item.product_variant_id
+                                                    }
+                                                    className="
+                                                        w-full
+                                                        flex
+                                                        items-center
+                                                        rounded-xl
+                                                        overflow-hidden
+                                                        p-3
+                                                        gap-3
+                                                        bg-chip
+                                                        border
+                                                        border-border-soft
+                                                        hover:border-border
+                                                        duration-300
+                                                        ease-in-out
+                                                    "
+                                                >
+                                                    {/* Product Image */}
+                                                    <div
+                                                        className="
+                                                            w-16
+                                                            h-16
+                                                            shrink-0
+                                                            rounded-lg
+                                                            overflow-hidden
+                                                            bg-chip
+                                                        "
+                                                    >
+                                                        {image ? (
+                                                            <img
+                                                                src={image}
+                                                                alt={
+                                                                    item.product_name ||
+                                                                    "Product"
+                                                                }
+                                                                className="
+                                                                    w-full
+                                                                    h-full
+                                                                    object-cover
+                                                                    hover:scale-[1.05]
+                                                                    duration-300
+                                                                "
+                                                            />
+                                                        ) : (
+                                                            <div
+                                                                className="
+                                                                    w-full
+                                                                    h-full
+                                                                    flex
+                                                                    items-center
+                                                                    justify-center
+                                                                    text-xs
+                                                                    text-muted
+                                                                "
+                                                            >
+                                                                No image
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Product Information */}
+                                                    <div className="flex flex-col min-w-0">
+                                                        <h3 className="text-sm font-bold truncate">
+                                                            {
+                                                                item.product_name
+                                                            }
+                                                        </h3>
+
+                                                        {variant?.sku && (
+                                                            <div className="flex items-center gap-1">
+                                                                <p className="text-xs text-muted font-semibold">
+                                                                    SKU:
+                                                                </p>
+
+                                                                <p className="text-xs font-semibold">
+                                                                    {
+                                                                        variant.sku
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Variant Attributes */}
+                                                        <div className="flex flex-wrap gap-x-3">
+                                                            {Object.entries(
+                                                                item.variant_attributes_snapshot ||
+                                                                    {}
+                                                            ).map(
+                                                                ([
+                                                                    key,
+                                                                    value,
+                                                                ]) => (
+                                                                    <div
+                                                                        key={
+                                                                            key
+                                                                        }
+                                                                        className="
+                                                                            text-xs
+                                                                            flex
+                                                                            gap-1
+                                                                            items-center
+                                                                        "
+                                                                    >
+                                                                        <p className="font-bold">
+                                                                            {
+                                                                                key
+                                                                            }
+                                                                            :
+                                                                        </p>
+
+                                                                        <p className="text-muted font-semibold">
+                                                                            {String(
+                                                                                value
+                                                                            )}
+                                                                        </p>
+                                                                    </div>
+                                                                )
+                                                            )}
+                                                        </div>
+
+                                                        {/* Quantity */}
+                                                        <div
+                                                            className="
+                                                                text-xs
+                                                                text-muted
+                                                                font-semibold
+                                                                mt-1
+                                                                flex
+                                                                gap-1
+                                                            "
+                                                        >
+                                                            <span>
+                                                                Quantity:
+                                                            </span>
+
+                                                            <span>
+                                                                {
+                                                                    item.quantity
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Item Total */}
+                                                    <div className="ml-auto shrink-0">
+                                                        <p className="text-base font-bold text-emerald">
+                                                            $
+                                                            {(
+                                                                Number(
+                                                                    item.price
+                                                                ) *
+                                                                item.quantity
+                                                            ).toFixed(2)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </section>
             </section>
         </main>
-    )
+    );
 }
-
 
 export default OrdersHistory;

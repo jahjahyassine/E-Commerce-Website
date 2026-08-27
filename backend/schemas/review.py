@@ -13,8 +13,15 @@ class ReviewCreate (BaseModel):
     product_id: int
 
 
+class ReviewUpdate (BaseModel):
+    review: str | None = None
+    rating: int | None = None
+    product_id: int
+
+
 class ReviewResponse (ReviewCreate):
     pass
+    id: int
     user: UserResponse
     product: ProductResponse
     created_at: datetime
