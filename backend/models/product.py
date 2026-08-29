@@ -56,8 +56,6 @@ class Product (Base):
 
     reviews: Mapped[list["Review"]] = relationship("Review", back_populates="product", cascade="all, delete-orphan")
 
-    wishlist_items: Mapped[list["WishlistProduct"]] = relationship("WishlistProduct", back_populates="product", cascade="all, delete-orphan")
-
     product_variants: Mapped[list["ProductVariant"]] = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
 
     __table_args__ = (

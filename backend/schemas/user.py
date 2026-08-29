@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 
@@ -49,5 +49,10 @@ class UserPatch(BaseModel):
     region: str | None = None
     postal_code: str | None = None
 
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8)
 
 

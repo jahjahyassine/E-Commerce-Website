@@ -298,14 +298,9 @@ function ProfileCart() {
 
     return (
         <main className="relative min-h-screen">
-
-            {/* Navbar */}
-
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
-
-            {/* Background */}
 
             <div
                 className="
@@ -334,29 +329,28 @@ function ProfileCart() {
                 />
             </div>
 
-            {/* Main content */}
-
             <section
                 className="
                     relative
                     z-10
-                    min-h-screen
+                    h-screen
                     bg-card/20
                     backdrop-blur-xl
                     flex
                 "
             >
-
                 <ProfileSidebar user={currentUser} />
 
                 <section
                     className="
                         flex-1
-                        min-w-0
                         flex
                         flex-col
                         pt-20
                         p-8
+                        overflow-y-auto
+                        scrollbar-none
+                        scroll-smooth
                     "
                 >
 
@@ -499,11 +493,12 @@ function ProfileCart() {
                                                 p-4
                                                 gap-4
                                                 transition-all
-                                                duration-200
-                                                ${
-                                                    isSelected
-                                                        ? "bg-card border border-primary"
-                                                        : "bg-card"
+                                                duration-300
+                                                ease-in-out
+                                                hover:shadow-sm
+                                                ${isSelected
+                                                    ? "bg-card border border-primary"
+                                                    : "bg-card"
                                                 }
                                             `}
                                         >
@@ -665,7 +660,6 @@ function ProfileCart() {
 
                                             </div>
 
-                                            {/* Price + delete */}
 
                                             <div
                                                 className="
@@ -764,8 +758,8 @@ function ProfileCart() {
                                         {isClearingCart
                                             ? "Removing..."
                                             : allSelected
-                                            ? "Clear Cart"
-                                            : "Remove Selected"}
+                                                ? "Clear Cart"
+                                                : "Remove Selected"}
                                     </button>
 
                                 </div>

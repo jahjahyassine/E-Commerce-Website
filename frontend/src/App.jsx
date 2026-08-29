@@ -10,9 +10,10 @@ import Profile from './pages/ProfilePage/Profile';
 import OrdersHistory from './pages/ProfilePage/OrdersHistory';
 import AdminApp from './admin/AdminApp';
 import ProfileCart from './pages/ProfilePage/ProfileCart';
-import Wishlist from './pages/ProfilePage/Wishlist';
 import { ProductList } from './admin/resources/pages/products/ProductList';
 import OrderConfirmation from './pages/Order/OrderConfirmation';
+import Reviews from './pages/ProfilePage/Reviews';
+import SecurityPage from './pages/ProfilePage/SecurityPage';
 
 function App() {
   return (
@@ -30,7 +31,8 @@ function App() {
         <Route index element={<Profile />} />
         <Route path="orders" element={<OrdersHistory />} />
         <Route path="cart" element={<ProfileCart />} />
-        <Route path="wishlist" element={<Wishlist />} />
+        <Route path="reviews" element={<Reviews />} />
+        <Route path="security" element={<SecurityPage />} />
       </Route>
 
 

@@ -57,8 +57,6 @@ class User (Base):
 
     cart: Mapped["Cart"] = relationship("Cart", back_populates="user", uselist=False)
 
-    wishlist: Mapped["Wishlist"] = relationship("Wishlist", back_populates="user")
-
     @property
     def profile_pic_path(self) -> str:
         if (self.profile_pic):

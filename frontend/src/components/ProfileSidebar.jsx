@@ -1,19 +1,25 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+
 import {
     CircleUserRound,
     Package,
-    Heart,
     Star,
     MapPin,
-    Settings,
+    Shield,
     LogOut,
     ChevronLeft,
     ChevronRight,
     ShoppingCart
 } from "lucide-react";
+
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 function ProfileSidebar({ user }) {
+
+    const navigate = useNavigate()
+    const queryClient = useQueryClient();
+
     const [toggle, setToggle] = useState(
         sessionStorage.getItem("toggle") === "true"
     );
@@ -25,7 +31,6 @@ function ProfileSidebar({ user }) {
             return newValue;
         });
     };
-
 
     const menuItems = [
         {
@@ -41,24 +46,24 @@ function ProfileSidebar({ user }) {
         {
             label: "Cart",
             icon: ShoppingCart,
-            to: "/profile/cart"
-        },
-        {
-            label: "Wishlist",
-            icon: Heart,
-            to: "/profile/wishlist",
+            to: "/profile/cart",
         },
         {
             label: "Reviews",
             icon: Star,
             to: "/profile/reviews",
         },
-        {
-            label: "Addresses",
-            icon: MapPin,
-            to: "/profile/addresses",
-        }
     ];
+
+    const handleLogout = () => {
+        localStorage.removeItem("access_token");
+
+        queryClient.removeQueries({
+            queryKey: ["user"],
+        });
+        
+        navigate("/login")
+    }
 
     return (
         <main
@@ -66,44 +71,64 @@ function ProfileSidebar({ user }) {
                 h-full
                 bg-card
                 pt-20
-                px-6
+                px-4
                 text-foreground
                 flex
                 flex-col
                 justify-between
+                shadow-[4px_0_18px_rgba(47,65,86,0.08)]
                 transition-all
                 duration-300
                 ease-in-out
-                
                 ${toggle
                     ? "lg:w-[5vw] md:w-[10vw] sm:w-[10vw]"
                     : "lg:w-[17vw] md:w-[35vw] sm:w-[30vw]"
                 }
             `}
         >
-            <div className={`${toggle ? " items-center justify-center" : ""} flex flex-col`}>
-                <div className="self-end">
-                    <button onClick={handleToggle}
-                        className="cursor-pointer"
+            {/* TOP */}
+            <div
+                className={`
+                    flex flex-col
+                    ${toggle ? "items-center" : ""}
+                `}
+            >
+                {/* Toggle */}
+                <div className="flex justify-end mb-4">
+                    <button
+                        onClick={handleToggle}
+                        className="
+                            cursor-pointer
+                            rounded-lg
+                            p-1
+                            hover:bg-chip
+                            transition-colors
+                            duration-200
+                        "
                     >
-                        {toggle ?
+                        {toggle ? (
                             <ChevronRight className="w-5 h-5" />
-                            :
+                        ) : (
                             <ChevronLeft className="w-5 h-5" />
-                        }
+                        )}
                     </button>
                 </div>
+
+                {/* Profile */}
                 <div
                     className={`
                         flex
                         items-center
                         border-b
                         border-border
-                        pb-4
-                        ${toggle ? "justify-center" : "gap-4"}
+                        pb-5
+                        ${toggle
+                            ? "justify-center w-full"
+                            : "gap-3"
+                        }
                     `}
                 >
-                    <div className="h-[50px] w-[50px] shrink-0 rounded-full overflow-hidden">
+                    <div className="h-[46px] w-[46px] shrink-0 rounded-full overflow-hidden">
                         <img
                             src={user?.profile_pic_path}
                             alt="Profile"
@@ -113,7 +138,7 @@ function ProfileSidebar({ user }) {
 
                     <h2
                         className={`
-                            text-xl
+                            text-lg
                             font-bold
                             overflow-hidden
                             whitespace-nowrap
@@ -129,13 +154,16 @@ function ProfileSidebar({ user }) {
                     </h2>
                 </div>
 
-                <div className="mt-6">
+                {/* Navigation */}
+                <div className="mt-5 w-full">
                     <p
                         className={`
                             text-muted
-                            font-bold
-                            text-sm
-                            mb-3
+                            font-semibold
+                            text-xs
+                            uppercase
+                            tracking-wider
+                            mb-2
                             overflow-hidden
                             whitespace-nowrap
                             transition-all
@@ -157,26 +185,27 @@ function ProfileSidebar({ user }) {
                                 end={to === "/profile"}
                                 className={({ isActive }) => `
                                     flex
-                                    gap-3
                                     items-center
+                                    gap-3
                                     rounded-xl
-                                    p-2
+                                    px-2.5
+                                    py-2
                                     hover:bg-chip
-                                    duration-300
-                                    ease-in-out
+                                    transition-all
+                                    duration-200
                                     cursor-pointer
                                     ${isActive ? "bg-chip" : ""}
                                     ${toggle ? "justify-center" : ""}
                                 `}
                             >
                                 <Icon
-                                    className="w-8 h-8 shrink-0"
+                                    className="w-7 h-7 shrink-0"
                                     strokeWidth={1.5}
                                 />
 
                                 <p
                                     className={`
-                                        text-lg
+                                        text-base
                                         tracking-wide
                                         overflow-hidden
                                         whitespace-nowrap
@@ -196,31 +225,42 @@ function ProfileSidebar({ user }) {
                 </div>
             </div>
 
-            <div className=
-                {`pb-2 border-t border-border pt-4 ${toggle ? "flex flex-col items-center" : ""}`}>
-
-                <div
-                    className={`
-                        flex
-                        gap-3
-                        items-center
-                        p-2
-                        rounded-xl
-                        hover:bg-chip
-                        duration-300
-                        ease-in-out
-                        cursor-pointer
-                        ${toggle ? "justify-center" : ""}
-                    `}
+            <div
+                className={`
+                    pb-2
+                    border-t
+                    border-border
+                    pt-3
+                    ${toggle ? "flex flex-col items-center w-full" : ""}
+                `}
+            >
+                {/* Shield */}
+                <NavLink
+                    key="security"
+                    to="/profile/security"
+                    className={({ isActive }) => `
+                                flex
+                                items-center
+                                gap-3
+                                rounded-xl
+                                px-2.5
+                                py-2
+                                hover:bg-chip
+                                transition-all
+                                duration-200
+                                cursor-pointer
+                                ${isActive ? "bg-chip" : ""}
+                                ${toggle ? "justify-center" : ""}
+                            `}
                 >
-                    <Settings
+                    <Shield
                         className="w-7 h-7 shrink-0"
                         strokeWidth={1.5}
                     />
 
                     <p
                         className={`
-                            text-lg
+                            text-base
                             tracking-wide
                             overflow-hidden
                             whitespace-nowrap
@@ -232,47 +272,54 @@ function ProfileSidebar({ user }) {
                             }
                         `}
                     >
-                        Settings
+                        Security
                     </p>
-                </div>
+            </NavLink>
 
-                <div
-                    className={`
+            {/* Logout */}
+            <button
+                className={`
                         flex
+                        w-full
                         gap-3
                         items-center
-                        p-2
+                        px-2.5
+                        py-2
                         rounded-xl
                         hover:bg-chip
-                        duration-300
-                        ease-in-out
+                        transition-all
+                        duration-200
                         cursor-pointer
                         ${toggle ? "justify-center" : ""}
                     `}
-                >
-                    <LogOut
-                        className="w-7 h-7 shrink-0"
-                        strokeWidth={1.5}
-                    />
+                onClick={() => {
+                    localStorage.removeItem("access_token")
+                    navigate("/login")
+                }}
+            >
+                <LogOut
+                    className="w-7 h-7 shrink-0"
+                    strokeWidth={1.5}
+                />
 
-                    <p
-                        className={`
-                            text-lg
+                <p
+                    className={`
+                            text-base
                             tracking-wide
                             overflow-hidden
                             whitespace-nowrap
                             transition-all
                             duration-300
                             ${toggle
-                                ? "max-w-0 opacity-0"
-                                : "max-w-[150px] opacity-100"
-                            }
+                            ? "max-w-0 opacity-0"
+                            : "max-w-[150px] opacity-100"
+                        }
                         `}
-                    >
-                        Logout
-                    </p>
-                </div>
-            </div>
+                >
+                    Logout
+                </p>
+            </button>
+        </div>
         </main >
     );
 }
