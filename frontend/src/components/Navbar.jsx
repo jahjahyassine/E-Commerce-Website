@@ -1,23 +1,35 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import getCurrentUser from "../hooks/CurrentUser";
 import { useQuery } from "@tanstack/react-query";
+import getCurrentUser from "../hooks/CurrentUser";
 
 function Navbar() {
     const navigate = useNavigate();
 
+    const BASE_URL = import.meta.env.VITE_BASE_URL;
+
     const [toggleSearch, setToggleSearch] = useState(false);
     const [search, setSearch] = useState("");
     const [showCategories, setShowCategories] = useState(false);
-
+    const [showBrands, setShowBrands] = useState(false);
 
     const searchRef = useRef(null);
+
+
+    // ==========================================
+    // Search input focus
+    // ==========================================
 
     useEffect(() => {
         if (toggleSearch) {
             searchRef.current?.focus();
         }
     }, [toggleSearch]);
+
+
+    // ==========================================
+    // Search
+    // ==========================================
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -28,50 +40,108 @@ function Navbar() {
             return;
         }
 
-        navigate(`/products?search=${encodeURIComponent(value)}`);
+        navigate(
+            `/products?search=${encodeURIComponent(value)}`
+        );
+
         setToggleSearch(false);
     };
 
+
+    // ==========================================
+    // Current User
+    // ==========================================
+
     const {
         data: currentUser,
-        isLoading,
-        isError,
     } = useQuery({
         queryKey: ["user"],
         queryFn: getCurrentUser,
         enabled: !!localStorage.getItem("access_token"),
     });
 
-    const categories = [
-        {
-            name: "Laptops",
-            value: "Laptops",
-        },
-        {
-            name: "Smartphones",
-            value: "Smartphones",
-        },
-        {
-            name: "Tablets",
-            value: "Tablets",
-        },
-        {
-            name: "Monitors",
-            value: "Monitors",
-        },
-        {
-            name: "Keyboards",
-            value: "Keyboards",
-        },
-        {
-            name: "Mice",
-            value: "Mice",
-        },
-        {
-            name: "Headphones",
-            value: "Headphones",
-        },
-    ];
+
+    // ==========================================
+    // Categories
+    // ==========================================
+
+    const getCategories = async () => {
+        const response = await fetch(
+            `${BASE_URL}/categories`,
+            {
+                method: "GET",
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch categories");
+        }
+
+        return await response.json();
+    };
+
+    const {
+        data: categories = [],
+        isLoading: categoriesLoading,
+    } = useQuery({
+        queryKey: ["categories"],
+        queryFn: getCategories,
+    });
+
+
+    // ==========================================
+    // Brands
+    // ==========================================
+
+    const getBrands = async () => {
+        const response = await fetch(
+            `${BASE_URL}/brands`,
+            {
+                method: "GET",
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch brands");
+        }
+
+        return await response.json();
+    };
+
+    const {
+        data: brands = [],
+        isLoading: brandsLoading,
+    } = useQuery({
+        queryKey: ["brands"],
+        queryFn: getBrands,
+    });
+
+
+    // ==========================================
+    // Category Navigation
+    // ==========================================
+
+    const handleCategoryClick = (categoryId) => {
+        setShowCategories(false);
+
+        navigate(
+            `/products?category_id=${categoryId}`
+        );
+    };
+
+
+    // ==========================================
+    // Brand Navigation
+    // ==========================================
+
+    const handleBrandClick = (brandId) => {
+        setShowBrands(false);
+
+        navigate(
+            `/products?brand_id=${brandId}`
+        );
+    };
+
 
     return (
         <nav
@@ -90,7 +160,13 @@ function Navbar() {
                 font-sans
             "
         >
+
             <div className="flex items-center justify-between gap-6">
+
+
+                {/* ==========================================
+                    Logo
+                ========================================== */}
 
                 <Link
                     to="/"
@@ -108,7 +184,24 @@ function Navbar() {
                 </Link>
 
 
-                <ul className="hidden lg:flex items-center gap-8 text-muted">
+                {/* ==========================================
+                    Desktop Navigation
+                ========================================== */}
+
+                <ul
+                    className="
+                        hidden
+                        lg:flex
+                        items-center
+                        gap-8
+                        text-muted
+                    "
+                >
+
+
+                    {/* ==========================================
+                        Store
+                    ========================================== */}
 
                     <li className="hover:text-foreground duration-300">
                         <Link to="/products">
@@ -116,11 +209,22 @@ function Navbar() {
                         </Link>
                     </li>
 
+
+                    {/* ==========================================
+                        Categories
+                    ========================================== */}
+
                     <li
                         className="relative"
-                        onMouseEnter={() => setShowCategories(true)}
-                        onMouseLeave={() => setShowCategories(false)}
+                        onMouseEnter={() => {
+                            setShowCategories(true);
+                            setShowBrands(false);
+                        }}
+                        onMouseLeave={() => {
+                            setShowCategories(false);
+                        }}
                     >
+
                         <button
                             type="button"
                             className="
@@ -135,10 +239,16 @@ function Navbar() {
                             Categories
 
                             <svg
-                                className={`w-4 h-4 duration-200 ${showCategories
-                                    ? "rotate-180"
-                                    : ""
-                                    }`}
+                                className={`
+                                    w-4
+                                    h-4
+                                    duration-200
+                                    ${
+                                        showCategories
+                                            ? "rotate-180"
+                                            : ""
+                                    }
+                                `}
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -152,6 +262,7 @@ function Navbar() {
                             </svg>
                         </button>
 
+
                         {showCategories && (
                             <div
                                 className="
@@ -163,6 +274,7 @@ function Navbar() {
                                     w-56
                                 "
                             >
+
                                 <div
                                     className="
                                         rounded-2xl
@@ -174,38 +286,80 @@ function Navbar() {
                                         p-2
                                     "
                                 >
-                                    {categories.map((category) => (
-                                        <button
-                                            key={category.value}
-                                            type="button"
-                                            onClick={() =>
-                                                navigate(
-                                                    `/products?category=${encodeURIComponent(
-                                                        category.value
-                                                    )}`
-                                                )
-                                            }
+
+                                    {categoriesLoading ? (
+
+                                        <div
                                             className="
-                                                w-full
-                                                text-left
                                                 px-4
-                                                py-2.5
-                                                rounded-xl
+                                                py-3
+                                                text-sm
                                                 text-muted
-                                                hover:text-foreground
-                                                hover:bg-foreground/5
-                                                duration-200
-                                                cursor-pointer
                                             "
                                         >
-                                            {category.name}
-                                        </button>
-                                    ))}
+                                            Loading categories...
+                                        </div>
 
-                                    <div className="border-t border-border my-2" />
+                                    ) : categories.length > 0 ? (
+
+                                        categories.map((category) => (
+
+                                            <button
+                                                key={category.id}
+                                                type="button"
+                                                onClick={() =>
+                                                    handleCategoryClick(
+                                                        category.id
+                                                    )
+                                                }
+                                                className="
+                                                    w-full
+                                                    text-left
+                                                    px-4
+                                                    py-2.5
+                                                    rounded-xl
+                                                    text-muted
+                                                    hover:text-foreground
+                                                    hover:bg-foreground/5
+                                                    duration-200
+                                                    cursor-pointer
+                                                "
+                                            >
+                                                {category.name}
+                                            </button>
+
+                                        ))
+
+                                    ) : (
+
+                                        <div
+                                            className="
+                                                px-4
+                                                py-3
+                                                text-sm
+                                                text-muted
+                                            "
+                                        >
+                                            No categories available
+                                        </div>
+
+                                    )}
+
+
+                                    <div
+                                        className="
+                                            border-t
+                                            border-border
+                                            my-2
+                                        "
+                                    />
+
 
                                     <Link
                                         to="/products"
+                                        onClick={() =>
+                                            setShowCategories(false)
+                                        }
                                         className="
                                             block
                                             px-4
@@ -217,39 +371,228 @@ function Navbar() {
                                             duration-200
                                         "
                                     >
-                                        View all products
+                                        View all categories
                                     </Link>
+
                                 </div>
+
                             </div>
                         )}
+
                     </li>
 
+
+                    {/* ==========================================
+                        Brands
+                    ========================================== */}
+
+                    <li
+                        className="relative"
+                        onMouseEnter={() => {
+                            setShowBrands(true);
+                            setShowCategories(false);
+                        }}
+                        onMouseLeave={() => {
+                            setShowBrands(false);
+                        }}
+                    >
+
+                        <button
+                            type="button"
+                            className="
+                                flex
+                                items-center
+                                gap-1
+                                hover:text-foreground
+                                duration-300
+                                cursor-pointer
+                            "
+                        >
+                            Brands
+
+                            <svg
+                                className={`
+                                    w-4
+                                    h-4
+                                    duration-200
+                                    ${
+                                        showBrands
+                                            ? "rotate-180"
+                                            : ""
+                                    }
+                                `}
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="m6 9 6 6 6-6"
+                                />
+                            </svg>
+                        </button>
+
+
+                        {showBrands && (
+                            <div
+                                className="
+                                    absolute
+                                    top-full
+                                    left-1/2
+                                    -translate-x-1/2
+                                    pt-4
+                                    w-48
+                                "
+                            >
+
+                                <div
+                                    className="
+                                        rounded-2xl
+                                        border
+                                        border-border
+                                        bg-card/95
+                                        backdrop-blur-xl
+                                        shadow-product
+                                        p-2
+                                    "
+                                >
+
+                                    {brandsLoading ? (
+
+                                        <div
+                                            className="
+                                                px-4
+                                                py-3
+                                                text-sm
+                                                text-muted
+                                            "
+                                        >
+                                            Loading brands...
+                                        </div>
+
+                                    ) : brands.length > 0 ? (
+
+                                        brands.map((brand) => (
+
+                                            <button
+                                                key={brand.id}
+                                                type="button"
+                                                onClick={() =>
+                                                    handleBrandClick(
+                                                        brand.id
+                                                    )
+                                                }
+                                                className="
+                                                    w-full
+                                                    text-left
+                                                    px-4
+                                                    py-2.5
+                                                    rounded-xl
+                                                    text-muted
+                                                    hover:text-foreground
+                                                    hover:bg-foreground/5
+                                                    duration-200
+                                                    cursor-pointer
+                                                "
+                                            >
+                                                {brand.name}
+                                            </button>
+
+                                        ))
+
+                                    ) : (
+
+                                        <div
+                                            className="
+                                                px-4
+                                                py-3
+                                                text-sm
+                                                text-muted
+                                            "
+                                        >
+                                            No brands available
+                                        </div>
+
+                                    )}
+
+
+                                    <div
+                                        className="
+                                            border-t
+                                            border-border
+                                            my-2
+                                        "
+                                    />
+
+
+                                    <Link
+                                        to="/products"
+                                        onClick={() =>
+                                            setShowBrands(false)
+                                        }
+                                        className="
+                                            block
+                                            px-4
+                                            py-2.5
+                                            rounded-xl
+                                            text-foreground
+                                            font-semibold
+                                            hover:bg-foreground/5
+                                            duration-200
+                                        "
+                                    >
+                                        View all brands
+                                    </Link>
+
+                                </div>
+
+                            </div>
+                        )}
+
+                    </li>
+
+
+                    {/* ==========================================
+                        Promotions
+                    ========================================== */}
+
                     <li className="hover:text-foreground duration-300">
-                        <Link to="/products?sort=deals">
-                            Deals
+                        <Link to="/products/promotion">
+                            Promotions
                         </Link>
                     </li>
 
-                    <li className="hover:text-foreground duration-300">
-                        <Link to="/products?sort=newest">
-                            New Arrivals
-                        </Link>
-                    </li>
+
+                    {/* ==========================================
+                        Support
+                    ========================================== */}
 
                     <li className="hover:text-foreground duration-300">
                         <Link to="/support">
                             Support
                         </Link>
                     </li>
+
                 </ul>
 
+
+                {/* ==========================================
+                    Right Actions
+                ========================================== */}
 
                 <div className="flex items-center gap-2">
 
 
+                    {/* ==========================================
+                        Search
+                    ========================================== */}
+
                     <div className="flex items-center">
 
                         {toggleSearch ? (
+
                             <form
                                 onSubmit={handleSearch}
                                 className="
@@ -264,8 +607,15 @@ function Navbar() {
                                     duration-300
                                 "
                             >
+
                                 <svg
-                                    className="w-5 h-5 ml-3 text-muted shrink-0"
+                                    className="
+                                        w-5
+                                        h-5
+                                        ml-3
+                                        text-muted
+                                        shrink-0
+                                    "
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
@@ -278,6 +628,7 @@ function Navbar() {
                                         d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
                                     />
                                 </svg>
+
 
                                 <input
                                     ref={searchRef}
@@ -299,6 +650,7 @@ function Navbar() {
                                     "
                                 />
 
+
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -314,6 +666,7 @@ function Navbar() {
                                     "
                                     aria-label="Close search"
                                 >
+
                                     <svg
                                         className="w-5 h-5"
                                         viewBox="0 0 24 24"
@@ -326,12 +679,18 @@ function Navbar() {
                                             d="M6 6l12 12M18 6 6 18"
                                         />
                                     </svg>
+
                                 </button>
+
                             </form>
+
                         ) : (
+
                             <button
                                 type="button"
-                                onClick={() => setToggleSearch(true)}
+                                onClick={() =>
+                                    setToggleSearch(true)
+                                }
                                 className="
                                     bg-background-secondary
                                     p-2
@@ -345,6 +704,7 @@ function Navbar() {
                                 "
                                 aria-label="Search products"
                             >
+
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
@@ -359,9 +719,17 @@ function Navbar() {
                                         d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
                                     />
                                 </svg>
+
                             </button>
+
                         )}
+
                     </div>
+
+
+                    {/* ==========================================
+                        Cart
+                    ========================================== */}
 
                     <Link
                         to="/cart"
@@ -377,6 +745,7 @@ function Navbar() {
                         "
                         aria-label="Shopping cart"
                     >
+
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -388,18 +757,25 @@ function Navbar() {
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974a1.125 1.125 0 0 1 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1-.75 0Z"
+                                d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974a1.125 1.125 0 0 1 1.119 1.007Z"
                             />
                         </svg>
+
                     </Link>
 
 
+                    {/* ==========================================
+                        Account
+                    ========================================== */}
+
                     {currentUser ? (
+
                         <Link
                             to="/profile"
                             className="
                                 bg-background-secondary
-                                w-10 h-10
+                                w-10
+                                h-10
                                 rounded-full
                                 border
                                 border-border-soft
@@ -409,15 +785,32 @@ function Navbar() {
                             "
                             aria-label="Account"
                         >
-                            <div className="h-full w-full rounded-full overflow-hidden">
+
+                            <div
+                                className="
+                                    h-full
+                                    w-full
+                                    rounded-full
+                                    overflow-hidden
+                                "
+                            >
                                 <img
-                                    src={currentUser?.profile_pic_path}
+                                    src={
+                                        currentUser?.profile_pic_path
+                                    }
                                     alt="Profile"
-                                    className="w-full h-full object-cover"
+                                    className="
+                                        w-full
+                                        h-full
+                                        object-cover
+                                    "
                                 />
                             </div>
+
                         </Link>
+
                     ) : (
+
                         <Link
                             to="/login"
                             className="
@@ -432,6 +825,7 @@ function Navbar() {
                             "
                             aria-label="Account"
                         >
+
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -443,14 +837,18 @@ function Navbar() {
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
-                                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0A3.75 3.75 0 0 1 15.75 6ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
                                 />
                             </svg>
+
                         </Link>
+
                     )}
 
                 </div>
+
             </div>
+
         </nav>
     );
 }

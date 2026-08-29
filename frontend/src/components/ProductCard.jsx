@@ -1,54 +1,93 @@
-import { useMutation } from "@tanstack/react-query";
 import { FaStar } from "react-icons/fa6";
-import { data, Link, useSearchParams } from "react-router-dom";
-
+import { Link } from "react-router-dom";
 
 function ProductCard({ product }) {
-
-    
-
     return (
-        <Link className="flex flex-col bg-card text-foreground h-[450px] rounded-3xl border border-border overflow-hidden shadow-product" to={`/products/${product.id}`}
+        <Link
+            className="
+                group
+                flex flex-col
+                bg-card text-foreground
+                h-[390px]
+                rounded-3xl
+                border border-border
+                overflow-hidden
+                shadow-product
+            "
+            to={`/products/${product.id}`}
         >
-
-            <div className="h-2/3 overflow-hidden rounded-t-md">
-                <img src={product.media?.[0]?.media_url}
-                    className="w-full h-full object-cover hover:scale-[1.02] duration-300 ease-out"
+            <div className="h-[230px] overflow-hidden">
+                <img
+                    src={product.media?.[0]?.media_url}
+                    alt={product.name}
+                    className="
+                        w-full h-full
+                        object-cover
+                        group-hover:scale-[1.03]
+                        transition-transform
+                        duration-300
+                        ease-out
+                    "
                 />
             </div>
 
-            <div className="p-4 flex-1 bg-background text-foreground flex flex-col justify-between">
-                <div className="flex justify-between font-bold ">
-                    <h3 className="text-lg">{product.name}</h3>
-                    <p className="text-minimal-green text-lg">${product.min_price}</p>
-                </div>
+            <div className="p-4 flex flex-col flex-1">
+                
+                <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-base font-bold leading-tight line-clamp-2">
+                        {product.name}
+                    </h3>
 
-                <div>
-                    {product.brand.name}
-                </div>
-
-                <div className="flex items-center text-minimal-yellow self-end">
-                    {
-                        Array.from({ length: product.average_rating }).map((_, index) => (
-                            <FaStar key={index} />
-                        ))
-                    }
-                    <p className="text-md ml-1 font-bold">{product.average_rating}</p>
-                    <p className="text-muted text-sm ml-2">
-                        ({product.count_reviews} reviews)
+                    <p className="text-minimal-green text-base font-bold whitespace-nowrap">
+                        ${product.min_price}
                     </p>
                 </div>
 
+                <p className="text-sm text-muted mt-1">
+                    {product.brand?.name}
+                </p>
 
-                <Link className="bg-primary hover:bg-primary-hover text-inverse font-bold text-lg text-center py-2 rounded-full justify-self-end duration-300 ease-in-out cursor-pointer mt-1"
-                    to={`/products/${product.id}`}
+                <div className="flex items-center mt-2">
+                    <div className="flex items-center text-minimal-yellow">
+                        {Array.from({
+                            length: Math.round(product.average_rating || 0),
+                        }).map((_, index) => (
+                            <FaStar
+                                key={index}
+                                className="text-sm"
+                            />
+                        ))}
+                    </div>
+
+                    <span className="text-sm ml-1 font-bold">
+                        {product.average_rating}
+                    </span>
+
+                    <span className="text-muted text-xs ml-2">
+                        ({product.count_reviews} reviews)
+                    </span>
+                </div>
+
+                <div
+                    className="
+                        mt-auto
+                        bg-primary
+                        hover:bg-primary-hover
+                        text-inverse
+                        font-bold
+                        text-sm
+                        text-center
+                        py-2
+                        rounded-full
+                        transition-colors
+                        duration-300
+                    "
                 >
                     View Product
-                </Link>
-
+                </div>
             </div>
         </Link>
-    )
+    );
 }
 
 export default ProductCard;

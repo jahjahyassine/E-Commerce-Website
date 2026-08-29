@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from models.review import Review
 from schemas.review import ReviewResponse
-from schemas.user import ChangePasswordRequest, UserPatch, UserResponse
+from schemas.user import ChangePasswordRequest, DeleteAccountRequest, UserPatch, UserResponse
 from models.user import User
 from core.database import get_db
 from core.security import decode_access_token, get_password_hash, verify_password
@@ -175,3 +175,42 @@ def change_password(
     db.refresh(user)
 
     return {"message": "Password changed successfully"}
+
+
+
+
+
+
+
+@router.delete("/user/delete")
+def delete_user(
+    db: Annotated[Session, Depends(get_db)],
+    data: DeleteAccountRequest,
+    user_infos: Annotated[dict, Depends(decode_access_token)]
+):
+    user_id = user_infos.get("id")
+    
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    if not verify_password(
+        data.password,
+        user.password_hash
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+
+    user.is_active = False
+
+    db.commit()
+
+    return {
+        "message": "Account deleted successfully"
+    }

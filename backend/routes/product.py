@@ -18,6 +18,8 @@ from schemas.review import ReviewResponse
 from core.database import get_db
 
 from models.product import (
+    Brand,
+    Category,
     Product,
     ProductVariant,
     Tag,
@@ -350,3 +352,27 @@ def get_tags(
     ],
 ):
     return db.query(Tag).all()
+
+
+
+
+@router.get("/categories")
+def get_categories(
+    db: Annotated[
+        Session,
+        Depends(get_db),
+    ],
+):
+    return db.query(Category).all()
+
+
+
+
+@router.get("/brands")
+def get_brands(
+    db: Annotated[
+        Session,
+        Depends(get_db),
+    ],
+):
+    return db.query(Brand).all()

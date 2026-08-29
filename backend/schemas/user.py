@@ -36,6 +36,10 @@ class UserResponse(BaseModel):
         "from_attributes": True
     }
 
+class UserOrderResponse (BaseModel):
+    username: str
+    full_name: str | None
+
 
 
 class UserPatch(BaseModel):
@@ -54,5 +58,9 @@ class UserPatch(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(min_length=8)
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str
 
 

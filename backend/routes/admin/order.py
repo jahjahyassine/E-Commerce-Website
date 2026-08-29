@@ -15,8 +15,9 @@ from fastapi import (
 from sqlalchemy import exists, func, or_
 from sqlalchemy.orm import Session
 
+from routes.admin.inventory import require_admin
 from models.order import Order
-from schemas.order import OrderResponse
+from schemas.order import OrderResponse, StatusUpdate
 from core.cloudinary import cloudinary
 from core.database import get_db
 from core.security import decode_access_token
@@ -174,4 +175,54 @@ def get_orders (
             Order.payment_status == payment_status
         )
 
-    return query.all()
+    return query.order_by(Order.created_at.desc()).all()
+
+
+
+
+
+@router.patch(
+    "/orders/{order_id}",
+    response_model=OrderResponse,
+)
+def update_order(
+    order_id: int,
+    order_data: StatusUpdate,
+    db: Annotated[
+        Session,
+        Depends(get_db),
+    ],
+    user_infos: Annotated[
+        dict,
+        Depends(decode_access_token),
+    ],
+):
+    require_admin(db, user_infos)
+
+    order = (
+        db.query(Order)
+        .filter(Order.id == order_id)
+        .first()
+    )
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found",
+        )
+
+    update_data = order_data.model_dump(
+        exclude_unset=True
+    )
+
+    for field, value in update_data.items():
+        setattr(
+            order,
+            field,
+            value,
+        )
+
+    db.commit()
+    db.refresh(order)
+
+    return order

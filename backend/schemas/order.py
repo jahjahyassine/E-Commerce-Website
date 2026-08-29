@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel
 
+from schemas.user import UserOrderResponse
 from schemas.cart import CartResponse
 from schemas.product import ProductVariantResponse
 
@@ -22,6 +23,8 @@ class OrderResponse (BaseModel):
     created_at: datetime
 
     items: list[OrderItemResponse]
+
+    user: UserOrderResponse
 
     model_config = {
         'from_attributes': True
@@ -44,3 +47,9 @@ class OrderCreate (BaseModel):
     city: str
     region: str
     postal_code: str | None = None
+
+
+class StatusUpdate (BaseModel):
+    shipping_status: str | None = None
+    order_status: str | None = None
+    payment_status: str | None = None
