@@ -2,113 +2,122 @@
 
 @theme {
 
- /* Background */
---color-background: #FFFFFF;
---color-background-dark: #2F4156;
---color-background-black: #243447;
+    /* Background */
+    /* Background */
+    --color-background: #FFFFFF;
+    --color-background-dark: #2F4156;
+    --color-background-black: #243447;
 
+    /* Text */
+    --color-foreground: #2F4156;
+    --color-muted: #607586;
+    --color-inverse: #FFFFFF;
 
-/* Text */
---color-foreground: #2F4156;
---color-muted: #607586;
---color-inverse: #FFFFFF;
+    /* Brand */
+    --color-primary: #567C8D;
+    --color-primary-hover: #476B7A;
 
+    /* Secondary */
+    --color-secondary: #C8D9E6;
+    --color-secondary-hover: #B5CBD9;
 
-/* Brand */
---color-primary: #567C8D;
---color-primary-hover: #476B7A;
+    /* Premium / Warm Accent */
+    --color-premium: #F5F0EB;
+    --color-premium-hover: #EAE1D9;
 
+    /* Accent */
+    --color-yellow: #D4A72C;
+    --color-yellow-hover: #B99122;
+    --color-yellow-soft: #F7EFD5;
 
-/* Secondary */
---color-secondary: #C8D9E6;
---color-secondary-hover: #B5CBD9;
+    /* Cards */
+    --color-card: #FFFFFF;
+    --color-chip: #EEF3F6;
 
+    /* Borders */
+    --color-border: #D9E2E8;
+    --color-border-soft: #EDF1F3;
 
-/* Premium / Warm accent */
---color-premium: #F5F0EB;
---color-premium-hover: #EAE1D9;
+    /* Status */
+    --color-success: #4D8068;
+    --color-warning: #B88A3B;
+    --color-danger: #B85C5C;
+    --color-danger-hover: #AA5555;
 
---color-yellow: #D4A72C;
---color-yellow-hover: #B99122;
---color-yellow-soft: #F7EFD5;
-
-/* Cards */
---color-card: #FFFFFF;
---color-chip: #EEF3F6;
-
-
-/* Borders */
---color-border: #D9E2E8;
---color-border-soft: #EDF1F3;
-
-
-/* Status */
---color-success: #4D8068;
---color-warning: #B88A3B;
---color-danger: #B85C5C;
---color-danger-hover: #AA5555;
-
-
-  /* Shadows */
-  --shadow-product: 0 25px 60px rgba(27, 36, 42, 0.15);
-  --shadow-inner: inset 0 1px 4px rgba(0, 0, 0, 0.12);
-
-
-  --font-cormorant: "Cormorant"
+    /* Shadows */
+    --shadow-product: 0 25px 60px rgba(27, 36, 42, 0.15);
+    --shadow-inner: inset 0 1px 4px rgba(0, 0, 0, 0.12);
+    --font-cormorant: "Cormorant"
 
 
 
-  /* ========================================
+        /* ========================================
      ADMIN DASHBOARD — DARK SLATE
      ======================================== */
 
-    --color-admin-background: #0F172A; /* Main dashboard background */
-    --color-admin-surface: #1E293B;    /* Cards and table surface */
-    --color-admin-surface-hover: #334155; /* Hovered rows/components */
+        --color-admin-background: #0F172A;
+    /* Main dashboard background */
+    --color-admin-surface: #1E293B;
+    /* Cards and table surface */
+    --color-admin-surface-hover: #334155;
+    /* Hovered rows/components */
 
-    --color-admin-border: #334155;     /* Borders */
+    --color-admin-border: #334155;
+    /* Borders */
     --color-admin-border-hover: #475569;
-    --color-admin-text: #F8FAFC;       /* Main text */
-    --color-admin-muted: #94A3B8;      /* Secondary text */
+    --color-admin-text: #F8FAFC;
+    /* Main text */
+    --color-admin-muted: #94A3B8;
+    /* Secondary text */
 
-    --color-admin-primary: #3B82F6;    /* Buttons, selected states */
-   --color-admin-primary-border: #60A5FA;
+    --color-admin-primary: #3B82F6;
+    /* Buttons, selected states */
+    --color-admin-primary-border: #60A5FA;
     --color-admin-primary-hover: #2563EB;
-    --color-admin-success: #22C55E;    /* Active/success */
+    --color-admin-success: #22C55E;
+    /* Active/success */
     --color-admin-success-hover: #16A34A;
-    --color-admin-warning: #F59E0B;    /* Warnings */
+    --color-admin-warning: #F59E0B;
+    /* Warnings */
     --color-admin-warning-hover: #D97706;
-    --color-admin-danger: #EF4444;     /* Errors/delete */
+    --color-admin-danger: #EF4444;
+    /* Errors/delete */
     --color-admin-danger-hover: #DC2626;
 
     --color-admin-input: #263449;
---color-admin-input-hover: #2D3B50;
---color-admin-input-border: #3B4A60;
+    --color-admin-input-hover: #2D3B50;
+    --color-admin-input-border: #3B4A60;
     --color-admin-active: #4ADE80;
---color-admin-active-hover: #22C55E;
+    --color-admin-active-hover: #22C55E;
 
---color-admin-inactive: #F87171;
---color-admin-inactive-hover: #EF4444;
+    --color-admin-inactive: #F87171;
+    --color-admin-inactive-hover: #EF4444;
 
---color-admin-reviews: #FACC15;
---color-admin-reviews-hover: #EAB308;
+    --color-admin-reviews: #FACC15;
+    --color-admin-reviews-hover: #EAB308;
 
 }
 
 body {
-  font-family: var(--font-sans);
-  font-weight: 500;
-  color: var(--color-foreground);
-  background: var(--color-background);
-  -webkit-font-smoothing: antialiased;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    color: var(--color-foreground);
+    background: var(--color-background);
+    -webkit-font-smoothing: antialiased;
 }
 
 @keyframes infiniteScroll {
-   from { transform: translateX(0); } to { transform: translateX(-50%); }
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
 }
 
 .IconsGroup {
-   animation: infiniteScroll 15s linear infinite;
+    animation: infiniteScroll 15s linear infinite;
 }
 
 .hero-transition {

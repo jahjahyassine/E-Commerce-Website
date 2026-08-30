@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from routes import product, inventory, auth, cart, user, order, review
-from routes.admin import products as admin_product, inventory as admin_inventory, order as admin_order
+from routes.admin import products as admin_product, inventory as admin_inventory, order as admin_order, customer
 import models
 
 app = FastAPI()
@@ -31,6 +31,7 @@ app.include_router(admin_inventory.router)
 app.include_router(admin_order.router)
 app.include_router(order.router)
 app.include_router(review.router)
+app.include_router(customer.router)
 
 
 if __name__ == "__main__":

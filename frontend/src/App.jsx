@@ -14,6 +14,7 @@ import { ProductList } from './admin/resources/pages/products/ProductList';
 import OrderConfirmation from './pages/Order/OrderConfirmation';
 import Reviews from './pages/ProfilePage/Reviews';
 import SecurityPage from './pages/ProfilePage/SecurityPage';
+import OrderShow from './pages/ProfilePage/OrderShow';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
       <Route path="/profile">
         <Route index element={<Profile />} />
         <Route path="orders" element={<OrdersHistory />} />
+        <Route path="orders/:id" element={<OrderShow />} />
         <Route path="cart" element={<ProfileCart />} />
         <Route path="reviews" element={<Reviews />} />
         <Route path="security" element={<SecurityPage />} />

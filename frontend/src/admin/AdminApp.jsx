@@ -12,6 +12,9 @@ import { BrandShow } from "./resources/pages/brands/BrandShow";
 import { InventoryList } from "./resources/pages/inventory products/InventoryList";
 import { ProductVariantShow } from "./resources/pages/inventory products/ProductShow";
 import { OrderList } from "./resources/pages/orders/OrderList";
+import { OrderShow } from "./resources/pages/orders/OrderShow";
+import CustomerList from "./resources/pages/customers/CustomerList";
+import CustomerShow from "./resources/pages/customers/CustomerShow";
 
 function AdminApp() {
     return (
@@ -72,6 +75,10 @@ function AdminApp() {
 
                 
                 <Route path="orders" element={<OrderList />} />
+                <Route path="orders/:id" element={<OrderShow />} />
+
+                <Route path="customers" element={<CustomerList />} />
+                <Route path="customers/:id" element={<CustomerShow />} />
 
                 <Route index element={<AdminProfile />} />
             </Routes>

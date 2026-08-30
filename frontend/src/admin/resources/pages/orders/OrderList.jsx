@@ -589,7 +589,7 @@ export function OrderList() {
                     h-screen
                     max-w-full
                     font-sans
-                    bg-admin-background
+                    bg-[#0F172A]
                     text-admin-text
                     flex
                     justify-center
@@ -610,7 +610,7 @@ export function OrderList() {
                     h-screen
                     max-w-full
                     font-sans
-                    bg-admin-background
+                    bg-[#0F172A]
                     text-admin-text
                     flex
                     justify-center

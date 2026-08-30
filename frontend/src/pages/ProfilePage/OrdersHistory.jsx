@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "../../components/Navbar";
 import ProfileSidebar from "../../components/ProfileSidebar";
@@ -207,9 +207,10 @@ function OrdersHistory() {
                             </button>
                         </div>
                     ) : (
-                        <div className="mt-6 flex flex-col gap-5 bg-chip p-2 rounded-xl">
+                        <div className="mt-6 flex flex-col gap-5 bg-chip p-2 rounded-xl"
+                        >
                             {orders.map((order) => (
-                                <div
+                                <Link
                                     key={order.id}
                                     className="
                                         p-3
@@ -221,6 +222,7 @@ function OrdersHistory() {
                                         border
                                         border-border-soft
                                     "
+                                    to={`/profile/orders/${order.id}`}
                                 >
                                     {/* Order Header */}
                                     <div className="flex gap-2 justify-between">
@@ -483,7 +485,7 @@ function OrdersHistory() {
                                             );
                                         })}
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     )}
