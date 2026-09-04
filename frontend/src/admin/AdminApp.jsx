@@ -20,6 +20,7 @@ import { SupplierCreate } from "./resources/pages/suppliers/SupplierCreate";
 import { SupplierShow } from "./resources/pages/suppliers/SupplierShow";
 import StockChangesList from "./resources/pages/stock history/StockChangesList";
 import { ReviewList } from "./resources/pages/reviews/ReviewList";
+import DiscountList from "./resources/pages/discounts/DiscountsList";
 
 function AdminApp() {
     return (
@@ -92,6 +93,8 @@ function AdminApp() {
                 <Route path="stock-changes" element={<StockChangesList />} />
 
                 <Route path="reviews" element={<ReviewList />} />
+
+                <Route path="discounts" element={<DiscountList />} />
 
                 <Route index element={<AdminProfile />} />
             </Routes>

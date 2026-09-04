@@ -309,6 +309,7 @@ def delete_product(
     }
 
 
+
 @router.post(
     "/products/{product_id}/variants",
     response_model=ProductVariantResponse,
