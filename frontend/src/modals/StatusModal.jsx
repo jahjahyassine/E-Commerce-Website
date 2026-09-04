@@ -1,11 +1,18 @@
 import { Check, X } from "lucide-react";
 
-export function StatusModal({ type, message, onClose }) {
+export function StatusModal({
+    type,
+    message,
+    onClose,
+    pendingTitle = "Processing",
+    pendingMessage = "Please wait while we process your request...",
+    successTitle = "Success",
+    successMessage = "Your request was completed successfully.",
+}) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div className="relative w-full max-w-sm bg-admin-surface border border-admin-border rounded-2xl p-6 shadow-2xl">
 
-                {/* Close button */}
                 <button
                     type="button"
                     onClick={onClose}
@@ -26,22 +33,24 @@ export function StatusModal({ type, message, onClose }) {
 
                 <div className="flex flex-col items-center text-center gap-4">
 
+                    {/* Pending */}
                     {type === "pending" && (
                         <>
                             <div className="w-10 h-10 border-4 border-admin-border border-t-admin-primary rounded-full animate-spin" />
 
                             <div>
                                 <h3 className="text-xl font-bold">
-                                    Creating Product
+                                    {pendingTitle}
                                 </h3>
 
                                 <p className="text-sm text-admin-muted mt-1">
-                                    Please wait while we create your product...
+                                    {pendingMessage}
                                 </p>
                             </div>
                         </>
                     )}
 
+                    {/* Success */}
                     {type === "success" && (
                         <>
                             <div className="w-12 h-12 rounded-full bg-admin-success/20 flex items-center justify-center">
@@ -50,16 +59,17 @@ export function StatusModal({ type, message, onClose }) {
 
                             <div>
                                 <h3 className="text-xl font-bold">
-                                    Product Created
+                                    {successTitle}
                                 </h3>
 
                                 <p className="text-sm text-admin-muted mt-1">
-                                    Your product was created successfully.
+                                    {successMessage}
                                 </p>
                             </div>
                         </>
                     )}
 
+                    {/* Error */}
                     {type === "error" && (
                         <>
                             <div className="w-12 h-12 rounded-full bg-admin-danger/20 flex items-center justify-center">
@@ -72,7 +82,7 @@ export function StatusModal({ type, message, onClose }) {
                                 </h3>
 
                                 <p className="text-sm text-admin-muted mt-1">
-                                    {message}
+                                    {message || "Something went wrong. Please try again."}
                                 </p>
                             </div>
                         </>

@@ -11,7 +11,7 @@ from routes.cart import clear_cart
 from models.inventory import StockChange, StockChangeType
 from models.cart import Cart
 from models.product import ProductVariant
-from models.order import Order, OrderItem
+from models.order import Order, OrderItem, OrderStatus
 from models.user import User
 from schemas.order import OrderCreate, OrderResponse
 from core.database import get_db
@@ -230,3 +230,104 @@ def create_order(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Couldn't place order"
         )
+    
+
+
+
+
+@router.patch(
+    "/orders/{order_id}/cancel",
+    response_model=OrderResponse,
+)
+def cancel_order(
+    db: Annotated[
+        Session,
+        Depends(get_db),
+    ],
+    order_id: int,
+    user_infos: Annotated[
+        dict,
+        Depends(decode_access_token),
+    ],
+):
+    user_id = user_infos["id"]
+
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    order = (
+        db.query(Order)
+        .filter(
+            Order.id == order_id,
+            Order.user_id == user_id,
+        )
+        .first()
+    )
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found",
+        )
+
+    if order.order_status == OrderStatus.CANCELLED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Order is already cancelled",
+        )
+
+    for item in order.items:
+
+        product_variant = (
+            db.query(ProductVariant)
+            .filter(
+                ProductVariant.id == item.product_variant_id
+            )
+            .first()
+        )
+
+        if not product_variant:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=(
+                    f"Product variant {item.product_variant_id} "
+                    "not found"
+                ),
+            )
+
+        if not product_variant.inventory:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"No inventory found for product variant "
+                    f"{product_variant.id}"
+                ),
+            )
+
+        product_variant.inventory.quantity += item.quantity
+
+        new_stock_change = StockChange(
+            product_variant_id=product_variant.id,
+            change_type=StockChangeType.IN,
+            quantity=item.quantity,
+            order_id=order.id,
+        )
+
+        db.add(new_stock_change)
+
+    order.order_status = OrderStatus.CANCELLED
+
+    db.commit()
+    db.refresh(order)
+
+    return order
+

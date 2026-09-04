@@ -1,11 +1,10 @@
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-)
+from pydantic import BaseModel, ConfigDict, Field
+
+
 
 
 # ============================================================
@@ -14,14 +13,16 @@ from pydantic import (
 
 class InventoryCreateRequest(BaseModel):
     quantity: int = Field(
-        ge=0
+        ge=1
     )
+    supplier_id: int
 
 
 class InventoryUpdateRequest(BaseModel):
     quantity: int = Field(
         ge=0
     )
+    supplier_id: int | None = None
 
 
 class InventoryStockResponse(BaseModel):
@@ -66,6 +67,68 @@ class InventoryVariantResponse(BaseModel):
 
     product: InventoryProductResponse
     inventory: InventoryStockResponse | None = None
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+
+
+
+
+class StockChangeMediaResponse (BaseModel):
+    media_url: str | None = None
+
+
+
+class StockChangeProductResponse(BaseModel):
+    id: int
+    name: str
+    media: list[StockChangeMediaResponse]
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+
+class StockChangeVariantResponse(BaseModel):
+    id: int
+    sku: str
+    product: StockChangeProductResponse
+    media: list[StockChangeMediaResponse]
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+
+class StockChangeSupplierResponse(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+
+class StockChangeResponse(BaseModel):
+    id: int
+
+    product_variant_id: int
+
+    change_type: str
+
+    quantity: int
+
+    supplier_id: int | None = None
+
+    order_id: int | None = None
+
+    changed_at: datetime
+
+    product_variant: StockChangeVariantResponse
+
+    supplier: StockChangeSupplierResponse | None = None
 
     model_config = ConfigDict(
         from_attributes=True

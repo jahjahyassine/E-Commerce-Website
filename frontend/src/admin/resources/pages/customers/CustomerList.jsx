@@ -1,53 +1,34 @@
-import {
-    useList,
-} from "@refinedev/core";
-
+import { useList } from "@refinedev/core";
 import {
     useReactTable,
     getCoreRowModel,
     flexRender,
 } from "@tanstack/react-table";
-
-import {
-    Search,
-    X,
-} from "lucide-react";
-
-import {
-    useMemo,
-    useState,
-} from "react";
-
-import {
-    useNavigate,
-} from "react-router-dom";
-
+import { Search, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
 import DotField from "../../../../components/animation/DotField.jsx";
-
 
 const columns = [
     {
         accessorKey: "full_name",
         header: "Customer",
+
         accessorFn: (row) => row.full_name ?? "",
+
         cell: (info) => {
             const user = info.row.original;
-
-            const initials = user.full_name
-                ? user.full_name
-                      .split(" ")
-                      .filter(Boolean)
-                      .map((name) => name.charAt(0))
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase()
-                : user.username?.charAt(0)?.toUpperCase() ?? "?";
+            const profilePic = user.profile_pic_path;
 
             return (
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-admin-primary/10 flex items-center justify-center text-admin-primary font-semibold">
-                        {initials}
+                    <div className="w-10 h-10 rounded-full overflow-hidden">
+                        <img
+                            src={profilePic}
+                            alt={user.full_name || user.username}
+                            className="object-cover w-full h-full"
+                        />
                     </div>
 
                     <div>
@@ -67,7 +48,9 @@ const columns = [
     {
         id: "contact",
         header: "Contact",
+
         accessorFn: (row) => row.email ?? "",
+
         cell: (info) => {
             const user = info.row.original;
 
@@ -88,8 +71,10 @@ const columns = [
     {
         id: "location",
         header: "Location",
+
         accessorFn: (row) =>
             row.city || row.region || "",
+
         cell: (info) => {
             const user = info.row.original;
 
@@ -110,6 +95,7 @@ const columns = [
     {
         accessorKey: "role",
         header: "Role",
+
         cell: (info) => (
             <span className="inline-flex rounded-full bg-admin-primary/10 px-3 py-1 text-xs font-medium text-admin-primary">
                 {info.getValue()}
@@ -120,6 +106,7 @@ const columns = [
     {
         accessorKey: "is_active",
         header: "Status",
+
         cell: (info) => (
             info.getValue() ? (
                 <span className="flex items-center gap-2 text-admin-active">
@@ -134,23 +121,73 @@ const columns = [
             )
         ),
     },
-];
 
+    {
+        id: "orders",
+        header: "Orders",
+
+        accessorFn: (row) =>
+            row?.orders?.length ?? 0,
+
+        cell: (info) => (
+            <p className="font-semibold">
+                {info.getValue()}
+            </p>
+        ),
+    },
+];
 
 export default function CustomerList() {
     const navigate = useNavigate();
 
     const [search, setSearch] = useState("");
     const [roleFilter, setRoleFilter] = useState("");
+    const [activeFilter, setActiveFilter] = useState("");
 
     const hasFilters =
         search !== "" ||
-        roleFilter !== "";
+        roleFilter !== "" ||
+        activeFilter !== "";
 
     const resetFilters = () => {
         setSearch("");
         setRoleFilter("");
+        setActiveFilter("");
     };
+
+    const filters = useMemo(() => {
+        const filters = [];
+
+        if (search.trim()) {
+            filters.push({
+                field: "search",
+                operator: "eq",
+                value: search.trim(),
+            });
+        }
+
+        if (roleFilter) {
+            filters.push({
+                field: "role",
+                operator: "eq",
+                value: roleFilter,
+            });
+        }
+
+        if (activeFilter) {
+            filters.push({
+                field: "is_active",
+                operator: "eq",
+                value: activeFilter === "true",
+            });
+        }
+
+        return filters;
+    }, [
+        search,
+        roleFilter,
+        activeFilter,
+    ]);
 
     const {
         result: {
@@ -164,20 +201,7 @@ export default function CustomerList() {
         },
     } = useList({
         resource: "users",
-
-        filters: [
-            {
-                field: "search",
-                operator: "eq",
-                value: search || null,
-            },
-            {
-                field: "role",
-                operator: "eq",
-                value: roleFilter || null,
-            },
-        ],
-
+        filters,
         pagination: null,
         sorters: null,
     });
@@ -240,7 +264,6 @@ export default function CustomerList() {
             <section className="relative z-10 h-screen flex-1 overflow-y-auto p-4 text-admin-text">
 
                 <div className="flex items-center justify-between gap-4 border-b border-admin-border pb-3 mb-4">
-
                     <div>
                         <h1 className="text-3xl">
                             Customers
@@ -250,7 +273,6 @@ export default function CustomerList() {
                             Manage customers and view their activity.
                         </p>
                     </div>
-
                 </div>
 
                 <div className="border border-admin-border bg-admin-surface rounded-2xl p-4 mb-4">
@@ -331,6 +353,36 @@ export default function CustomerList() {
                             </option>
                         </select>
 
+                        <select
+                            value={activeFilter}
+                            onChange={(e) =>
+                                setActiveFilter(e.target.value)
+                            }
+                            className="
+                                px-3
+                                py-2
+                                rounded-lg
+                                bg-slate-900
+                                border
+                                border-admin-border
+                                text-admin-text
+                                outline-none
+                                focus:border-admin-primary
+                            "
+                        >
+                            <option value="">
+                                All Status
+                            </option>
+
+                            <option value="true">
+                                Active
+                            </option>
+
+                            <option value="false">
+                                Inactive
+                            </option>
+                        </select>
+
                         {hasFilters && (
                             <button
                                 onClick={resetFilters}
@@ -396,9 +448,9 @@ export default function CustomerList() {
                                                     {header.isPlaceholder
                                                         ? null
                                                         : flexRender(
-                                                              header.column.columnDef.header,
-                                                              header.getContext()
-                                                          )}
+                                                            header.column.columnDef.header,
+                                                            header.getContext()
+                                                        )}
                                                 </th>
                                             )
                                         )}
@@ -412,12 +464,14 @@ export default function CustomerList() {
                         <tbody>
 
                             {rows.length > 0 ? (
+
                                 rows.map((row) => (
+
                                     <tr
                                         key={row.id}
                                         onClick={() =>
                                             navigate(
-                                                `/admin/users/show/${row.original.id}`
+                                                `/admin/customers/${row.original.id}`
                                             )
                                         }
                                         className="
@@ -428,8 +482,10 @@ export default function CustomerList() {
                                             cursor-pointer
                                         "
                                     >
+
                                         {row.getVisibleCells().map(
                                             (cell) => (
+
                                                 <td
                                                     key={cell.id}
                                                     className="px-6 py-5 text-sm"
@@ -439,12 +495,18 @@ export default function CustomerList() {
                                                         cell.getContext()
                                                     )}
                                                 </td>
+
                                             )
                                         )}
+
                                     </tr>
+
                                 ))
+
                             ) : (
+
                                 <tr>
+
                                     <td
                                         colSpan={columns.length}
                                         className="
@@ -456,7 +518,9 @@ export default function CustomerList() {
                                     >
                                         No customers found.
                                     </td>
+
                                 </tr>
+
                             )}
 
                         </tbody>

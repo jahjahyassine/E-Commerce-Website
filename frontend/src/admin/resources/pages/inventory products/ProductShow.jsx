@@ -3,7 +3,6 @@ import {
     useUpdate,
     useList,
     useDelete,
-    useApiUrl,
 } from "@refinedev/core";
 
 import { useEffect, useState } from "react";
@@ -33,7 +32,6 @@ import DotField from "../../../../components/animation/DotField.jsx";
 export function ProductVariantShow() {
     const { id, variantId } = useParams();
     const navigate = useNavigate();
-    const apiUrl = useApiUrl();
 
     /* ============================================================
        Product editing
@@ -66,11 +64,15 @@ export function ProductVariantShow() {
 
 
     /* ============================================================
-       Stock
+       Add Stock
     ============================================================ */
 
     const [isAddingStock, setIsAddingStock] = useState(false);
+
     const [stockAmount, setStockAmount] = useState("");
+
+    const [stockSupplierId, setStockSupplierId] = useState("");
+
     const [isAddingStockPending, setIsAddingStockPending] =
         useState(false);
 
@@ -166,7 +168,7 @@ export function ProductVariantShow() {
 
 
     /* ============================================================
-       Mutations
+       Product mutation
     ============================================================ */
 
     const {
@@ -175,21 +177,34 @@ export function ProductVariantShow() {
     } = useUpdate();
 
 
+    /* ============================================================
+       Variant mutation
+    ============================================================ */
+
     const {
         mutate: updateVariant,
         isPending: isUpdatingVariant,
     } = useUpdate();
 
-    const {
-        mutate: updateVariantStock,
-        isPending: isUpdatingStock,
-    } = useUpdate();
 
+    /* ============================================================
+       Delete variant
+    ============================================================ */
 
     const {
         mutate: deleteVariant,
         isPending: isDeletingVariant,
     } = useDelete();
+
+
+    /* ============================================================
+       Inventory API
+       POST /admin/inventory/{variant_id}
+    ============================================================ */
+
+    const {
+        mutate: addInventoryStock,
+    } = useUpdate();
 
 
     /* ============================================================
@@ -224,11 +239,38 @@ export function ProductVariantShow() {
     });
 
 
+    /* ============================================================
+       Suppliers
+    ============================================================ */
+
+    const {
+        query: {
+            data: suppliersResponse,
+            isLoading: isLoadingSuppliers,
+        },
+    } = useList({
+        resource: "suppliers",
+        pagination: {
+            mode: "off",
+        },
+        filters: [
+            {
+                field: "is_active",
+                operator: "eq",
+                value: true,
+            },
+        ],
+    });
+
+
     const categories =
         categoriesResponse?.data ?? [];
 
     const brands =
         brandsResponse?.data ?? [];
+
+    const suppliers =
+        suppliersResponse?.data ?? [];
 
 
     /* ============================================================
@@ -272,6 +314,16 @@ export function ProductVariantShow() {
     const handleSave = () => {
         if (!form.name.trim()) {
             alert("Product name is required.");
+            return;
+        }
+
+        if (!form.category_id) {
+            alert("Please select a category.");
+            return;
+        }
+
+        if (!form.brand_id) {
+            alert("Please select a brand.");
             return;
         }
 
@@ -556,7 +608,41 @@ export function ProductVariantShow() {
 
 
     /* ============================================================
+       Open Add Stock
+    ============================================================ */
+
+    const handleOpenAddStock = () => {
+        setStockAmount("");
+        setStockSupplierId("");
+        setIsAddingStock(true);
+    };
+
+
+    /* ============================================================
+       Close Add Stock
+    ============================================================ */
+
+    const handleCloseAddStock = () => {
+        if (isAddingStockPending) {
+            return;
+        }
+
+        setStockAmount("");
+        setStockSupplierId("");
+        setIsAddingStock(false);
+    };
+
+
+    /* ============================================================
        Add Stock
+
+       POST /admin/inventory/{variant_id}
+
+       Body:
+       {
+           quantity: number,
+           supplier_id: number
+       }
     ============================================================ */
 
     const handleAddStock = () => {
@@ -574,35 +660,45 @@ export function ProductVariantShow() {
             return;
         }
 
-        if (!selectedVariant) {
-            alert("Variant not found.");
+        if (!stockSupplierId) {
+            alert(
+                "Please select a supplier."
+            );
+
             return;
         }
 
-        const newQuantity =
-            currentStock + amount;
+        if (!selectedVariant) {
+            alert(
+                "Variant not found."
+            );
+
+            return;
+        }
 
         setIsAddingStockPending(true);
 
-        updateVariantStock(
+        addInventoryStock(
             {
-                resource:
-                    `products/${id}/variants`,
+                resource: "inventory",
 
                 id: selectedVariant.id,
 
                 values: {
-                    quantity:
-                        newQuantity,
+                    quantity: amount,
+
+                    supplier_id:
+                        Number(
+                            stockSupplierId
+                        ),
                 },
             },
             {
                 onSuccess: () => {
                     setStockAmount("");
+                    setStockSupplierId("");
                     setIsAddingStock(false);
-                    setIsAddingStockPending(
-                        false
-                    );
+                    setIsAddingStockPending(false);
 
                     refetch();
                 },
@@ -840,19 +936,23 @@ export function ProductVariantShow() {
                         "
                     />
 
-                    <h2 className="
-                        text-xl
-                        font-semibold
-                        mb-2
-                    ">
+                    <h2
+                        className="
+                            text-xl
+                            font-semibold
+                            mb-2
+                        "
+                    >
                         Variant not found
                     </h2>
 
-                    <p className="
-                        text-sm
-                        text-admin-muted
-                        mb-5
-                    ">
+                    <p
+                        className="
+                            text-sm
+                            text-admin-muted
+                            mb-5
+                        "
+                    >
                         This variant may have been
                         deleted or does not belong
                         to this product.
@@ -1063,10 +1163,7 @@ export function ProductVariantShow() {
                     </div>
 
 
-                    <div className="
-                        flex
-                        gap-2
-                    ">
+                    <div className="flex gap-2">
 
                         {isEditing ? (
                             <>
@@ -1213,11 +1310,7 @@ export function ProductVariantShow() {
                             "
                         >
 
-                            {/* Product Name */}
-
-                            <div className="
-                                md:col-span-2
-                            ">
+                            <div className="md:col-span-2">
 
                                 <label
                                     className="
@@ -1246,11 +1339,7 @@ export function ProductVariantShow() {
                             </div>
 
 
-                            {/* Description */}
-
-                            <div className="
-                                md:col-span-2
-                            ">
+                            <div className="md:col-span-2">
 
                                 <label
                                     className="
@@ -1280,8 +1369,6 @@ export function ProductVariantShow() {
 
                             </div>
 
-
-                            {/* Category */}
 
                             <div>
 
@@ -1335,8 +1422,6 @@ export function ProductVariantShow() {
                             </div>
 
 
-                            {/* Brand */}
-
                             <div>
 
                                 <label
@@ -1389,8 +1474,6 @@ export function ProductVariantShow() {
                             </div>
 
 
-                            {/* Active */}
-
                             <div
                                 className="
                                     md:col-span-2
@@ -1423,9 +1506,7 @@ export function ProductVariantShow() {
                                         "
                                     />
 
-                                    <span className="
-                                        text-sm
-                                    ">
+                                    <span className="text-sm">
                                         Product is active
                                     </span>
 
@@ -1437,9 +1518,7 @@ export function ProductVariantShow() {
 
                     ) : (
 
-                        <div className="
-                            space-y-6
-                        ">
+                        <div className="space-y-6">
 
                             <div>
 
@@ -1716,13 +1795,9 @@ export function ProductVariantShow() {
                                 "
                             >
 
-                                {/* PRIMARY ACTION */}
-
                                 <button
-                                    onClick={() =>
-                                        setIsAddingStock(
-                                            true
-                                        )
+                                    onClick={
+                                        handleOpenAddStock
                                     }
                                     disabled={
                                         isAddingStock
@@ -1750,8 +1825,6 @@ export function ProductVariantShow() {
                                     Add Stock
                                 </button>
 
-
-                                {/* SECONDARY ACTION */}
 
                                 <button
                                     onClick={() =>
@@ -1827,11 +1900,14 @@ export function ProductVariantShow() {
                                             mt-1
                                         "
                                     >
-                                        Add inventory to{" "}
-                                        <span className="
-                                            text-admin-text
-                                            font-medium
-                                        ">
+                                        Add incoming inventory
+                                        for{" "}
+                                        <span
+                                            className="
+                                                text-admin-text
+                                                font-medium
+                                            "
+                                        >
                                             {selectedVariant.sku}
                                         </span>
                                         .
@@ -1841,20 +1917,19 @@ export function ProductVariantShow() {
 
 
                                 <button
-                                    onClick={() => {
-                                        setIsAddingStock(
-                                            false
-                                        );
-                                        setStockAmount(
-                                            ""
-                                        );
-                                    }}
+                                    onClick={
+                                        handleCloseAddStock
+                                    }
+                                    disabled={
+                                        isAddingStockPending
+                                    }
                                     className="
                                         p-2
                                         rounded-lg
                                         text-admin-muted
                                         hover:text-admin-text
                                         hover:bg-slate-800
+                                        disabled:opacity-50
                                     "
                                 >
                                     <X
@@ -1871,7 +1946,6 @@ export function ProductVariantShow() {
                                     grid-cols-1
                                     md:grid-cols-3
                                     gap-4
-                                    items-end
                                 "
                             >
 
@@ -1951,12 +2025,13 @@ export function ProductVariantShow() {
                                                 e
                                             ) =>
                                                 setStockAmount(
-                                                    e
-                                                        .target
-                                                        .value
+                                                    e.target.value
                                                 )
                                             }
                                             placeholder="e.g. 50"
+                                            disabled={
+                                                isAddingStockPending
+                                            }
                                             className="
                                                 w-full
                                                 px-4
@@ -1969,6 +2044,7 @@ export function ProductVariantShow() {
                                                 text-admin-text
                                                 outline-none
                                                 focus:border-admin-primary
+                                                disabled:opacity-50
                                             "
                                         />
 
@@ -1977,72 +2053,243 @@ export function ProductVariantShow() {
                                 </div>
 
 
-                                {/* Buttons */}
+                                {/* Supplier */}
+
+                                <div>
+
+                                    <label
+                                        className="
+                                            block
+                                            text-sm
+                                            text-admin-muted
+                                            mb-2
+                                        "
+                                    >
+                                        Supplier
+                                    </label>
+
+                                    <select
+                                        value={
+                                            stockSupplierId
+                                        }
+                                        onChange={(
+                                            e
+                                        ) =>
+                                            setStockSupplierId(
+                                                e.target.value
+                                            )
+                                        }
+                                        disabled={
+                                            isLoadingSuppliers ||
+                                            isAddingStockPending
+                                        }
+                                        className="
+                                            w-full
+                                            px-4
+                                            py-3
+                                            rounded-lg
+                                            bg-slate-900
+                                            border
+                                            border-admin-border
+                                            text-admin-text
+                                            outline-none
+                                            focus:border-admin-primary
+                                            disabled:opacity-50
+                                        "
+                                    >
+
+                                        <option value="">
+                                            {isLoadingSuppliers
+                                                ? "Loading suppliers..."
+                                                : "Select supplier"}
+                                        </option>
+
+                                        {suppliers.map(
+                                            (supplier) => (
+                                                <option
+                                                    key={
+                                                        supplier.id
+                                                    }
+                                                    value={
+                                                        supplier.id
+                                                    }
+                                                >
+                                                    {
+                                                        supplier.name
+                                                    }
+                                                </option>
+                                            )
+                                        )}
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+
+                            {/* Summary */}
+
+                            <div
+                                className="
+                                    mt-5
+                                    px-4
+                                    py-3
+                                    rounded-xl
+                                    bg-slate-900/60
+                                    border
+                                    border-admin-border
+                                "
+                            >
 
                                 <div
                                     className="
                                         flex
-                                        gap-2
+                                        items-center
+                                        justify-between
+                                        gap-4
                                     "
                                 >
 
-                                    <button
-                                        onClick={() => {
-                                            setIsAddingStock(
-                                                false
-                                            );
-                                            setStockAmount(
-                                                ""
-                                            );
-                                        }}
-                                        disabled={
-                                            isAddingStockPending
-                                        }
-                                        className="
-                                            flex-1
-                                            px-4
-                                            py-3
-                                            rounded-xl
-                                            border
-                                            border-admin-border
-                                            text-admin-muted
-                                            hover:text-admin-text
-                                            hover:bg-slate-800
-                                        "
-                                    >
-                                        Cancel
-                                    </button>
+                                    <div>
+
+                                        <p
+                                            className="
+                                                text-xs
+                                                text-admin-muted
+                                            "
+                                        >
+                                            Stock after delivery
+                                        </p>
+
+                                        <p
+                                            className="
+                                                text-lg
+                                                font-semibold
+                                                mt-1
+                                            "
+                                        >
+                                            {currentStock +
+                                                (
+                                                    Number(
+                                                        stockAmount
+                                                    ) || 0
+                                                )}{" "}
+                                            pcs
+                                        </p>
+
+                                    </div>
 
 
-                                    <button
-                                        onClick={
-                                            handleAddStock
-                                        }
-                                        disabled={
-                                            isAddingStockPending
-                                        }
-                                        className="
-                                            flex-1
-                                            px-4
-                                            py-3
-                                            rounded-xl
-                                            bg-admin-primary
-                                            border
-                                            border-admin-primary-border
-                                            hover:bg-admin-primary-hover
-                                            font-semibold
-                                            disabled:opacity-50
-                                            disabled:cursor-not-allowed
-                                        "
-                                    >
-                                        {isAddingStockPending
-                                            ? "Adding..."
-                                            : `Add ${stockAmount ||
-                                            "0"
-                                            } pcs`}
-                                    </button>
+                                    <div className="
+                                        text-right
+                                    ">
+
+                                        <p
+                                            className="
+                                                text-xs
+                                                text-admin-muted
+                                            "
+                                        >
+                                            Supplier
+                                        </p>
+
+                                        <p
+                                            className="
+                                                text-sm
+                                                font-medium
+                                                mt-1
+                                            "
+                                        >
+                                            {suppliers.find(
+                                                (supplier) =>
+                                                    Number(
+                                                        supplier.id
+                                                    ) ===
+                                                    Number(
+                                                        stockSupplierId
+                                                    )
+                                            )?.name ??
+                                                "Not selected"}
+                                        </p>
+
+                                    </div>
 
                                 </div>
+
+                            </div>
+
+
+                            {/* Buttons */}
+
+                            <div
+                                className="
+                                    flex
+                                    justify-end
+                                    gap-2
+                                    mt-5
+                                "
+                            >
+
+                                <button
+                                    onClick={
+                                        handleCloseAddStock
+                                    }
+                                    disabled={
+                                        isAddingStockPending
+                                    }
+                                    className="
+                                        px-4
+                                        py-2.5
+                                        rounded-xl
+                                        border
+                                        border-admin-border
+                                        text-admin-muted
+                                        hover:text-admin-text
+                                        hover:bg-slate-800
+                                        disabled:opacity-50
+                                    "
+                                >
+                                    Cancel
+                                </button>
+
+
+                                <button
+                                    onClick={
+                                        handleAddStock
+                                    }
+                                    disabled={
+                                        isAddingStockPending
+                                    }
+                                    className="
+                                        flex
+                                        items-center
+                                        gap-2
+                                        px-5
+                                        py-2.5
+                                        rounded-xl
+                                        bg-admin-primary
+                                        border
+                                        border-admin-primary-border
+                                        hover:bg-admin-primary-hover
+                                        font-semibold
+                                        disabled:opacity-50
+                                        disabled:cursor-not-allowed
+                                    "
+                                >
+
+                                    <Plus
+                                        className="h-4 w-4"
+                                    />
+
+                                    {isAddingStockPending
+                                        ? "Adding..."
+                                        : `Add ${
+                                            stockAmount ||
+                                            "0"
+                                        } pcs`}
+
+                                </button>
 
                             </div>
 
@@ -2127,8 +2374,6 @@ export function ProductVariantShow() {
                                 "
                             >
 
-                                {/* SKU */}
-
                                 <FormField label="SKU">
 
                                     <input
@@ -2147,8 +2392,6 @@ export function ProductVariantShow() {
 
                                 </FormField>
 
-
-                                {/* Price */}
 
                                 <FormField label="Price">
 
@@ -2171,8 +2414,6 @@ export function ProductVariantShow() {
 
                                 </FormField>
 
-
-                                {/* Discount */}
 
                                 <FormField
                                     label="Discount %"
@@ -2198,8 +2439,6 @@ export function ProductVariantShow() {
 
                                 </FormField>
 
-
-                                {/* Active */}
 
                                 <div
                                     className="
@@ -2235,9 +2474,7 @@ export function ProductVariantShow() {
                                             "
                                         />
 
-                                        <span className="
-                                            text-sm
-                                        ">
+                                        <span className="text-sm">
                                             Variant is active
                                         </span>
 
@@ -2389,9 +2626,7 @@ export function ProductVariantShow() {
                                                                     updateAttribute(
                                                                         index,
                                                                         "key",
-                                                                        e
-                                                                            .target
-                                                                            .value
+                                                                        e.target.value
                                                                     )
                                                                 }
                                                                 placeholder="Attribute name"
@@ -2422,9 +2657,7 @@ export function ProductVariantShow() {
                                                                     updateAttribute(
                                                                         index,
                                                                         "value",
-                                                                        e
-                                                                            .target
-                                                                            .value
+                                                                        e.target.value
                                                                     )
                                                                 }
                                                                 placeholder="Value"
@@ -2526,12 +2759,7 @@ export function ProductVariantShow() {
                                 </button>
 
 
-                                <div
-                                    className="
-                                        flex
-                                        gap-2
-                                    "
-                                >
+                                <div className="flex gap-2">
 
                                     <button
                                         onClick={
@@ -2625,8 +2853,6 @@ export function ProductVariantShow() {
                                 "
                             >
 
-                                {/* SKU */}
-
                                 <InfoCard
                                     icon={
                                         <Tag className="h-5 w-5" />
@@ -2638,8 +2864,6 @@ export function ProductVariantShow() {
                                     }
                                 />
 
-
-                                {/* Price */}
 
                                 <InfoCard
                                     icon={
@@ -2653,8 +2877,6 @@ export function ProductVariantShow() {
                                 />
 
 
-                                {/* Discount */}
-
                                 <InfoCard
                                     icon={
                                         <Tag className="h-5 w-5" />
@@ -2666,8 +2888,6 @@ export function ProductVariantShow() {
                                     )}%`}
                                 />
 
-
-                                {/* Stock */}
 
                                 <InfoCard
                                     icon={
@@ -2682,9 +2902,7 @@ export function ProductVariantShow() {
 
                             {/* Images */}
 
-                            <div className="
-                                mb-6
-                            ">
+                            <div className="mb-6">
 
                                 <div
                                     className="
@@ -2785,15 +3003,10 @@ export function ProductVariantShow() {
                                     >
 
                                         <ImagePlus
-                                            className="
-                                                h-5
-                                                w-5
-                                            "
+                                            className="h-5 w-5"
                                         />
 
-                                        <span className="
-                                            text-sm
-                                        ">
+                                        <span className="text-sm">
                                             No images available
                                             for this variant.
                                         </span>
@@ -2807,11 +3020,7 @@ export function ProductVariantShow() {
 
                             {/* Attributes */}
 
-                            <div
-                                className="
-                                    mb-6
-                                "
-                            >
+                            <div className="mb-6">
 
                                 <div
                                     className="
@@ -2830,11 +3039,7 @@ export function ProductVariantShow() {
                                         "
                                     />
 
-                                    <h3
-                                        className="
-                                            font-semibold
-                                        "
-                                    >
+                                    <h3 className="font-semibold">
                                         Attributes
                                     </h3>
 
@@ -2870,9 +3075,7 @@ export function ProductVariantShow() {
                                             ]) => (
 
                                                 <div
-                                                    key={
-                                                        key
-                                                    }
+                                                    key={key}
                                                     className="
                                                         px-4
                                                         py-3
@@ -2972,9 +3175,10 @@ export function ProductVariantShow() {
                                                 h-2
                                                 w-2
                                                 rounded-full
-                                                ${variantActive
-                                                    ? "bg-admin-active"
-                                                    : "bg-minimal-red"
+                                                ${
+                                                    variantActive
+                                                        ? "bg-admin-active"
+                                                        : "bg-minimal-red"
                                                 }
                                             `}
                                         />
@@ -2983,9 +3187,10 @@ export function ProductVariantShow() {
                                             className={`
                                                 text-sm
                                                 font-medium
-                                                ${variantActive
-                                                    ? "text-admin-active"
-                                                    : "text-admin-inactive"
+                                                ${
+                                                    variantActive
+                                                        ? "text-admin-active"
+                                                        : "text-admin-inactive"
                                                 }
                                             `}
                                         >

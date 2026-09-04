@@ -1,5 +1,9 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field
+
+from schemas.product import ProductVariantResponse
+
 
 
 class UserRegister(BaseModel):
@@ -11,14 +15,16 @@ class UserRegister(BaseModel):
 
 class UserLogin(BaseModel):
     identifier: str
-    rememberOption: bool
     password: str
+    rememberOption: bool
+
+
 
 
 class UserResponse(BaseModel):
     id: int
     username: str
-    full_name: str | None
+    full_name: str | None = None
     email: EmailStr
     role: str
     phone: str | None = None
@@ -29,9 +35,7 @@ class UserResponse(BaseModel):
     is_active: bool
     profile_pic_path: str
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class UserPatch(BaseModel):
@@ -45,6 +49,8 @@ class UserPatch(BaseModel):
     postal_code: str | None = None
 
 
+
+
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str
@@ -54,94 +60,19 @@ class DeleteAccountRequest(BaseModel):
     password: str
 
 
-class CustomerOrderItemResponse(BaseModel):
-    id: int
-    product_variant_id: int
-    product_name: str
-    variant_attributes_snapshot: dict | None = None
-    quantity: int
-    price: float
-
-    model_config = {
-        "from_attributes": True
-    }
-
-
-class CustomerOrderResponse(BaseModel):
-    id: int
-    total_amount: float
-    order_status: str
-    shipping_status: str
-    payment_status: str
-    customer_name: str
-    customer_phone: str
-    shipping_address: str
-    shipping_city: str
-    shipping_region: str
-    shipping_postal_code: str
-    created_at: object
-    items: list[CustomerOrderItemResponse] = []
-
-    model_config = {
-        "from_attributes": True
-    }
-
-
-class CustomerCartItemResponse(BaseModel):
-    id: int
-    product_variant_id: int
-    quantity: int
-
-    model_config = {
-        "from_attributes": True
-    }
-
-
-class CustomerCartResponse(BaseModel):
-    id: int
-    items: list[CustomerCartItemResponse] = []
-
-    model_config = {
-        "from_attributes": True
-    }
-
-
-class CustomerReviewResponse(BaseModel):
-    id: int
-    product_id: int
-    rating: int
-    comment: str | None = None
-
-    model_config = {
-        "from_attributes": True
-    }
-
-
-class CustomerResponse(UserResponse):
-    orders: list[CustomerOrderResponse] = []
-    cart: CustomerCartResponse | None = None
-    reviews: list[CustomerReviewResponse] = []
-
-from pydantic import BaseModel
-
-
-class StatusUpdate(BaseModel):
-    order_status: str | None = None
-    shipping_status: str | None = None
-    payment_status: str | None = None
 
 
 class OrderItemResponse(BaseModel):
-    id: int
+    order_id: int
     product_variant_id: int
     product_name: str
     variant_attributes_snapshot: dict | None = None
     quantity: int
     price: float
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
+
 
 
 class OrderResponse(BaseModel):
@@ -157,9 +88,61 @@ class OrderResponse(BaseModel):
     order_status: str
     shipping_status: str
     payment_status: str
-    created_at: object
-    items: list[OrderItemResponse] = []
+    created_at: datetime
+    items: list[OrderItemResponse] = Field(default_factory=list)
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
+
+
+
+
+class CustomerCartItemResponse(BaseModel):
+    cart_id: int
+    product_variant_id: int
+    quantity: int
+    product_variant: ProductVariantResponse
+
+    model_config = {"from_attributes": True}
+
+
+class CustomerCartResponse(BaseModel):
+    id: int
+    items: list[CustomerCartItemResponse] = Field(default_factory=list)
+
+    model_config = {"from_attributes": True}
+
+
+
+
+class CustomerReviewResponse(BaseModel):
+    id: int
+    product_id: int
+    rating: int
+    review: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
+
+
+class CustomerResponse(UserResponse):
+    orders: list[OrderResponse] = Field(default_factory=list)
+    reviews: list[CustomerReviewResponse] = Field(default_factory=list)
+    cart: CustomerCartResponse | None = None
+
+
+
+
+class StatusUpdate(BaseModel):
+    order_status: str | None = None
+    shipping_status: str | None = None
+    payment_status: str | None = None
+
+
+
+
+
+
+class UserDeactivateRequest (BaseModel):
+    user_id: int
+    is_active: bool

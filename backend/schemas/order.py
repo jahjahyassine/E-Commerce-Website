@@ -4,7 +4,7 @@ from decimal import Decimal
 from pydantic import BaseModel
 
 from models.order import OrderStatus, PaymentStatus, ShippingStatus
-from schemas.user import UserOrderResponse, UserResponse
+from schemas.user import UserResponse, UserResponse
 from schemas.cart import CartResponse
 from schemas.product import ProductVariantResponse
 
@@ -25,7 +25,7 @@ class OrderResponse (BaseModel):
 
     items: list[OrderItemResponse]
 
-    user: UserOrderResponse
+    user: UserResponse
 
     model_config = {
         'from_attributes': True

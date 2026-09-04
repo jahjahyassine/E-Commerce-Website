@@ -14,7 +14,12 @@ import { ProductVariantShow } from "./resources/pages/inventory products/Product
 import { OrderList } from "./resources/pages/orders/OrderList";
 import { OrderShow } from "./resources/pages/orders/OrderShow";
 import CustomerList from "./resources/pages/customers/CustomerList";
-import CustomerShow from "./resources/pages/customers/CustomerShow";
+import { CustomerShow } from "./resources/pages/customers/CustomerShow";
+import { SupplierList } from "./resources/pages/suppliers/SupplierList";
+import { SupplierCreate } from "./resources/pages/suppliers/SupplierCreate";
+import { SupplierShow } from "./resources/pages/suppliers/SupplierShow";
+import StockChangesList from "./resources/pages/stock history/StockChangesList";
+import { ReviewList } from "./resources/pages/reviews/ReviewList";
 
 function AdminApp() {
     return (
@@ -79,6 +84,14 @@ function AdminApp() {
 
                 <Route path="customers" element={<CustomerList />} />
                 <Route path="customers/:id" element={<CustomerShow />} />
+
+                <Route path="suppliers" element={<SupplierList />} />
+                <Route path="suppliers/create" element={<SupplierCreate />} />
+                <Route path="suppliers/:id" element={<SupplierShow />} />
+
+                <Route path="stock-changes" element={<StockChangesList />} />
+
+                <Route path="reviews" element={<ReviewList />} />
 
                 <Route index element={<AdminProfile />} />
             </Routes>

@@ -107,7 +107,7 @@ function AdminSidebar() {
                 },
                 {
                     label: "Stock History",
-                    to: "/admin/inventory/history",
+                    to: "/admin/stock-changes",
                     icon: History,
                 },
             ],

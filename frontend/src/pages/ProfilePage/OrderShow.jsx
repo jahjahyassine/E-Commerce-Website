@@ -153,6 +153,7 @@ function OrderShow() {
 
     const orderItems = order?.items ?? [];
 
+    
     const cancelOrderFunction = async () => {
         const response = await fetch(
             `${BASE_URL}/orders/${id}/cancel`,
