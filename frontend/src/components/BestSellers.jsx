@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+import DepthCarousel from "./animation/DepthCarousel";
 
 function BestSellers() {
     const BASE_URL = import.meta.env.VITE_BASE_URL;
+
     const navigate = useNavigate();
 
     const fetchProducts = async () => {
@@ -27,6 +29,11 @@ function BestSellers() {
         queryFn: fetchProducts,
     });
 
+    /*
+     * Best sellers:
+     * 1. Highest rating
+     * 2. Highest number of reviews
+     */
     const bestSellers = [...products]
         .sort((a, b) => {
             const ratingA = Number(a.average_rating ?? 0);
@@ -41,35 +48,126 @@ function BestSellers() {
                 Number(a.count_reviews ?? 0)
             );
         })
-        .slice(0, 12);
+        .slice(0, 6);
 
-    const renderStars = (rating) => {
-        const numericRating = Number(rating) || 0;
+    /*
+     * Get the best image available for the product.
+     */
+    const getProductImage = (product) => {
+        // Prefer product-level media
+        if (product?.media?.length > 0) {
+            return product.media[0].media_url;
+        }
+
+        // Prefer active variant media
+        const activeVariant = product?.product_variants?.find(
+            (variant) =>
+                variant.is_active &&
+                variant.media?.length > 0
+        );
+
+        if (activeVariant?.media?.length > 0) {
+            return activeVariant.media[0].media_url;
+        }
+
+        // Fallback to any variant with media
+        const variantWithMedia =
+            product?.product_variants?.find(
+                (variant) => variant.media?.length > 0
+            );
 
         return (
-            <div
-                className="flex items-center gap-0.5"
-                aria-label={`${numericRating} out of 5 stars`}
-            >
-                {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                        key={star}
-                        className={
-                            star <= Math.round(numericRating)
-                                ? "text-minimal-yellow"
-                                : "text-muted"
-                        }
-                    >
-                        ★
-                    </span>
-                ))}
-
-                <span className="ml-1 text-xs text-muted">
-                    {numericRating.toFixed(1)}
-                </span>
-            </div>
+            variantWithMedia?.media?.[0]?.media_url ?? null
         );
     };
+
+    /*
+     * Get the cheapest active variant that has stock.
+     */
+    const getBestVariant = (product) => {
+        const variants =
+            product?.product_variants?.filter(
+                (variant) =>
+                    variant.is_active &&
+                    Number(
+                        variant.inventory?.quantity ?? 0
+                    ) > 0
+            ) ?? [];
+
+        if (!variants.length) {
+            return null;
+        }
+
+        return [...variants].sort(
+            (a, b) =>
+                Number(a.price) - Number(b.price)
+        )[0];
+    };
+
+    /*
+     * Convert products into the format expected by
+     * DepthCarousel.
+     */
+    const carouselItems = bestSellers
+        .map((product) => {
+            const image = getProductImage(product);
+            const variant = getBestVariant(product);
+
+            if (!image || !variant) {
+                return null;
+            }
+
+            const price = Number(variant.price ?? 0);
+
+            const discount = Number(
+                variant.discount_percentage ?? 0
+            );
+
+            const discountedPrice =
+                price * (1 - discount / 100);
+
+            return {
+                id: product.id,
+
+                image,
+
+                alt: product.name,
+
+                brand:
+                    product.brand?.name ??
+                    "Brand",
+
+                name: product.name,
+
+                category:
+                    product.category?.name ??
+                    "",
+
+                rating: Number(
+                    product.average_rating ?? 0
+                ),
+
+                reviews: Number(
+                    product.count_reviews ?? 0
+                ),
+
+                price: discountedPrice,
+
+                originalPrice:
+                    discount > 0
+                        ? price
+                        : null,
+
+                discount,
+            };
+        })
+        .filter(Boolean);
+
+    /*
+     * ---------------------------------------------------------
+     * LOADING
+     * ---------------------------------------------------------
+     */
 
     if (isLoading) {
         return (
@@ -79,17 +177,29 @@ function BestSellers() {
                     min-h-screen
                     w-full
                     flex
+                    flex-col
                     items-center
                     justify-center
                     text-foreground
                 "
+                aria-label="Best sellers"
             >
-                <p className="text-muted">
-                    Loading best sellers...
-                </p>
+                <div className="space-y-3 text-center">
+                    <div className="mx-auto h-8 w-48 animate-pulse rounded-lg bg-background-black/10" />
+
+                    <div className="mx-auto h-4 w-64 animate-pulse rounded bg-background-black/10" />
+
+                    <div className="mt-8 h-[410px] w-[300px] animate-pulse rounded-3xl bg-background-black/10" />
+                </div>
             </section>
         );
     }
+
+    /*
+     * ---------------------------------------------------------
+     * ERROR
+     * ---------------------------------------------------------
+     */
 
     if (isError) {
         return (
@@ -99,10 +209,12 @@ function BestSellers() {
                     min-h-screen
                     w-full
                     flex
+                    flex-col
                     items-center
                     justify-center
                     text-foreground
                 "
+                aria-label="Best sellers"
             >
                 <p className="text-minimal-red">
                     Failed to load best sellers.
@@ -111,276 +223,165 @@ function BestSellers() {
         );
     }
 
+    /*
+     * ---------------------------------------------------------
+     * EMPTY
+     * ---------------------------------------------------------
+     */
+
+    if (carouselItems.length === 0) {
+        return (
+            <section
+                id="bestsellers"
+                className="
+                    min-h-screen
+                    w-full
+                    flex
+                    flex-col
+                    items-center
+                    justify-center
+                    text-foreground
+                "
+                aria-label="Best sellers"
+            >
+                <h2
+                    className="
+                        text-4xl
+                        md:text-5xl
+                        font-cormorant
+                        font-semibold
+                        text-foreground
+                    "
+                >
+                    Best Sellers
+                </h2>
+
+                <p className="mt-2 text-sm text-muted">
+                    Our highest-rated products
+                </p>
+
+                <p className="mt-8 text-muted">
+                    No products available.
+                </p>
+            </section>
+        );
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * SECTION
+     * ---------------------------------------------------------
+     */
+
     return (
         <section
             id="bestsellers"
             className="
-                h-screen
+                min-h-screen
                 w-full
                 flex
+                flex-col
+                items-center
+                justify-center
                 text-foreground
-                overflow-x-auto
-                snap-x
-                snap-mandatory
-                scroll-smooth
-                scrollbar-none
+                overflow-hidden
+                px-6
+                py-16
             "
             aria-label="Best sellers"
         >
-            {bestSellers.length === 0 ? (
-                <div className="min-w-full h-full flex items-center justify-center">
-                    <p className="text-muted">
-                        No products available.
-                    </p>
-                </div>
-            ) : (
-                Array.from(
-                    {
-                        length: Math.ceil(
-                            bestSellers.length / 6
-                        ),
-                    },
-                    (_, pageIndex) => {
-                        const page = bestSellers.slice(
-                            pageIndex * 6,
-                            pageIndex * 6 + 6
-                        );
+            {/* -------------------------------------------------
+                TITLE
+            ------------------------------------------------- */}
 
-                        return (
-                            <div
-                                key={pageIndex}
-                                className="
-                                    h-screen
-                                    min-w-full
-                                    snap-start
-                                    grid
-                                    grid-cols-1
-                                    sm:grid-cols-2
-                                    lg:grid-cols-3
-                                    grid-rows-6
-                                    sm:grid-rows-3
-                                    lg:grid-rows-2
-                                    gap-6
-                                    px-6
-                                    lg:px-10
-                                    pt-28
-                                    pb-6
-                                    relative
-                                "
-                            >
-                                {/* Header */}
-                                {pageIndex === 0 && (
-                                    <div
-                                        className="
-                                            absolute
-                                            top-10
-                                            left-0
-                                            w-full
-                                            text-center
-                                            pointer-events-none
-                                        "
-                                    >
-                                        <h2
-                                            className="
-                                                text-4xl
-                                                md:text-5xl
-                                                font-cormorant
-                                                font-semibold
-                                                text-foreground
-                                            "
-                                        >
-                                            Best Sellers
-                                        </h2>
+            <div className="relative z-10 text-center">
+                <h2
+                    className="
+                        text-4xl
+                        md:text-5xl
+                        font-cormorant
+                        font-semibold
+                        text-foreground
+                    "
+                >
+                    Best Sellers
+                </h2>
 
-                                        <p className="mt-2 text-sm text-muted">
-                                            Our highest-rated products
-                                        </p>
-                                    </div>
-                                )}
+                <p className="mt-2 text-sm text-muted">
+                    Our highest-rated products
+                </p>
+            </div>
 
-                                {page.map((product) => {
-                                    const rating = Number(
-                                        product.average_rating ?? 0
-                                    );
+            {/* -------------------------------------------------
+                CENTERED CAROUSEL
+            ------------------------------------------------- */}
 
-                                    const image =
-                                        product.media?.[0]?.media_url ??
-                                        product.product_variants?.[0]
-                                            ?.media?.[0]?.media_url ??
-                                        null;
+            <div
+                className="
+                    mt-8
+                    w-full
+                    max-w-6xl
+                    h-[500px]
+                    flex
+                    items-center
+                    justify-center
+                "
+            >
+                <DepthCarousel
+                    items={carouselItems}
 
-                                    return (
-                                        <article
-                                            key={product.id}
-                                            onClick={() =>
-                                                navigate(
-                                                    `/products/${product.id}`
-                                                )
-                                            }
-                                            className="
-                                                h-full
-                                                w-full
-                                                overflow-hidden
-                                                rounded-2xl
-                                                border
-                                                border-border-soft
-                                                bg-background-black/70
-                                                backdrop-blur-xl
-                                                transition-all
-                                                duration-300
-                                                hover:scale-[1.02]
-                                                hover:border-border
-                                                flex
-                                                flex-col
-                                                relative
-                                                cursor-pointer
-                                            "
-                                        >
-                                            {/* Product image */}
-                                            <div
-                                                className="
-                                                    flex-1
-                                                    flex
-                                                    items-center
-                                                    justify-center
-                                                    min-h-0
-                                                    relative
-                                                    overflow-hidden
-                                                "
-                                            >
-                                                {image ? (
-                                                    <img
-                                                        src={image}
-                                                        alt={product.name}
-                                                        className="
-                                                            object-contain
-                                                            w-full
-                                                            h-full
-                                                            max-h-[220px]
-                                                            p-5
-                                                            transition-transform
-                                                            duration-500
-                                                            hover:scale-105
-                                                        "
-                                                    />
-                                                ) : (
-                                                    <div className="text-muted text-sm">
-                                                        No image
-                                                    </div>
-                                                )}
+                    cardWidth={300}
+                    cardHeight={410}
+                    radius={24}
 
-                                                {/* Add to cart */}
-                                                <button
-                                                    type="button"
-                                                    aria-label={`Add ${product.name} to cart`}
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
+                    depth={180}
+                    spread={75}
+                    tilt={18}
+                    tiltDirection="right"
 
-                                                        // Add to cart logic here
-                                                    }}
-                                                    className="
-                                                        absolute
-                                                        bottom-4
-                                                        right-4
-                                                        flex
-                                                        items-center
-                                                        gap-2
-                                                        bg-primary
-                                                        text-inverse
-                                                        text-sm
-                                                        font-bold
-                                                        px-4
-                                                        py-2
-                                                        rounded-full
-                                                        z-10
-                                                        cursor-pointer
-                                                        transition-all
-                                                        duration-300
-                                                        hover:scale-105
-                                                        hover:bg-primary-hover
-                                                    "
-                                                >
-                                                    <ShoppingCart
-                                                        size={16}
-                                                    />
+                    perspective={1400}
 
-                                                    <span>
-                                                        Add to Cart
-                                                    </span>
-                                                </button>
-                                            </div>
+                    visibleCards={3}
 
-                                            {/* Product information */}
-                                            <div
-                                                className="
-                                                    px-4
-                                                    py-3
-                                                    space-y-2
-                                                    bg-background
-                                                "
-                                            >
-                                                {/* Brand */}
-                                                <p
-                                                    className="
-                                                        text-xs
-                                                        text-muted
-                                                        font-medium
-                                                        uppercase
-                                                        tracking-wide
-                                                    "
-                                                >
-                                                    {product.brand?.name ??
-                                                        "Brand"}
-                                                </p>
+                    falloff={0.18}
+                    blur={4}
 
-                                                {/* Name */}
-                                                <h3
-                                                    className="
-                                                        text-base
-                                                        md:text-lg
-                                                        font-semibold
-                                                        text-foreground
-                                                        line-clamp-1
-                                                    "
-                                                >
-                                                    {product.name}
-                                                </h3>
+                    duration={700}
+                    ease="power3.out"
 
-                                                {/* Rating + Price */}
-                                                <div
-                                                    className="
-                                                        flex
-                                                        items-center
-                                                        justify-between
-                                                        gap-3
-                                                    "
-                                                >
-                                                    {renderStars(rating)}
+                    autoplay={true}
+                    autoplayDelay={4500}
 
-                                                    <span
-                                                        className="
-                                                            font-bold
-                                                            text-minimal-green
-                                                            whitespace-nowrap
-                                                        "
-                                                    >
-                                                        From{" "}
-                                                        {Number(
-                                                            product.min_price ??
-                                                                0
-                                                        ).toFixed(2)}{" "}
-                                                        DH
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </article>
-                                    );
-                                })}
-                            </div>
-                        );
-                    }
-                )
-            )}
+                    loop={true}
+
+                    showControls={true}
+                    showIndicators={true}
+
+                    onChange={(index, item) => {
+                        // Optional:
+                        // console.log("Active product:", item);
+                    }}
+                />
+            </div>
+
+            {/* -------------------------------------------------
+                VIEW ALL
+            ------------------------------------------------- */}
+
+            <button
+                type="button"
+                onClick={() => navigate("/products")}
+                className="
+                    mt-2
+                    text-sm
+                    font-semibold
+                    text-primary
+                    transition-colors
+                    hover:text-primary-hover
+                "
+            >
+                View all products →
+            </button>
         </section>
     );
 }

@@ -128,17 +128,6 @@ function AdminSidebar() {
                 },
             ],
         },
-
-        {
-            title: "INSIGHTS",
-            items: [
-                {
-                    label: "Analytics",
-                    to: "/admin/analytics",
-                    icon: BarChart3,
-                },
-            ],
-        },
     ];
 
     return (

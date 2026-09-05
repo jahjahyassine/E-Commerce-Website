@@ -220,10 +220,6 @@ class ProductResponse(BaseModel):
     name: str
     description: str | None
 
-    # IMPORTANT:
-    # min_price belongs to Product.
-    # It is calculated from the product's active variants.
-
     min_price: Decimal
 
     average_rating: Decimal

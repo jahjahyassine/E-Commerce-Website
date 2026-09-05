@@ -1,0 +1,582 @@
+.depth-carousel {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+    min-height: 460px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    perspective: var(
+        --dc-perspective,
+        1400px
+    );
+
+    perspective-origin: 50% 50%;
+
+    touch-action: pan-y;
+
+    outline: none;
+
+    user-select: none;
+    -webkit-user-select: none;
+
+    cursor: grab;
+
+    overflow: visible;
+}
+
+.depth-carousel:active {
+    cursor: grabbing;
+}
+
+.depth-carousel:focus-visible {
+    outline: 2px solid
+        rgba(86, 124, 141, 0.35);
+
+    outline-offset: 4px;
+
+    border-radius: 16px;
+}
+
+/* ---------------------------------------------------------
+   STAGE
+--------------------------------------------------------- */
+
+.depth-carousel__stage {
+    position: absolute;
+
+    inset: 0;
+
+    transform-style: preserve-3d;
+}
+
+/* ---------------------------------------------------------
+   CARD
+--------------------------------------------------------- */
+
+.depth-carousel__card {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    display: flex;
+    flex-direction: column;
+
+    transform-origin: center center;
+
+    overflow: hidden;
+
+    background: #ffffff;
+
+    border: 1px solid
+        rgba(86, 124, 141, 0.14);
+
+    box-shadow:
+        0 30px 70px -25px
+            rgba(20, 35, 45, 0.35),
+        0 10px 30px -15px
+            rgba(20, 35, 45, 0.2);
+
+    will-change:
+        transform,
+        opacity,
+        filter;
+
+    cursor: pointer;
+
+    transition:
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.depth-carousel__card:hover {
+    border-color:
+        rgba(86, 124, 141, 0.28);
+
+    box-shadow:
+        0 35px 80px -25px
+            rgba(20, 35, 45, 0.4),
+        0 12px 35px -15px
+            rgba(20, 35, 45, 0.25);
+}
+
+/* ---------------------------------------------------------
+   IMAGE
+--------------------------------------------------------- */
+
+.depth-carousel__image-wrap {
+    position: relative;
+
+    width: 100%;
+
+    height: 62%;
+
+    min-height: 0;
+
+    overflow: hidden;
+
+    background: #f5f7f8;
+}
+
+.depth-carousel__img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+
+    pointer-events: none;
+
+    -webkit-user-drag: none;
+
+    transition:
+        transform 0.45s ease;
+}
+
+.depth-carousel__card:hover
+    .depth-carousel__img {
+    transform: scale(1.035);
+}
+
+/* ---------------------------------------------------------
+   TINT
+--------------------------------------------------------- */
+
+.depth-carousel__tint {
+    position: absolute;
+
+    inset: 0;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    mix-blend-mode: multiply;
+}
+
+/* ---------------------------------------------------------
+   DISCOUNT
+--------------------------------------------------------- */
+
+.depth-carousel__discount {
+    position: absolute;
+
+    top: 14px;
+    right: 14px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px 10px;
+
+    border-radius: 999px;
+
+    background: #567c8d;
+
+    color: white;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.02em;
+
+    box-shadow:
+        0 5px 15px
+            rgba(0, 0, 0, 0.14);
+}
+
+/* ---------------------------------------------------------
+   CATEGORY
+--------------------------------------------------------- */
+
+.depth-carousel__category {
+    position: absolute;
+
+    bottom: 12px;
+    left: 12px;
+
+    padding: 6px 10px;
+
+    border-radius: 999px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.82
+    );
+
+    color: #30444f;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border: 1px solid
+        rgba(255, 255, 255, 0.6);
+}
+
+/* ---------------------------------------------------------
+   PRODUCT INFO
+--------------------------------------------------------- */
+
+.depth-carousel__info {
+    flex: 1;
+
+    display: flex;
+
+    flex-direction: column;
+
+    padding: 17px 18px 18px;
+
+    background: white;
+}
+
+/* ---------------------------------------------------------
+   BRAND
+--------------------------------------------------------- */
+
+.depth-carousel__brand {
+    margin-bottom: 4px;
+
+    color: #567c8d;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.12em;
+}
+
+/* ---------------------------------------------------------
+   PRODUCT NAME
+--------------------------------------------------------- */
+
+.depth-carousel__name {
+    margin: 0;
+
+    color: #17242b;
+
+    font-size: 18px;
+
+    line-height: 1.2;
+
+    font-weight: 800;
+
+    letter-spacing: -0.025em;
+
+    display: -webkit-box;
+
+    -webkit-line-clamp: 2;
+
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+}
+
+/* ---------------------------------------------------------
+   RATING
+--------------------------------------------------------- */
+
+.depth-carousel__rating {
+    display: flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    margin-top: 9px;
+
+    color: #d4a017;
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+.depth-carousel__reviews {
+    color: #89979e;
+
+    font-weight: 500;
+}
+
+/* ---------------------------------------------------------
+   PRICE
+--------------------------------------------------------- */
+
+.depth-carousel__price-row {
+    display: flex;
+
+    align-items: baseline;
+
+    gap: 9px;
+
+    margin-top: auto;
+
+    padding-top: 13px;
+}
+
+.depth-carousel__price {
+    color: #3f7050;
+
+    font-size: 19px;
+
+    line-height: 1;
+
+    font-weight: 900;
+
+    letter-spacing: -0.03em;
+}
+
+.depth-carousel__old-price {
+    color: #98a2a7;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    text-decoration: line-through;
+}
+
+/* ---------------------------------------------------------
+   ARROWS
+--------------------------------------------------------- */
+
+.depth-carousel__arrow {
+    position: absolute;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    z-index: 3000;
+
+    width: 42px;
+    height: 42px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid
+        rgba(86, 124, 141, 0.18);
+
+    border-radius: 999px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.82
+    );
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    color: #30444f;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 8px 25px
+            rgba(20, 35, 45, 0.14);
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.depth-carousel__arrow:hover {
+    background: white;
+
+    border-color:
+        rgba(86, 124, 141, 0.35);
+
+    box-shadow:
+        0 10px 30px
+            rgba(20, 35, 45, 0.2);
+}
+
+.depth-carousel__arrow:active {
+    transform:
+        translateY(-50%)
+        scale(0.94);
+}
+
+.depth-carousel__arrow--prev {
+    left: 16px;
+}
+
+.depth-carousel__arrow--next {
+    right: 16px;
+}
+
+/* ---------------------------------------------------------
+   DOTS
+--------------------------------------------------------- */
+
+.depth-carousel__dots {
+    position: absolute;
+
+    bottom: 4px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    z-index: 3000;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    padding: 8px 11px;
+
+    border-radius: 999px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.78
+    );
+
+    border: 1px solid
+        rgba(86, 124, 141, 0.12);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    box-shadow:
+        0 8px 25px
+            rgba(20, 35, 45, 0.1);
+}
+
+.depth-carousel__dot {
+    width: 7px;
+    height: 7px;
+
+    padding: 0;
+
+    border: none;
+
+    border-radius: 999px;
+
+    background: rgba(
+        86,
+        124,
+        141,
+        0.25
+    );
+
+    cursor: pointer;
+
+    transition:
+        width 0.25s ease,
+        background 0.25s ease;
+}
+
+.depth-carousel__dot.is-active {
+    width: 20px;
+
+    background: #567c8d;
+}
+
+/* ---------------------------------------------------------
+   TABLET
+--------------------------------------------------------- */
+
+@media (max-width: 900px) {
+    .depth-carousel {
+        min-height: 430px;
+    }
+
+    .depth-carousel__arrow {
+        width: 38px;
+        height: 38px;
+    }
+
+    .depth-carousel__arrow--prev {
+        left: 8px;
+    }
+
+    .depth-carousel__arrow--next {
+        right: 8px;
+    }
+}
+
+/* ---------------------------------------------------------
+   MOBILE
+--------------------------------------------------------- */
+
+@media (max-width: 640px) {
+    .depth-carousel {
+        min-height: 400px;
+
+        overflow: hidden;
+    }
+
+    .depth-carousel__card {
+        border-radius: 20px;
+    }
+
+    .depth-carousel__info {
+        padding: 14px 15px 15px;
+    }
+
+    .depth-carousel__name {
+        font-size: 16px;
+    }
+
+    .depth-carousel__price {
+        font-size: 17px;
+    }
+
+    .depth-carousel__arrow {
+        width: 36px;
+        height: 36px;
+    }
+
+    .depth-carousel__arrow--prev {
+        left: 4px;
+    }
+
+    .depth-carousel__arrow--next {
+        right: 4px;
+    }
+}
+
+/* ---------------------------------------------------------
+   REDUCED MOTION
+--------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .depth-carousel__card {
+        will-change: auto;
+    }
+
+    .depth-carousel__img {
+        transition: none;
+    }
+
+    .depth-carousel__arrow,
+    .depth-carousel__dot {
+        transition: none;
+    }
+}

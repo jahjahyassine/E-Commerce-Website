@@ -1,6 +1,6 @@
-import Browsing from "../assets/browsing.jpg";
-import Ordering from "../assets/ordering.jpg";
-import Packaging from "../assets/packaging.jpg";
+// import Browsing from "../assets/browsing.jpg";
+// import Ordering from "../assets/ordering.jpg";
+// import Packaging from "../assets/packaging.jpg";
 import Footer from "./Footer";
 
 const STEPS = [
@@ -9,21 +9,18 @@ const STEPS = [
         title: "Browse",
         label: "Step 01",
         description: "Discover products curated for your needs.",
-        image: Browsing,
     },
     {
         id: 2,
         title: "Order",
         label: "Step 02",
         description: "Secure checkout and a seamless shopping experience.",
-        image: Ordering,
     },
     {
         id: 3,
         title: "Receive",
         label: "Step 03",
         description: "Premium packaging delivered to your door.",
-        image: Packaging,
     },
 ];
 

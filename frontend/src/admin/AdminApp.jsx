@@ -21,6 +21,7 @@ import { SupplierShow } from "./resources/pages/suppliers/SupplierShow";
 import StockChangesList from "./resources/pages/stock history/StockChangesList";
 import { ReviewList } from "./resources/pages/reviews/ReviewList";
 import DiscountList from "./resources/pages/discounts/DiscountsList";
+import Dashboard from "./resources/pages/dashboard/Dashboard";
 
 function AdminApp() {
     return (
@@ -95,6 +96,8 @@ function AdminApp() {
                 <Route path="reviews" element={<ReviewList />} />
 
                 <Route path="discounts" element={<DiscountList />} />
+
+                <Route path="dashboard" element={<Dashboard />} />
 
                 <Route index element={<AdminProfile />} />
             </Routes>

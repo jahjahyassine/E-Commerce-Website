@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from models.order import OrderItem
     from models.inventory import Inventory, StockChange
     from models.cart import CartItem
-    from models.wishlist import WishlistProduct
 
     
 from sqlalchemy import Boolean, CheckConstraint, Column, ForeignKey, Integer, Numeric, String, Table, Text, DateTime, UniqueConstraint, text
