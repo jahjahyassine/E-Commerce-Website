@@ -56,6 +56,15 @@ function OrdersHistory() {
         enabled: !!token,
     });
 
+    // Compares the variant's current price to what was actually paid on the
+    // order line. Since OrderItem only stores the final (already-discounted)
+    // price, this reflects the variant's *current* discount, not necessarily
+    // the one applied at the time of purchase.
+    const getOriginalItemPrice = (item) =>
+        Number(item.product_variant?.price ?? item.price ?? 0);
+
+    const getPaidItemPrice = (item) => Number(item.price ?? 0);
+
     const shippingStatusStyles = {
         NOT_SHIPPED:
             "text-warning bg-warning/10 border-warning/40",
@@ -293,11 +302,6 @@ function OrdersHistory() {
                                                         hover:scale-[1.02]
                                                         active:scale-95
                                                     "
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/track/order/${order.id}`
-                                                        )
-                                                    }
                                                 >
                                                     Track Order
                                                 </button>
@@ -321,6 +325,16 @@ function OrdersHistory() {
                                             const image =
                                                 variant?.media?.[0]
                                                     ?.media_url;
+
+                                            const originalItemPrice =
+                                                getOriginalItemPrice(item);
+
+                                            const paidItemPrice =
+                                                getPaidItemPrice(item);
+
+                                            const hasDiscount =
+                                                originalItemPrice >
+                                                paidItemPrice;
 
                                             return (
                                                 <div
@@ -470,13 +484,21 @@ function OrdersHistory() {
                                                     </div>
 
                                                     {/* Item Total */}
-                                                    <div className="ml-auto shrink-0">
+                                                    <div className="ml-auto shrink-0 flex flex-col items-end gap-0.5">
+                                                        {hasDiscount && (
+                                                            <p className="text-xs text-muted line-through">
+                                                                $
+                                                                {(
+                                                                    originalItemPrice *
+                                                                    item.quantity
+                                                                ).toFixed(2)}
+                                                            </p>
+                                                        )}
+
                                                         <p className="text-base font-bold text-emerald">
                                                             $
                                                             {(
-                                                                Number(
-                                                                    item.price
-                                                                ) *
+                                                                paidItemPrice *
                                                                 item.quantity
                                                             ).toFixed(2)}
                                                         </p>

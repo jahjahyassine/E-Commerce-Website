@@ -68,9 +68,7 @@ function CartPage() {
             setSelectedItems([]);
         } else {
             setSelectedItems(
-                cartItems.map(
-                    (item) => item.product_variant.id
-                )
+                cartItems.map((item) => item.product_variant.id)
             );
         }
     };
@@ -161,12 +159,22 @@ function CartPage() {
         setSelectedItems([]);
     };
 
-    const subtotalAmount = useMemo(() => {
-        return cartItems.reduce(
-            (total, item) =>
-                total + item.quantity * Number(item.price),
-            0
+    const getDiscountedPrice = (variant) => {
+        const price = Number(variant?.price ?? 0);
+        const discount = Number(
+            variant?.discount_percentage ?? 0
         );
+
+        return price * (1 - discount / 100);
+    };
+
+    const subtotalAmount = useMemo(() => {
+        return cartItems.reduce((total, item) => {
+            const variant = item.product_variant;
+            const discountedPrice = getDiscountedPrice(variant);
+
+            return total + item.quantity * discountedPrice;
+        }, 0);
     }, [cartItems]);
 
     const deliveryFee = subtotalAmount > 0 ? 10 : 0;
@@ -221,7 +229,6 @@ function CartPage() {
             </div>
 
             <section className="relative z-10 pt-20 px-6 flex flex-col max-h-screen gap-10">
-                {/* HEADER */}
                 <section className="w-full flex flex-col items-center">
                     <h2 className="text-4xl font-bold tracking-wider mb-5">
                         Your Shopping Cart
@@ -251,11 +258,8 @@ function CartPage() {
                     </div>
                 </section>
 
-                {/* CART + SUMMARY */}
                 <section className="flex gap-5">
-                    {/* CART */}
                     <section className="h-full flex flex-col gap-2 flex-1">
-                        {/* SELECT ALL */}
                         <section className="bg-chip p-2 rounded-3xl">
                             <div className="flex gap-2 bg-card rounded-2xl overflow-hidden px-4 py-3 items-center">
                                 <input
@@ -289,7 +293,6 @@ function CartPage() {
                             </div>
                         </section>
 
-                        {/* CART ITEMS */}
                         <section className="max-h-[600px] flex flex-col bg-chip gap-4 p-2 rounded-3xl overflow-y-auto">
                             {cartItems.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-20">
@@ -322,6 +325,26 @@ function CartPage() {
                                         variant.media?.[0]
                                             ?.media_url;
 
+                                    const originalPrice =
+                                        Number(
+                                            variant.price ?? 0
+                                        );
+
+                                    const discount =
+                                        Number(
+                                            variant.discount_percentage ??
+                                                0
+                                        );
+
+                                    const discountedPrice =
+                                        getDiscountedPrice(
+                                            variant
+                                        );
+
+                                    const itemTotal =
+                                        cartItem.quantity *
+                                        discountedPrice;
+
                                     return (
                                         <div
                                             key={variantId}
@@ -331,7 +354,6 @@ function CartPage() {
                                                     : "bg-card"
                                             }`}
                                         >
-                                            {/* CHECKBOX */}
                                             <div className="flex items-center">
                                                 <input
                                                     type="checkbox"
@@ -345,7 +367,6 @@ function CartPage() {
                                                 />
                                             </div>
 
-                                            {/* IMAGE */}
                                             <div className="aspect-square rounded-xl overflow-hidden h-full w-[120px] shrink-0 bg-chip">
                                                 {image ? (
                                                     <img
@@ -365,7 +386,6 @@ function CartPage() {
                                                 )}
                                             </div>
 
-                                            {/* PRODUCT INFO */}
                                             <div className="flex flex-col">
                                                 <h3 className="text-xl font-bold text-black">
                                                     {
@@ -417,7 +437,6 @@ function CartPage() {
                                                 </div>
                                             </div>
 
-                                            {/* PRICE + DELETE */}
                                             <div className="ml-auto flex flex-col justify-between gap-4 items-end">
                                                 <button
                                                     className="text-minimal-red font-bold hover:scale-[1.1] duration-300 ease-linear cursor-pointer"
@@ -443,15 +462,33 @@ function CartPage() {
                                                     </svg>
                                                 </button>
 
-                                                <p className="text-emerald font-bold text-xl">
-                                                    $
-                                                    {(
-                                                        cartItem.quantity *
-                                                        Number(
-                                                            cartItem.price
-                                                        )
-                                                    ).toFixed(2)}
-                                                </p>
+                                                <div className="flex flex-col items-end">
+                                                    {discount > 0 && (
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm text-muted line-through">
+                                                                $
+                                                                {(
+                                                                    originalPrice *
+                                                                    cartItem.quantity
+                                                                ).toFixed(
+                                                                    2
+                                                                )}
+                                                            </span>
+
+                                                            <span className="text-xs font-bold text-minimal-red">
+                                                                -
+                                                                {discount}%
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    <p className="text-emerald font-bold text-xl">
+                                                        $
+                                                        {itemTotal.toFixed(
+                                                            2
+                                                        )}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -460,21 +497,23 @@ function CartPage() {
                         </section>
                     </section>
 
-                    {/* SUMMARY */}
                     <section className="bg-chip p-2 h-fit md:w-[25vw] lg:w-[30vw] rounded-3xl">
                         <div className="bg-card p-4 flex gap-7 flex-col rounded-2xl">
                             <h3 className="text-xl font-bold">
                                 Cart Summary
                             </h3>
 
-                            <div className="flex flex-col">
+                            <div className="flex flex-col gap-2">
                                 <div className="flex justify-between">
                                     <p className="text-muted font-bold">
                                         Subtotal
                                     </p>
 
                                     <p className="font-bold">
-                                        $ {subtotalAmount.toFixed(2)}
+                                        ${" "}
+                                        {subtotalAmount.toFixed(
+                                            2
+                                        )}
                                     </p>
                                 </div>
 
@@ -484,7 +523,10 @@ function CartPage() {
                                     </p>
 
                                     <p className="font-bold">
-                                        $ {deliveryFee.toFixed(2)}
+                                        ${" "}
+                                        {deliveryFee.toFixed(
+                                            2
+                                        )}
                                     </p>
                                 </div>
                             </div>
@@ -495,7 +537,8 @@ function CartPage() {
                                 </p>
 
                                 <p className="text-lg font-bold">
-                                    $ {totalAmount.toFixed(2)}
+                                    ${" "}
+                                    {totalAmount.toFixed(2)}
                                 </p>
                             </div>
 

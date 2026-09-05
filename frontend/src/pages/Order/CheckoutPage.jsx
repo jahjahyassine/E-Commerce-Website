@@ -5,47 +5,57 @@ import getCurrentUser from "../../hooks/CurrentUser";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
+const ADDRESS_STORAGE_KEY = "checkout_shipping_details";
+
+function getStoredAddressInfo() {
+    try {
+        const raw = localStorage.getItem(ADDRESS_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch {
+        return {};
+    }
+}
 
 function CheckoutPage() {
+    const token = localStorage.getItem("access_token");
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
-    const token = localStorage.getItem("access_token")
-    const navigate = useNavigate()
-    const queryClient = useQueryClient()
-    const BASE_URL = import.meta.env.VITE_BASE_URL
+    const BASE_URL =
+        import.meta.env.VITE_BASE_URL || "http://localhost:8000";
 
     useEffect(() => {
-        const token = localStorage.getItem("access_token")
         if (!token) {
-            navigate("/login")
+            navigate("/login");
         }
-    }, [token, navigate])
-
+    }, [token, navigate]);
 
     const getCartItems = async () => {
-        const response = await fetch(
-            `${BASE_URL}/cart`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        )
+        const response = await fetch(`${BASE_URL}/cart`, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
 
-        const data = await response.json()
+        const data = await response.json();
 
-        if (!response.ok) throw new Error(data.detail || "Failed to Retrieve Cart")
-        return data
-    }
+        if (!response.ok) {
+            throw new Error(data.detail || "Failed to Retrieve Cart");
+        }
+
+        return data;
+    };
 
     const {
         data: cart,
-        isLoading: isLoadingCart
+        isLoading: isLoadingCart,
     } = useQuery({
         queryKey: ["cart"],
-        queryFn: getCartItems
-    })
+        queryFn: getCartItems,
+        enabled: !!token,
+    });
 
     const {
         data: currentUser,
@@ -54,92 +64,117 @@ function CheckoutPage() {
     } = useQuery({
         queryKey: ["user"],
         queryFn: getCurrentUser,
-        enabled: !!localStorage.getItem("access_token"),
+        enabled: !!token,
     });
 
-    if (isErrorUser) {
-        navigate("/login")
-    }
+    useEffect(() => {
+        if (isErrorUser) {
+            navigate("/login");
+        }
+    }, [isErrorUser, navigate]);
 
-    const [username, setUsername] = useState("")
-    const [fullName, setFullName] = useState("")
-    const [email, setEmail] = useState("")
-    const [phone, setPhone] = useState("")
-    const [address, setAddress] = useState("")
-    const [addressDefault, setAddressDefault] = useState(false)
-    const [city, setCity] = useState("")
-    const [cityDefault, setCityDefault] = useState(false)
-    const [region, setRegion] = useState("")
-    const [regionDefault, setRegionDefault] = useState(false)
-    const [postalCode, setPostalCode] = useState("")
-    const [postalCodeDefault, setPostalCodeDefault] = useState(false)
-    const [isEditing, setIsEditing] = useState(false)
+    const [username, setUsername] = useState("");
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
+    const [address, setAddress] = useState("");
+    const [addressDefault, setAddressDefault] = useState(false);
+    const [city, setCity] = useState("");
+    const [cityDefault, setCityDefault] = useState(false);
+    const [region, setRegion] = useState("");
+    const [regionDefault, setRegionDefault] = useState(false);
+    const [postalCode, setPostalCode] = useState("");
+    const [postalCodeDefault, setPostalCodeDefault] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
+    const infoSet =
+        fullName !== "" &&
+        phone !== "" &&
+        address !== "" &&
+        city !== "" &&
+        region !== "";
 
-    const infoSet = fullName !== "" && phone !== "" && address !== "" && city !== "" && region !== ""
+    // --- price/discount helpers (mirrors the live pricing logic used by /orders) -
+    const getVariantPrice = (item) =>
+        Number(item.product_variant?.price ?? item.price ?? 0);
 
+    const getVariantDiscount = (item) =>
+        Math.min(
+            Math.max(Number(item.product_variant?.discount_percentage ?? 0), 0),
+            100
+        );
 
+    const getItemDiscountedPrice = (item) => {
+        const price = getVariantPrice(item);
+        const discount = getVariantDiscount(item);
+        return price * (1 - discount / 100);
+    };
 
-    const subtotalAmount = cart?.items?.reduce(
-        (total, item) => total + item.quantity * item.price,
-        0
-    ) ?? 0;
+    const originalSubtotalAmount =
+        cart?.items?.reduce((total, item) => {
+            return total + item.quantity * getVariantPrice(item);
+        }, 0) ?? 0;
+
+    const subtotalAmount =
+        cart?.items?.reduce((total, item) => {
+            return total + item.quantity * getItemDiscountedPrice(item);
+        }, 0) ?? 0;
+
+    const discountAmount = originalSubtotalAmount - subtotalAmount;
 
     const deliveryFee = subtotalAmount > 0 ? 10 : 0;
-
     const totalAmount = subtotalAmount + deliveryFee;
 
-
     const updateUserInfosFunction = async (new_infos) => {
-        const response = await fetch(
-            `${BASE_URL}/profile`,
-            {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(new_infos)
-            }
-        )
+        const response = await fetch(`${BASE_URL}/profile`, {
+            method: "PATCH",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(new_infos),
+        });
 
-        const data = await response.json()
+        const data = await response.json();
 
-        if (!response.ok) throw new Error(data.detail || "Failed to update Infos")
+        if (!response.ok) {
+            throw new Error(data.detail || "Failed to update Infos");
+        }
 
-        return data
-    }
+        return data;
+    };
 
     const {
         mutate: updateUserInfos,
-        error: errorPatch
+        error: errorPatch,
     } = useMutation({
         mutationFn: updateUserInfosFunction,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["user"]
-            })
-        }
-    })
+                queryKey: ["user"],
+            });
+        },
+    });
 
-
-
+    // --- load account info + address (localStorage takes priority over backend) -
     useEffect(() => {
         if (currentUser) {
+            const stored = getStoredAddressInfo();
+
             setUsername(currentUser.username || "");
             setFullName(currentUser.full_name || "");
             setEmail(currentUser.email || "");
             setPhone(currentUser.phone || "");
-            setAddress(currentUser.address || "");
-            setCity(currentUser.city || "")
-            setRegion(currentUser.region || "")
-            setPostalCode(currentUser.postal_code || "")
-        }
-    }, [currentUser])
 
+            setAddress(stored.address ?? currentUser.address ?? "");
+            setCity(stored.city ?? currentUser.city ?? "");
+            setRegion(stored.region ?? currentUser.region ?? "");
+            setPostalCode(stored.postal_code ?? currentUser.postal_code ?? "");
+        }
+    }, [currentUser]);
 
     const handleForm = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
 
         const changedFields = {};
 
@@ -171,51 +206,87 @@ function CheckoutPage() {
             changedFields.region = region;
         }
 
-        if (postalCode !== currentUser.postal_code && postalCodeDefault) {
+        if (
+            postalCode !== currentUser.postal_code &&
+            postalCodeDefault
+        ) {
             changedFields.postal_code = postalCode;
         }
 
+        // Persist whichever address fields are NOT marked "default" to
+        // localStorage, and drop any that are now backend defaults.
+        const storedUpdate = { ...getStoredAddressInfo() };
+
+        if (addressDefault) {
+            delete storedUpdate.address;
+        } else {
+            storedUpdate.address = address;
+        }
+
+        if (cityDefault) {
+            delete storedUpdate.city;
+        } else {
+            storedUpdate.city = city;
+        }
+
+        if (regionDefault) {
+            delete storedUpdate.region;
+        } else {
+            storedUpdate.region = region;
+        }
+
+        if (postalCodeDefault) {
+            delete storedUpdate.postal_code;
+        } else {
+            storedUpdate.postal_code = postalCode;
+        }
+
+        localStorage.setItem(
+            ADDRESS_STORAGE_KEY,
+            JSON.stringify(storedUpdate)
+        );
+
         if (Object.keys(changedFields).length === 0) {
+            setIsEditing(false);
             return;
         }
 
         updateUserInfos(changedFields);
-        setIsEditing(false)
+        setIsEditing(false);
     };
 
-
     const handleCancel = () => {
+        const stored = getStoredAddressInfo();
+
         setUsername(currentUser.username || "");
         setFullName(currentUser.full_name || "");
         setEmail(currentUser.email || "");
         setPhone(currentUser.phone || "");
-        setAddress(currentUser.address || "");
-        setCity(currentUser.city || "")
-        setRegion(currentUser.region || "")
-        setPostalCode(currentUser.postal_code || "")
-
+        setAddress(stored.address ?? currentUser.address ?? "");
+        setCity(stored.city ?? currentUser.city ?? "");
+        setRegion(stored.region ?? currentUser.region ?? "");
+        setPostalCode(stored.postal_code ?? currentUser.postal_code ?? "");
         setIsEditing(false);
     };
 
     const createOrder = async (orderData) => {
-        const response = await fetch(
-            `${BASE_URL}/orders`,
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(orderData)
-            }
-        )
+        const response = await fetch(`${BASE_URL}/orders`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(orderData),
+        });
 
-        const data = await response.json()
+        const data = await response.json();
 
-        if (!response.ok) throw new Error(data.detail || "Failed to Place Order")
+        if (!response.ok) {
+            throw new Error(data.detail || "Failed to Place Order");
+        }
 
-        return data
-    }
+        return data;
+    };
 
     const {
         mutate: placeOrder,
@@ -223,7 +294,6 @@ function CheckoutPage() {
         error: orderError,
     } = useMutation({
         mutationFn: createOrder,
-
         onSuccess: (order) => {
             queryClient.invalidateQueries({
                 queryKey: ["cart"],
@@ -233,7 +303,6 @@ function CheckoutPage() {
         },
     });
 
-
     const handleOrder = () => {
         placeOrder({
             full_name: fullName,
@@ -241,10 +310,43 @@ function CheckoutPage() {
             address: address,
             city: city,
             region: region,
-            postal_code: postalCode
+            postal_code: postalCode,
         });
     };
 
+    if (isLoadingCart || isLoadingUser) {
+        return (
+            <main className="relative min-h-screen">
+                <header className="fixed top-0 left-0 w-full z-50">
+                    <Navbar />
+                </header>
+
+                <div
+                    className="fixed inset-0 w-full h-full z-0 pointer-events-none"
+                    aria-hidden="true"
+                >
+                    <DotField
+                        dotRadius={1.2}
+                        dotSpacing={18}
+                        bulgeStrength={40}
+                        glowRadius={140}
+                        sparkle={false}
+                        waveAmplitude={0}
+                        cursorRadius={420}
+                        cursorForce={0.08}
+                        bulgeOnly
+                        gradientFrom="#6e6e7380"
+                        gradientTo="#d2d2d760"
+                        glowColor="#1d1d1f20"
+                    />
+                </div>
+
+                <section className="relative z-10 min-h-screen flex items-center justify-center pt-20">
+                    <p className="text-xl font-bold">Loading...</p>
+                </section>
+            </main>
+        );
+    }
 
     return (
         <main className="relative min-h-screen">
@@ -272,8 +374,7 @@ function CheckoutPage() {
                 />
             </div>
 
-            <section className="relative z-10 pt-20 px-6 flex-col max-h-screen gap-10">
-
+            <section className="relative z-10 pt-20 px-6 flex flex-col max-h-screen gap-10">
                 <section className="w-full flex flex-col items-center">
                     <h2 className="text-4xl font-bold tracking-wider mb-5">
                         Checkout Details
@@ -287,7 +388,7 @@ function CheckoutPage() {
                             Shopping Cart
                         </div>
 
-                        <div className="flex items-center gap-2 border-b border-foreground pb-4 md:w-[25vw] lg:w-[15vw]  cursor-pointer">
+                        <div className="flex items-center gap-2 border-b border-foreground pb-4 md:w-[25vw] lg:w-[15vw] cursor-pointer">
                             <p className="bg-background-dark text-inverse px-4 rounded-xl py-1">
                                 2
                             </p>
@@ -304,29 +405,21 @@ function CheckoutPage() {
                 </section>
 
                 <section className="flex gap-5">
-
                     <section className="h-full flex flex-col gap-2 flex-1 bg-chip rounded-3xl p-3">
-
                         <section className="m-auto border-b border-border w-1/2">
                             <h3 className="text-xl text-center font-bold tracking-wide pb-2">
                                 Delivery Information
                             </h3>
                         </section>
 
-                        <section className="w-full h-full flex flex-col gap-4 ">
-
+                        <section className="w-full h-full flex flex-col gap-4">
                             <form
                                 onSubmit={handleForm}
-                                className="
-                                    mt-12
-                                    flex flex-col gap-4
-                                "
+                                className="mt-12 flex flex-col gap-4"
                             >
-
-                                <div
-                                    className="flex flex-col"
-                                >
-                                    <label htmlFor="fullName"
+                                <div className="flex flex-col">
+                                    <label
+                                        htmlFor="fullName"
                                         className="text-sm font-bold text-muted px-1"
                                     >
                                         Full Name
@@ -339,21 +432,16 @@ function CheckoutPage() {
                                         required
                                         value={fullName}
                                         disabled={!isEditing}
-                                        onChange={(e) => setFullName(e.target.value)}
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold  px-2 py-1
-                                        focus:outline-0
-                                        hover:border-border
-                                        transition-all
-                                        duration-300 ease-in-out
-                                        placeholder:text-base
-                                        "
+                                        onChange={(e) =>
+                                            setFullName(e.target.value)
+                                        }
+                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
                                     />
                                 </div>
 
-                                <div
-                                    className="flex flex-col"
-                                >
-                                    <label htmlFor="phone"
+                                <div className="flex flex-col">
+                                    <label
+                                        htmlFor="phone"
                                         className="text-sm font-bold text-muted px-1"
                                     >
                                         Phone
@@ -366,22 +454,16 @@ function CheckoutPage() {
                                         placeholder="Enter your Phone number"
                                         value={phone}
                                         disabled={!isEditing}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold  px-2 py-1
-                                        focus:outline-0
-                                        hover:border-border
-                                        transition-all
-                                        duration-300 ease-in-out
-                                        placeholder:text-base
-                                        "
+                                        onChange={(e) =>
+                                            setPhone(e.target.value)
+                                        }
+                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
                                     />
                                 </div>
 
-
-                                <div
-                                    className="flex flex-col"
-                                >
-                                    <label htmlFor="address"
+                                <div className="flex flex-col">
+                                    <label
+                                        htmlFor="address"
                                         className="text-sm font-bold text-muted px-1"
                                     >
                                         Shipping Address
@@ -394,14 +476,10 @@ function CheckoutPage() {
                                         placeholder="Enter your Shipping Address"
                                         value={address}
                                         disabled={!isEditing}
-                                        onChange={(e) => setAddress(e.target.value)}
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold  px-2 py-1
-                                        focus:outline-0
-                                        hover:border-border
-                                        transition-all
-                                        duration-300 ease-in-out
-                                        placeholder:text-base
-                                        "
+                                        onChange={(e) =>
+                                            setAddress(e.target.value)
+                                        }
+                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
                                     />
 
                                     <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
@@ -410,15 +488,12 @@ function CheckoutPage() {
                                             type="checkbox"
                                             disabled={!isEditing}
                                             checked={addressDefault}
-                                            onChange={(e) => setAddressDefault(e.target.checked)}
-                                            className="
-                                                    w-4
-                                                    h-4
-                                                    rounded
-                                                    border-border-soft
-                                                    accent-primary
-                                                    cursor-pointer
-                                                "
+                                            onChange={(e) =>
+                                                setAddressDefault(
+                                                    e.target.checked
+                                                )
+                                            }
+                                            className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
                                         />
 
                                         <label
@@ -430,11 +505,9 @@ function CheckoutPage() {
                                     </div>
                                 </div>
 
-
-                                <div
-                                    className="flex flex-col"
-                                >
-                                    <label htmlFor="city"
+                                <div className="flex flex-col">
+                                    <label
+                                        htmlFor="city"
                                         className="text-sm font-bold text-muted px-1"
                                     >
                                         City
@@ -447,14 +520,10 @@ function CheckoutPage() {
                                         placeholder="Enter Shipping City"
                                         value={city}
                                         disabled={!isEditing}
-                                        onChange={(e) => setCity(e.target.value)}
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold  px-2 py-1
-                                        focus:outline-0
-                                        hover:border-border
-                                        transition-all
-                                        duration-300 ease-in-out
-                                        placeholder:text-base
-                                        "
+                                        onChange={(e) =>
+                                            setCity(e.target.value)
+                                        }
+                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
                                     />
 
                                     <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
@@ -463,15 +532,12 @@ function CheckoutPage() {
                                             type="checkbox"
                                             disabled={!isEditing}
                                             checked={cityDefault}
-                                            onChange={(e) => setCityDefault(e.target.checked)}
-                                            className="
-                                                    w-4
-                                                    h-4
-                                                    rounded
-                                                    border-border-soft
-                                                    accent-primary
-                                                    cursor-pointer
-                                                "
+                                            onChange={(e) =>
+                                                setCityDefault(
+                                                    e.target.checked
+                                                )
+                                            }
+                                            className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
                                         />
 
                                         <label
@@ -483,11 +549,9 @@ function CheckoutPage() {
                                     </div>
                                 </div>
 
-
-                                <div
-                                    className="flex flex-col"
-                                >
-                                    <label htmlFor="region"
+                                <div className="flex flex-col">
+                                    <label
+                                        htmlFor="region"
                                         className="text-sm font-bold text-muted px-1"
                                     >
                                         Region
@@ -500,14 +564,10 @@ function CheckoutPage() {
                                         placeholder="Enter Shipping Region"
                                         value={region}
                                         disabled={!isEditing}
-                                        onChange={(e) => setRegion(e.target.value)}
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold  px-2 py-1
-                                        focus:outline-0
-                                        hover:border-border
-                                        transition-all
-                                        duration-300 ease-in-out
-                                        placeholder:text-base
-                                        "
+                                        onChange={(e) =>
+                                            setRegion(e.target.value)
+                                        }
+                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
                                     />
 
                                     <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
@@ -516,15 +576,12 @@ function CheckoutPage() {
                                             type="checkbox"
                                             disabled={!isEditing}
                                             checked={regionDefault}
-                                            onChange={(e) => setRegionDefault(e.target.checked)}
-                                            className="
-                                                    w-4
-                                                    h-4
-                                                    rounded
-                                                    border-border-soft
-                                                    accent-primary
-                                                    cursor-pointer
-                                                "
+                                            onChange={(e) =>
+                                                setRegionDefault(
+                                                    e.target.checked
+                                                )
+                                            }
+                                            className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
                                         />
 
                                         <label
@@ -536,11 +593,9 @@ function CheckoutPage() {
                                     </div>
                                 </div>
 
-
-                                <div
-                                    className="flex flex-col"
-                                >
-                                    <label htmlFor="postalCode"
+                                <div className="flex flex-col">
+                                    <label
+                                        htmlFor="postalCode"
                                         className="text-sm font-bold text-muted px-1"
                                     >
                                         Postal Code
@@ -553,14 +608,10 @@ function CheckoutPage() {
                                         placeholder="Enter Postal Code"
                                         value={postalCode}
                                         disabled={!isEditing}
-                                        onChange={(e) => setPostalCode(e.target.value)}
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold  px-2 py-1
-                                        focus:outline-0
-                                        hover:border-border
-                                        transition-all
-                                        duration-300 ease-in-out
-                                        placeholder:text-base
-                                        "
+                                        onChange={(e) =>
+                                            setPostalCode(e.target.value)
+                                        }
+                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
                                     />
 
                                     <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
@@ -569,15 +620,12 @@ function CheckoutPage() {
                                             type="checkbox"
                                             disabled={!isEditing}
                                             checked={postalCodeDefault}
-                                            onChange={(e) => setPostalCodeDefault(e.target.checked)}
-                                            className="
-                                                    w-4
-                                                    h-4
-                                                    rounded
-                                                    border-border-soft
-                                                    accent-primary
-                                                    cursor-pointer
-                                                "
+                                            onChange={(e) =>
+                                                setPostalCodeDefault(
+                                                    e.target.checked
+                                                )
+                                            }
+                                            className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
                                         />
 
                                         <label
@@ -589,21 +637,12 @@ function CheckoutPage() {
                                     </div>
                                 </div>
 
-
                                 <div className="flex flex-col gap-3">
                                     <p className="text-sm font-bold text-muted px-1">
                                         Payment Method
                                     </p>
 
-                                    <div
-                                        className="
-                                            flex items-center justify-between
-                                            p-3
-                                            rounded-xl
-                                            border border-border-soft
-                                            bg-card
-                                        "
-                                    >
+                                    <div className="flex items-center justify-between p-3 rounded-xl border border-border-soft bg-card">
                                         <div className="flex items-center gap-3">
                                             <div className="w-9 h-9 rounded-lg bg-chip flex items-center justify-center">
                                                 <svg
@@ -635,31 +674,12 @@ function CheckoutPage() {
                                     </div>
                                 </div>
 
-
-
-
-
                                 <div className="flex justify-end items-center gap-2">
                                     {isEditing && (
                                         <button
                                             type="button"
                                             onClick={handleCancel}
-                                            className="
-                                                    px-5
-                                                    py-2
-                                                    rounded-xl
-                                                    bg-card
-                                                    text-muted
-                                                    border
-                                                    border-border-soft
-                                                    hover:bg-chip
-                                                    duration-300
-                                                    ease-in-out
-                                                    cursor-pointer
-                                                    shadow-inner
-                                                    text-lg
-                                                    font-bold
-                                                "
+                                            className="px-5 py-2 rounded-xl bg-card text-muted border border-border-soft hover:bg-chip duration-300 ease-in-out cursor-pointer shadow-inner text-lg font-bold"
                                         >
                                             Cancel
                                         </button>
@@ -667,33 +687,19 @@ function CheckoutPage() {
 
                                     <button
                                         type={isEditing ? "submit" : "button"}
-                                        onClick={!isEditing ? () => setIsEditing(true) : undefined}
-                                        className="
-                                                px-12
-                                                py-2
-                                                rounded-xl
-                                                bg-primary
-                                                hover:bg-primary-hover
-                                                duration-300
-                                                ease-in-out
-                                                cursor-pointer
-                                                shadow-inner
-                                                text-inverse
-                                                text-lg
-                                                font-bold
-                                            "
+                                        onClick={
+                                            !isEditing
+                                                ? () => setIsEditing(true)
+                                                : undefined
+                                        }
+                                        className="px-12 py-2 rounded-xl bg-primary hover:bg-primary-hover duration-300 ease-in-out cursor-pointer shadow-inner text-inverse text-lg font-bold"
                                     >
                                         {isEditing ? "Save" : "Edit"}
                                     </button>
                                 </div>
                             </form>
-
-
                         </section>
-
                     </section>
-
-
 
                     <section className="bg-chip p-2 h-fit md:w-[25vw] lg:w-[30vw] rounded-3xl">
                         <div className="bg-card p-4 flex gap-7 flex-col rounded-2xl">
@@ -706,15 +712,29 @@ function CheckoutPage() {
                                     <p className="text-muted font-bold">
                                         Subtotal
                                     </p>
+
                                     <p className="font-bold">
-                                        ${subtotalAmount.toFixed(2)}
+                                        ${originalSubtotalAmount.toFixed(2)}
                                     </p>
                                 </div>
 
-                                <div className="flex justify-between ">
+                                {discountAmount > 0 && (
+                                    <div className="flex justify-between">
+                                        <p className="text-muted font-bold">
+                                            Discount
+                                        </p>
+
+                                        <p className="font-bold text-red-500">
+                                            -${discountAmount.toFixed(2)}
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="flex justify-between">
                                     <p className="text-muted font-bold">
                                         Delivery Fee
                                     </p>
+
                                     <p className="font-bold">
                                         ${deliveryFee.toFixed(2)}
                                     </p>
@@ -729,20 +749,47 @@ function CheckoutPage() {
                                 <p className="text-lg font-bold">
                                     ${totalAmount.toFixed(2)}
                                 </p>
-
-
-
                             </div>
 
-                            <button className="flex bg-primary text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-primary-hover duration-300 ease-in-out cursor-pointer"
-                                disabled={!infoSet || isPlacingOrder}
+                            {orderError && (
+                                <p className="text-sm text-red-500 font-semibold">
+                                    {orderError.message}
+                                </p>
+                            )}
+
+                            {errorPatch && (
+                                <p className="text-sm text-red-500 font-semibold">
+                                    {errorPatch.message}
+                                </p>
+                            )}
+
+                            <button
+                                className="flex bg-primary text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-primary-hover duration-300 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={
+                                    !infoSet ||
+                                    isPlacingOrder ||
+                                    !cart?.items?.length
+                                }
                                 onClick={handleOrder}
                             >
                                 <p>
-                                    {isPlacingOrder ? "Placing Order..." : "Place Order"}
+                                    {isPlacingOrder
+                                        ? "Placing Order..."
+                                        : "Place Order"}
                                 </p>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-right" viewBox="0 0 16 16">
-                                    <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8" />
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    fill="currentColor"
+                                    className="bi bi-arrow-right"
+                                    viewBox="0 0 16 16"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"
+                                    />
                                 </svg>
                             </button>
                         </div>
@@ -750,7 +797,7 @@ function CheckoutPage() {
                 </section>
             </section>
         </main>
-    )
+    );
 }
 
 export default CheckoutPage;

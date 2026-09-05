@@ -80,7 +80,7 @@ def get_orders_history(
 def create_order(
     db: Annotated[Session, Depends(get_db)],
     order: OrderCreate,
-    user_infos: Annotated[dict, Depends(decode_access_token)]
+    user_infos: Annotated[dict, Depends(decode_access_token)],
 ):
     user_id = user_infos["id"]
 
@@ -93,14 +93,14 @@ def create_order(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            detail="User not found",
         )
 
     cart = (
         db.query(Cart)
         .filter(
             Cart.id == user.cart.id,
-            Cart.user_id == user_id
+            Cart.user_id == user_id,
         )
         .first()
     )
@@ -108,20 +108,19 @@ def create_order(
     if not cart:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cart not found"
+            detail="Cart not found",
         )
 
     if not cart.items:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cart is empty"
+            detail="Cart is empty",
         )
 
     try:
         subtotal = 0
 
         for item in cart.items:
-
             product_variant = (
                 db.query(ProductVariant)
                 .filter(ProductVariant.id == item.product_variant_id)
@@ -131,28 +130,35 @@ def create_order(
             if not product_variant:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Product variant not found"
+                    detail="Product variant not found",
                 )
 
             if not product_variant.is_active:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Product variant is not available"
+                    detail="Product variant is not available",
                 )
 
             if not product_variant.inventory:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Product is out of stock"
+                    detail="Product is out of stock",
                 )
 
             if product_variant.inventory.quantity < item.quantity:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Insufficient stock"
+                    detail="Insufficient stock",
                 )
 
-            subtotal += product_variant.price * item.quantity
+            price = float(product_variant.price or 0)
+            discount = float(product_variant.discount_percentage or 0)
+
+            discount = max(0, min(discount, 100))
+
+            discounted_price = price * (1 - discount / 100)
+
+            subtotal += discounted_price * item.quantity
 
         delivery_fee = 10 if subtotal > 0 else 0
         total_amount = subtotal + delivery_fee
@@ -165,19 +171,25 @@ def create_order(
             shipping_city=order.city,
             shipping_region=order.region,
             shipping_postal_code=order.postal_code,
-            total_amount=total_amount
+            total_amount=total_amount,
         )
 
         db.add(new_order)
         db.flush()
 
         for item in cart.items:
-
             product_variant = (
                 db.query(ProductVariant)
                 .filter(ProductVariant.id == item.product_variant_id)
                 .first()
             )
+
+            price = float(product_variant.price or 0)
+            discount = float(product_variant.discount_percentage or 0)
+
+            discount = max(0, min(discount, 100))
+
+            discounted_price = price * (1 - discount / 100)
 
             product_variant.inventory.quantity -= item.quantity
 
@@ -187,14 +199,14 @@ def create_order(
                 product_name=product_variant.product.name,
                 variant_attributes_snapshot=product_variant.attributes,
                 quantity=item.quantity,
-                price=product_variant.price
+                price=discounted_price,
             )
 
             new_stock_change = StockChange(
                 product_variant_id=product_variant.id,
                 change_type=StockChangeType.OUT,
                 quantity=item.quantity,
-                order_id=new_order.id
+                order_id=new_order.id,
             )
 
             db.add(new_order_item)
@@ -208,14 +220,16 @@ def create_order(
         try:
             send_confirmation_email(
                 customer_email=user.email,
-                order=new_order
+                order=new_order,
             )
         except ResendError as error:
             print(error)
-            raise HTTPException (
+
+            raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to send confirmation email: {error}"
+                detail=f"Failed to send confirmation email: {error}",
             )
+
         return new_order
 
     except HTTPException:
@@ -228,9 +242,8 @@ def create_order(
 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Couldn't place order"
+            detail="Couldn't place order",
         )
-    
 
 
 

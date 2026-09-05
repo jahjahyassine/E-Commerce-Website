@@ -153,7 +153,15 @@ function OrderShow() {
 
     const orderItems = order?.items ?? [];
 
-    
+    // Same caveat as OrdersHistory: OrderItem.price is the final
+    // (already-discounted) price paid. There's no stored "original price at
+    // time of purchase," so this compares against the variant's *current*
+    // price to surface a discount.
+    const getOriginalItemPrice = (item) =>
+        Number(item.product_variant?.price ?? item.price ?? 0);
+
+    const getPaidItemPrice = (item) => Number(item.price ?? 0);
+
     const cancelOrderFunction = async () => {
         const response = await fetch(
             `${BASE_URL}/orders/${id}/cancel`,
@@ -514,6 +522,15 @@ function OrderShow() {
                                     const variantId =
                                         variant?.id;
 
+                                    const originalItemPrice =
+                                        getOriginalItemPrice(orderItem);
+
+                                    const paidItemPrice =
+                                        getPaidItemPrice(orderItem);
+
+                                    const hasDiscount =
+                                        originalItemPrice > paidItemPrice;
+
                                     return (
                                         <div
                                             key={variantId}
@@ -660,15 +677,25 @@ function OrderShow() {
                                                     items-end
                                                 "
                                             >
-                                                <p className="text-success font-bold text-xl">
-                                                    $
-                                                    {(
-                                                        orderItem.quantity *
-                                                        Number(
-                                                            orderItem.price
-                                                        )
-                                                    ).toFixed(2)}
-                                                </p>
+                                                <div className="flex flex-col items-end gap-0.5">
+                                                    {hasDiscount && (
+                                                        <p className="text-xs text-muted line-through">
+                                                            $
+                                                            {(
+                                                                originalItemPrice *
+                                                                orderItem.quantity
+                                                            ).toFixed(2)}
+                                                        </p>
+                                                    )}
+
+                                                    <p className="text-success font-bold text-xl">
+                                                        $
+                                                        {(
+                                                            paidItemPrice *
+                                                            orderItem.quantity
+                                                        ).toFixed(2)}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     );

@@ -250,7 +250,7 @@ function ProductPage() {
 
             throw new Error(
                 error.detail ||
-                    "Failed to add item to cart"
+                "Failed to add item to cart"
             );
         }
 
@@ -348,7 +348,7 @@ function ProductPage() {
                 return otherAttributes.every(
                     ([otherKey, otherValue]) =>
                         variant.attributes?.[
-                            otherKey
+                        otherKey
                         ] === otherValue
                 );
             }
@@ -399,6 +399,17 @@ function ProductPage() {
 
     const fullStars = Math.floor(averageRating);
 
+    const originalPrice = Number(selectedVariant?.price ?? 0);
+
+    const discountPercentage = Number(
+        selectedVariant?.discount_percentage ?? 0
+    );
+
+    const discountedPrice =
+        discountPercentage > 0
+            ? originalPrice * (1 - discountPercentage / 100)
+            : originalPrice;
+
     /* =========================================================
        REVIEW STATUS
     ========================================================= */
@@ -436,7 +447,7 @@ function ProductPage() {
         if (!response.ok) {
             throw new Error(
                 data.detail ||
-                    "Failed to create review"
+                "Failed to create review"
             );
         }
 
@@ -481,7 +492,7 @@ function ProductPage() {
         onError: (error) => {
             window.alert(
                 error?.message ||
-                    "Something went wrong while submitting your review."
+                "Something went wrong while submitting your review."
             );
         },
     });
@@ -512,7 +523,7 @@ function ProductPage() {
         if (!response.ok) {
             throw new Error(
                 data.detail ||
-                    "Failed to update review"
+                "Failed to update review"
             );
         }
 
@@ -558,7 +569,7 @@ function ProductPage() {
         onError: (error) => {
             window.alert(
                 error?.message ||
-                    "Failed to update review."
+                "Failed to update review."
             );
         },
     });
@@ -587,7 +598,7 @@ function ProductPage() {
         if (!response.ok) {
             throw new Error(
                 data.detail ||
-                    "Failed to delete review"
+                "Failed to delete review"
             );
         }
 
@@ -633,7 +644,7 @@ function ProductPage() {
         onError: (error) => {
             window.alert(
                 error?.message ||
-                    "Failed to delete review."
+                "Failed to delete review."
             );
         },
     });
@@ -783,11 +794,10 @@ function ProductPage() {
                             cursor-pointer
                             hover:text-foreground
                             duration-300
-                            ${
-                                currentCategory ===
+                            ${currentCategory ===
                                 "laptops"
-                                    ? "text-foreground"
-                                    : "text-muted"
+                                ? "text-foreground"
+                                : "text-muted"
                             }
                         `}
                     >
@@ -804,11 +814,10 @@ function ProductPage() {
                             cursor-pointer
                             hover:text-foreground
                             duration-300
-                            ${
-                                currentCategory ===
+                            ${currentCategory ===
                                 "smartphones"
-                                    ? "text-foreground"
-                                    : "text-muted"
+                                ? "text-foreground"
+                                : "text-muted"
                             }
                         `}
                     >
@@ -825,11 +834,10 @@ function ProductPage() {
                             cursor-pointer
                             hover:text-foreground
                             duration-300
-                            ${
-                                currentCategory ===
+                            ${currentCategory ===
                                 "gaming"
-                                    ? "text-foreground"
-                                    : "text-muted"
+                                ? "text-foreground"
+                                : "text-muted"
                             }
                         `}
                     >
@@ -846,11 +854,10 @@ function ProductPage() {
                             cursor-pointer
                             hover:text-foreground
                             duration-300
-                            ${
-                                currentCategory ===
+                            ${currentCategory ===
                                 "audio"
-                                    ? "text-foreground"
-                                    : "text-muted"
+                                ? "text-foreground"
+                                : "text-muted"
                             }
                         `}
                     >
@@ -867,11 +874,10 @@ function ProductPage() {
                             cursor-pointer
                             hover:text-foreground
                             duration-300
-                            ${
-                                currentCategory ===
+                            ${currentCategory ===
                                 "accessories"
-                                    ? "text-foreground"
-                                    : "text-muted"
+                                ? "text-foreground"
+                                : "text-muted"
                             }
                         `}
                     >
@@ -888,11 +894,10 @@ function ProductPage() {
                             cursor-pointer
                             hover:text-foreground
                             duration-300
-                            ${
-                                currentCategory ===
+                            ${currentCategory ===
                                 "components"
-                                    ? "text-foreground"
-                                    : "text-muted"
+                                ? "text-foreground"
+                                : "text-muted"
                             }
                         `}
                     >
@@ -925,10 +930,9 @@ function ProductPage() {
                                                 src={
                                                     image.media_url
                                                 }
-                                                alt={`${product?.name} image ${
-                                                    index +
+                                                alt={`${product?.name} image ${index +
                                                     1
-                                                }`}
+                                                    }`}
                                                 className="w-full h-full object-cover"
                                             />
 
@@ -1003,22 +1007,33 @@ function ProductPage() {
 
                         {/* PRICE */}
 
-                        <div className="mt-5 flex items-end gap-3">
-                            <p className="text-emerald text-4xl font-bold">
-                                {selectedVariant?.price !=
-                                null
-                                    ? `$${selectedVariant.price}`
-                                    : "Price unavailable"}
-                            </p>
+                        <div className="mt-5 flex items-end gap-4">
+                            <div className="flex items-end gap-3">
+                                <p className="text-emerald text-4xl font-bold">
+                                    {selectedVariant?.price != null
+                                        ? `$${discountedPrice.toFixed(2)}`
+                                        : "Price unavailable"}
+                                </p>
 
-                            <div className="text-muted text-md font-bold">
+                                {discountPercentage > 0 && (
+                                    <>
+                                        <p className="text-muted text-xl font-semibold line-through mb-1">
+                                            ${originalPrice.toFixed(2)}
+                                        </p>
+
+                                        <span className="bg-minimal-red/10 text-minimal-red px-2 py-1 rounded-lg text-sm font-bold mb-1">
+                                            -{discountPercentage}%
+                                        </span>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="text-muted text-md font-bold mb-1">
                                 {!selectedVariant ? (
                                     <span className="text-minimal-red">
-                                        Combination
-                                        unavailable
+                                        Combination unavailable
                                     </span>
-                                ) : isInStock &&
-                                  isActive ? (
+                                ) : isInStock && isActive ? (
                                     <span>
                                         Available
                                     </span>
@@ -1071,7 +1086,7 @@ function ProductPage() {
 
                                                     const selected =
                                                         selectedAttributes[
-                                                            key
+                                                        key
                                                         ] ===
                                                         value;
 
@@ -1097,15 +1112,13 @@ function ProductPage() {
                                                                 border-border
                                                                 transition
                                                                 duration-200
-                                                                ${
-                                                                    selected
-                                                                        ? "bg-primary text-inverse"
-                                                                        : "bg-card/20 hover:bg-foreground/10"
+                                                                ${selected
+                                                                    ? "bg-primary text-inverse"
+                                                                    : "bg-card/20 hover:bg-foreground/10"
                                                                 }
-                                                                ${
-                                                                    !available
-                                                                        ? "opacity-30 cursor-not-allowed line-through"
-                                                                        : "cursor-pointer"
+                                                                ${!available
+                                                                    ? "opacity-30 cursor-not-allowed line-through"
+                                                                    : "cursor-pointer"
                                                                 }
                                                             `}
                                                         >
@@ -1179,7 +1192,7 @@ function ProductPage() {
                                         type="button"
                                         disabled={
                                             quantity <=
-                                                1 ||
+                                            1 ||
                                             !selectedVariant?.is_active ||
                                             !isInStock
                                         }
@@ -1191,7 +1204,7 @@ function ProductPage() {
                                                     Math.max(
                                                         1,
                                                         prev -
-                                                            1
+                                                        1
                                                     )
                                             )
                                         }
@@ -1275,9 +1288,9 @@ function ProductPage() {
                                             !isInStock ||
                                             (
                                                 stockQuantity !==
-                                                    null &&
+                                                null &&
                                                 quantity >=
-                                                    stockQuantity
+                                                stockQuantity
                                             )
                                         }
                                         onClick={() =>
@@ -1286,14 +1299,14 @@ function ProductPage() {
                                                     prev
                                                 ) =>
                                                     stockQuantity !==
-                                                    null
+                                                        null
                                                         ? Math.min(
-                                                              prev +
-                                                                  1,
-                                                              stockQuantity
-                                                          )
+                                                            prev +
+                                                            1,
+                                                            stockQuantity
+                                                        )
                                                         : prev +
-                                                          1
+                                                        1
                                             )
                                         }
                                         className="
@@ -1312,14 +1325,8 @@ function ProductPage() {
                             </div>
 
                             <p className="text-2xl text-emerald font-bold">
-                                {selectedVariant?.price !=
-                                null
-                                    ? `$${(
-                                          selectedVariant.price *
-                                          quantity
-                                      ).toFixed(
-                                          2
-                                      )}`
+                                {selectedVariant?.price != null
+                                    ? `$${(discountedPrice * quantity).toFixed(2)}`
                                     : "—"}
                             </p>
                         </div>
@@ -1400,7 +1407,7 @@ function ProductPage() {
                         <div className="border border-border rounded-3xl overflow-hidden bg-card/50 backdrop-blur-xl">
                             {Object.entries(
                                 product?.specifications ??
-                                    {}
+                                {}
                             ).map(
                                 (
                                     [
@@ -1417,12 +1424,11 @@ function ProductPage() {
                                         className={`
                                             flex items-center justify-between
                                             px-6 py-5
-                                            ${
-                                                index !==
+                                            ${index !==
                                                 array.length -
-                                                    1
-                                                    ? "border-b border-border"
-                                                    : ""
+                                                1
+                                                ? "border-b border-border"
+                                                : ""
                                             }
                                         `}
                                     >
@@ -1496,7 +1502,7 @@ function ProductPage() {
                                                     }
                                                     className={
                                                         index <
-                                                        fullStars
+                                                            fullStars
                                                             ? "text-minimal-yellow text-xl"
                                                             : "text-muted/30 text-xl"
                                                     }
@@ -1560,7 +1566,7 @@ function ProductPage() {
                             {!reviewsLoading &&
                                 !reviewsError &&
                                 reviews.length ===
-                                    0 && (
+                                0 && (
                                     <div className="
                                         border border-border
                                         rounded-3xl
@@ -1626,13 +1632,12 @@ function ProductPage() {
                                                                         w-4 h-4
                                                                         transition-colors
                                                                         duration-200
-                                                                        ${
-                                                                            index <
+                                                                        ${index <
                                                                             Number(
                                                                                 reviewItem.rating
                                                                             )
-                                                                                ? "text-minimal-yellow"
-                                                                                : "text-muted/20"
+                                                                            ? "text-minimal-yellow"
+                                                                            : "text-muted/20"
                                                                         }
                                                                     `}
                                                                 />
@@ -1664,23 +1669,23 @@ function ProductPage() {
                                                         reviewItem
                                                             .user
                                                             ?.id && (
-                                                        <div className="flex">
+                                                            <div className="flex">
 
-                                                            {/* EDIT */}
+                                                                {/* EDIT */}
 
-                                                            <button
-                                                                type="button"
-                                                                aria-label="Edit review"
-                                                                disabled={
-                                                                    isUpdateReviewPending ||
-                                                                    isDeleteReviewPending
-                                                                }
-                                                                onClick={() =>
-                                                                    handleEditReview(
-                                                                        reviewItem
-                                                                    )
-                                                                }
-                                                                className="
+                                                                <button
+                                                                    type="button"
+                                                                    aria-label="Edit review"
+                                                                    disabled={
+                                                                        isUpdateReviewPending ||
+                                                                        isDeleteReviewPending
+                                                                    }
+                                                                    onClick={() =>
+                                                                        handleEditReview(
+                                                                            reviewItem
+                                                                        )
+                                                                    }
+                                                                    className="
                                                                     w-8 h-8
                                                                     flex items-center justify-center
                                                                     rounded-lg
@@ -1694,25 +1699,25 @@ function ProductPage() {
                                                                     disabled:opacity-40
                                                                     disabled:cursor-not-allowed
                                                                 "
-                                                            >
-                                                                <Edit2 className="w-4 h-4" />
-                                                            </button>
+                                                                >
+                                                                    <Edit2 className="w-4 h-4" />
+                                                                </button>
 
-                                                            {/* DELETE */}
+                                                                {/* DELETE */}
 
-                                                            <button
-                                                                type="button"
-                                                                aria-label="Delete review"
-                                                                disabled={
-                                                                    isDeleteReviewPending ||
-                                                                    isUpdateReviewPending
-                                                                }
-                                                                onClick={() =>
-                                                                    deleteReview(
-                                                                        reviewItem.id
-                                                                    )
-                                                                }
-                                                                className="
+                                                                <button
+                                                                    type="button"
+                                                                    aria-label="Delete review"
+                                                                    disabled={
+                                                                        isDeleteReviewPending ||
+                                                                        isUpdateReviewPending
+                                                                    }
+                                                                    onClick={() =>
+                                                                        deleteReview(
+                                                                            reviewItem.id
+                                                                        )
+                                                                    }
+                                                                    className="
                                                                     w-8 h-8
                                                                     flex items-center justify-center
                                                                     rounded-lg
@@ -1727,11 +1732,11 @@ function ProductPage() {
                                                                     disabled:opacity-40
                                                                     disabled:cursor-not-allowed
                                                                 "
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        )}
                                                 </div>
                                             </div>
 
@@ -1834,11 +1839,10 @@ function ProductPage() {
                                                     className={`
                                                         transition-transform
                                                         duration-200
-                                                        ${
-                                                            hasReviewed &&
+                                                        ${hasReviewed &&
                                                             !isEditing
-                                                                ? "cursor-not-allowed opacity-50"
-                                                                : "cursor-pointer hover:scale-110"
+                                                            ? "cursor-not-allowed opacity-50"
+                                                            : "cursor-pointer hover:scale-110"
                                                         }
                                                     `}
                                                 >
@@ -1846,11 +1850,10 @@ function ProductPage() {
                                                         className={`
                                                             w-5 h-5
                                                             duration-200
-                                                            ${
-                                                                value <=
+                                                            ${value <=
                                                                 rating
-                                                                    ? "text-minimal-yellow"
-                                                                    : "text-muted/30"
+                                                                ? "text-minimal-yellow"
+                                                                : "text-muted/30"
                                                             }
                                                         `}
                                                     />
@@ -1954,7 +1957,7 @@ function ProductPage() {
                                     }
                                 >
                                     {isReviewPending ||
-                                    isUpdateReviewPending ? (
+                                        isUpdateReviewPending ? (
                                         <span className="text-xs">
                                             ...
                                         </span>

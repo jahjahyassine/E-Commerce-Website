@@ -1,7 +1,28 @@
 import { FaStar } from "react-icons/fa6";
+
 import { Link } from "react-router-dom";
 
 function ProductCard({ product }) {
+    const variants = product.product_variants || [];
+
+    // Use the active variant with the lowest price
+    const bestVariant = [...variants]
+        .filter((variant) => variant.is_active !== false)
+        .sort((a, b) => Number(a.price) - Number(b.price))[0];
+
+    const originalPrice = Number(
+        bestVariant?.price ?? product.min_price ?? 0
+    );
+
+    const discount = Number(
+        bestVariant?.discount_percentage ?? 0
+    );
+
+    const finalPrice =
+        discount > 0
+            ? originalPrice * (1 - discount / 100)
+            : originalPrice;
+
     return (
         <Link
             className="
@@ -32,15 +53,34 @@ function ProductCard({ product }) {
             </div>
 
             <div className="p-4 flex flex-col flex-1">
-                
                 <div className="flex items-start justify-between gap-3">
                     <h3 className="text-base font-bold leading-tight line-clamp-2">
                         {product.name}
                     </h3>
 
-                    <p className="text-minimal-green text-base font-bold whitespace-nowrap">
-                        ${product.min_price}
-                    </p>
+                    <div className="text-right whitespace-nowrap">
+                        {discount > 0 ? (
+                            <>
+                                <p className="text-minimal-green text-base font-bold">
+                                    ${finalPrice.toFixed(2)}
+                                </p>
+
+                                <div className="flex items-center justify-end gap-1">
+                                    <span className="text-xs text-muted line-through">
+                                        ${originalPrice.toFixed(2)}
+                                    </span>
+
+                                    <span className="text-xs font-bold text-red-500">
+                                        -{discount}%
+                                    </span>
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-minimal-green text-base font-bold">
+                                ${originalPrice.toFixed(2)}
+                            </p>
+                        )}
+                    </div>
                 </div>
 
                 <p className="text-sm text-muted mt-1">
@@ -50,7 +90,9 @@ function ProductCard({ product }) {
                 <div className="flex items-center mt-2">
                     <div className="flex items-center text-minimal-yellow">
                         {Array.from({
-                            length: Math.round(product.average_rating || 0),
+                            length: Math.round(
+                                product.average_rating || 0
+                            ),
                         }).map((_, index) => (
                             <FaStar
                                 key={index}

@@ -7,6 +7,7 @@ import { StatusModal } from "../../../../modals/StatusModal";
 
 export function ProductCreate() {
 
+    const token = localStorage.getItem("access_token")
     const BASE_URL = import.meta.env.VITE_BASE_URL
 
     const fetchBrands = async () => {
@@ -14,7 +15,7 @@ export function ProductCreate() {
             `${BASE_URL}/brands`
         )
 
-        const data = response.json()
+        const data = await response.json()
 
         if (!response.ok) throw new Error(data.message || "Failed to retrieve Brands")
 
@@ -106,6 +107,9 @@ export function ProductCreate() {
             `${BASE_URL}/admin/products`,
             {
                 method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
                 body: formData
             }
         )
@@ -171,14 +175,12 @@ export function ProductCreate() {
         formData.append(
             "product",
             JSON.stringify({
-                product: {
-                    name: productName,
-                    description,
-                    specifications: specificationObject,
-                    brand_id: Number(selectedBrand),
-                    category_id: Number(selectedCategory),
-                    tags: selectedTags,
-                }
+                name: productName,
+                description,
+                specifications: specificationObject,
+                brand_id: Number(selectedBrand),
+                category_id: Number(selectedCategory),
+                tags: selectedTags,
             })
         );
 
@@ -219,7 +221,7 @@ export function ProductCreate() {
                 {isPending && (
                     <StatusModal
                         type="pending"
-                        onClose={() => {}}
+                        onClose={() => { }}
                     />
                 )}
 

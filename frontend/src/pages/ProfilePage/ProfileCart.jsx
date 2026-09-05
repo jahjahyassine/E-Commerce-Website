@@ -96,6 +96,27 @@ function ProfileCart() {
 
     /*
      * ---------------------------------------------------------
+     * PRICE / DISCOUNT (mirrors the live pricing used by /orders)
+     * ---------------------------------------------------------
+     */
+
+    const getVariantPrice = (item) =>
+        Number(item.product_variant?.price ?? item.price ?? 0);
+
+    const getVariantDiscount = (item) =>
+        Math.min(
+            Math.max(Number(item.product_variant?.discount_percentage ?? 0), 0),
+            100
+        );
+
+    const getItemDiscountedPrice = (item) => {
+        const price = getVariantPrice(item);
+        const discount = getVariantDiscount(item);
+        return price * (1 - discount / 100);
+    };
+
+    /*
+     * ---------------------------------------------------------
      * SELECTION
      * ---------------------------------------------------------
      */
@@ -243,14 +264,24 @@ function ProfileCart() {
      * ---------------------------------------------------------
      */
 
+    const originalSubtotalAmount = useMemo(() => {
+        return cartItems.reduce(
+            (total, item) =>
+                total + item.quantity * getVariantPrice(item),
+            0
+        );
+    }, [cartItems]);
+
     const subtotalAmount = useMemo(() => {
         return cartItems.reduce(
             (total, item) =>
                 total +
-                item.quantity * Number(item.price),
+                item.quantity * getItemDiscountedPrice(item),
             0
         );
     }, [cartItems]);
+
+    const discountAmount = originalSubtotalAmount - subtotalAmount;
 
     const deliveryFee = subtotalAmount > 0 ? 10 : 0;
     const totalAmount = subtotalAmount + deliveryFee;
@@ -375,15 +406,24 @@ function ProfileCart() {
                             {/* Total */}
 
                             {hasItems && (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm text-muted">
-                                        Total
-                                    </span>
+                                <div className="flex flex-col items-end gap-0.5">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-muted">
+                                            Total
+                                        </span>
 
-                                    <span className="text-emerald font-bold text-xl">
-                                        $
-                                        {totalAmount.toFixed(2)}
-                                    </span>
+                                        <span className="text-emerald font-bold text-xl">
+                                            $
+                                            {totalAmount.toFixed(2)}
+                                        </span>
+                                    </div>
+
+                                    {discountAmount > 0 && (
+                                        <span className="text-xs text-muted">
+                                            You're saving $
+                                            {discountAmount.toFixed(2)}
+                                        </span>
+                                    )}
                                 </div>
                             )}
 
@@ -479,6 +519,15 @@ function ProfileCart() {
                                         selectedItems.includes(
                                             variantId
                                         );
+
+                                    const originalPrice =
+                                        getVariantPrice(cartItem);
+
+                                    const discountedPrice =
+                                        getItemDiscountedPrice(cartItem);
+
+                                    const hasDiscount =
+                                        originalPrice > discountedPrice;
 
                                     return (
                                         <div
@@ -701,15 +750,25 @@ function ProfileCart() {
 
                                                 </button>
 
-                                                <p className="text-emerald font-bold text-xl">
-                                                    $
-                                                    {(
-                                                        cartItem.quantity *
-                                                        Number(
-                                                            cartItem.price
-                                                        )
-                                                    ).toFixed(2)}
-                                                </p>
+                                                <div className="flex flex-col items-end gap-0.5">
+                                                    {hasDiscount && (
+                                                        <p className="text-xs text-muted line-through">
+                                                            $
+                                                            {(
+                                                                originalPrice *
+                                                                cartItem.quantity
+                                                            ).toFixed(2)}
+                                                        </p>
+                                                    )}
+
+                                                    <p className="text-emerald font-bold text-xl">
+                                                        $
+                                                        {(
+                                                            discountedPrice *
+                                                            cartItem.quantity
+                                                        ).toFixed(2)}
+                                                    </p>
+                                                </div>
 
                                             </div>
 
