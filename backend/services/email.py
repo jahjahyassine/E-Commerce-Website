@@ -1,469 +1,665 @@
-from pydantic import EmailStr
-import resend
-from resend.exceptions import ResendError
+import smtplib
+from email.message import EmailMessage
+from html import escape
+from decimal import Decimal
 
-from models.order import Order
-from schemas.order import OrderResponse
 from core.config import settings
+from models.order import Order
 
 
-resend.api_key = settings.RESEND_API_KEY
+def send_order_confirmation(
+    order: Order,
+    customer_email: str,
+) -> None:
+    """
+    Send a premium HTML order confirmation email.
 
-def send_confirmation_email (
-    customer_email: EmailStr,
-    order: Order
-):
-    html = build_order_confirmation_email(order)
-    params: resend.Email.SendParams = {
-        "from": "ByteStore <onboarding@resend.dev>",
-        "to": ["pjust489@gmail.com"],
-        "subject": f"Order #{order.id} confirmed",
-        "html": html,
-    }
+    The email uses snapshot data stored in OrderItem so that
+    historical orders remain accurate even if products change later.
+    """
 
-    try:
-        email = resend.Emails.send(params)
-    except ResendError as error:
-        raise error
+    # ---------------------------------------------------------
+    # Build order items
+    # ---------------------------------------------------------
 
-
-
-def build_order_confirmation_email(order):
     items_html = ""
 
     for item in order.items:
         attributes_html = ""
 
-        for key, value in (item.variant_attributes_snapshot or {}).items():
-            attributes_html += f"""
-                <span style="
-                    display:inline-block;
-                    margin-right:8px;
-                    margin-top:4px;
-                    padding:4px 8px;
-                    background:#f5f5f5;
-                    border-radius:6px;
-                    font-size:12px;
-                    color:#666666;
-                ">
-                    {key}: {value}
-                </span>
-            """
+        if item.variant_attributes_snapshot:
+            attributes = []
+
+            for key, value in item.variant_attributes_snapshot.items():
+                attributes.append(
+                    f"""
+                    <span style="
+                        display:inline-block;
+                        margin:3px 4px 3px 0;
+                        padding:5px 9px;
+                        background:#f3f5f6;
+                        border-radius:6px;
+                        font-size:11px;
+                        color:#5f6b70;
+                    ">
+                        {escape(str(key))}: {escape(str(value))}
+                    </span>
+                    """
+                )
+
+            attributes_html = "".join(attributes)
+
+        item_total = item.price * item.quantity
 
         items_html += f"""
         <tr>
-            <td style="padding:16px 0;border-bottom:1px solid #eeeeee;">
-                <div style="font-size:15px;font-weight:700;color:#1d1d1f;">
-                    {item.product_name}
+            <td style="
+                padding:20px 0;
+                border-bottom:1px solid #eeeeee;
+            ">
+                <div style="
+                    font-size:15px;
+                    font-weight:600;
+                    color:#151515;
+                    margin-bottom:7px;
+                ">
+                    {escape(item.product_name)}
                 </div>
 
-                <div style="margin-top:3px;font-size:13px;color:#777777;">
-                    SKU: {item.product_variant.sku}
-                </div>
-
-                <div style="margin-top:4px;">
-                    {attributes_html}
-                </div>
-
-                <div style="margin-top:6px;font-size:13px;color:#777777;">
+                <div style="
+                    font-size:12px;
+                    color:#8a8a8a;
+                    margin-bottom:6px;
+                ">
                     Quantity: {item.quantity}
+                </div>
+
+                <div>
+                    {attributes_html}
                 </div>
             </td>
 
-            <td
-                align="right"
-                valign="top"
-                style="
-                    padding:16px 0;
-                    border-bottom:1px solid #eeeeee;
+            <td style="
+                padding:20px 0;
+                border-bottom:1px solid #eeeeee;
+                text-align:right;
+                vertical-align:top;
+                white-space:nowrap;
+            ">
+                <div style="
                     font-size:15px;
-                    font-weight:700;
-                    color:#567C8D;
-                    white-space:nowrap;
-                "
-            >
-                ${float(item.price) * item.quantity:.2f}
+                    font-weight:600;
+                    color:#151515;
+                ">
+                    {item_total:.2f} DH
+                </div>
+
+                <div style="
+                    font-size:11px;
+                    color:#999999;
+                    margin-top:5px;
+                ">
+                    {item.price:.2f} DH × {item.quantity}
+                </div>
             </td>
         </tr>
         """
 
-    subtotal = sum(
-        float(item.price) * item.quantity
-        for item in order.items
+    # ---------------------------------------------------------
+    # Customer / shipping information
+    # ---------------------------------------------------------
+
+    customer_name = escape(order.customer_name)
+    customer_phone = escape(order.customer_phone)
+
+    shipping_address = escape(order.shipping_address)
+    shipping_city = escape(order.shipping_city)
+    shipping_region = escape(order.shipping_region)
+
+    shipping_location = (
+        f"{shipping_city}, {shipping_region}"
     )
 
-    delivery_fee = float(order.total_amount) - subtotal
+    if order.shipping_postal_code:
+        shipping_location += (
+            f" {escape(order.shipping_postal_code)}"
+        )
 
-    return f"""
+    # ---------------------------------------------------------
+    # HTML email
+    # ---------------------------------------------------------
+
+    html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Order Confirmation</title>
+    <title>ByteStore Order Confirmation</title>
 </head>
 
 <body style="
     margin:0;
     padding:0;
-    background:#f6f6f6;
+    background:#f4f6f7;
     font-family:Arial, Helvetica, sans-serif;
-    color:#1d1d1f;
+    color:#151515;
 ">
+
+<table
+    width="100%"
+    cellpadding="0"
+    cellspacing="0"
+    border="0"
+    style="
+        background:#f4f6f7;
+        padding:40px 15px;
+    "
+>
+<tr>
+<td align="center">
+
+<!-- =====================================================
+     MAIN CONTAINER
+===================================================== -->
+
+<table
+    width="600"
+    cellpadding="0"
+    cellspacing="0"
+    border="0"
+    style="
+        max-width:600px;
+        width:100%;
+        background:#ffffff;
+        border-radius:18px;
+        overflow:hidden;
+    "
+>
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<tr>
+<td style="
+    background:#567C8D;
+    padding:34px 40px;
+    text-align:center;
+">
+
+    <div style="
+        font-size:27px;
+        font-weight:700;
+        letter-spacing:-0.7px;
+        color:#ffffff;
+    ">
+        ByteStore
+    </div>
+
+    <div style="
+        margin-top:8px;
+        font-size:12px;
+        letter-spacing:0.5px;
+        color:#e8eff2;
+    ">
+        TECHNOLOGY. SIMPLIFIED.
+    </div>
+
+</td>
+</tr>
+
+
+<!-- =====================================================
+     HERO
+===================================================== -->
+
+<tr>
+<td style="
+    padding:42px 40px 25px 40px;
+">
+
+    <div style="
+        font-size:11px;
+        font-weight:700;
+        letter-spacing:1.8px;
+        color:#567C8D;
+        text-transform:uppercase;
+        margin-bottom:12px;
+    ">
+        Order Confirmed
+    </div>
+
+    <div style="
+        font-size:28px;
+        line-height:1.25;
+        font-weight:700;
+        letter-spacing:-0.7px;
+        color:#151515;
+        margin-bottom:13px;
+    ">
+        Thank you, {customer_name}.
+    </div>
+
+    <div style="
+        font-size:14px;
+        line-height:1.7;
+        color:#707070;
+    ">
+        Your order has been successfully received.
+        We'll keep you updated as it moves through
+        the delivery process.
+    </div>
+
+</td>
+</tr>
+
+
+<!-- =====================================================
+     ORDER NUMBER CARD
+===================================================== -->
+
+<tr>
+<td style="padding:0 40px 25px 40px;">
 
     <table
         width="100%"
         cellpadding="0"
         cellspacing="0"
         border="0"
-        style="background:#f6f6f6;"
+        style="
+            background:#f7f9fa;
+            border-radius:12px;
+        "
     >
+
+    <tr>
+
+        <td style="padding:18px 20px;">
+
+            <div style="
+                font-size:10px;
+                color:#929292;
+                text-transform:uppercase;
+                letter-spacing:1px;
+                margin-bottom:6px;
+            ">
+                Order number
+            </div>
+
+            <div style="
+                font-size:16px;
+                font-weight:700;
+                color:#151515;
+            ">
+                #{order.id}
+            </div>
+
+        </td>
+
+        <td
+            style="
+                padding:18px 20px;
+                text-align:right;
+            "
+        >
+
+            <div style="
+                font-size:10px;
+                color:#929292;
+                text-transform:uppercase;
+                letter-spacing:1px;
+                margin-bottom:6px;
+            ">
+                Payment
+            </div>
+
+            <div style="
+                font-size:13px;
+                font-weight:600;
+                color:#567C8D;
+            ">
+                Cash on Delivery
+            </div>
+
+        </td>
+
+    </tr>
+
+    </table>
+
+</td>
+</tr>
+
+
+<!-- =====================================================
+     ITEMS
+===================================================== -->
+
+<tr>
+<td style="padding:0 40px;">
+
+    <div style="
+        font-size:12px;
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:1.2px;
+        color:#333333;
+        margin-bottom:4px;
+    ">
+        Your items
+    </div>
+
+    <table
+        width="100%"
+        cellpadding="0"
+        cellspacing="0"
+        border="0"
+    >
+        {items_html}
+    </table>
+
+</td>
+</tr>
+
+
+<!-- =====================================================
+     TOTAL
+===================================================== -->
+
+<tr>
+<td style="padding:25px 40px 30px 40px;">
+
+    <table
+        width="100%"
+        cellpadding="0"
+        cellspacing="0"
+        border="0"
+    >
+
         <tr>
-            <td align="center" style="padding:40px 15px;">
+            <td style="
+                font-size:14px;
+                color:#777777;
+                padding-bottom:10px;
+            ">
+                Subtotal
+            </td>
 
-                <!-- Main container -->
-                <table
-                    width="100%"
-                    cellpadding="0"
-                    cellspacing="0"
-                    border="0"
-                    style="
-                        max-width:620px;
-                        background:#ffffff;
-                        border-radius:16px;
-                        overflow:hidden;
-                    "
-                >
+            <td style="
+                text-align:right;
+                font-size:14px;
+                color:#333333;
+                padding-bottom:10px;
+            ">
+                {order.total_amount:.2f} DH
+            </td>
+        </tr>
 
-                    <!-- Header -->
-                    <tr>
-                        <td
-                            align="center"
-                            style="padding:32px 30px 20px;"
-                        >
+        <tr>
+            <td style="
+                border-top:1px solid #e9e9e9;
+                padding-top:17px;
+                font-size:16px;
+                font-weight:700;
+                color:#151515;
+            ">
+                Total
+            </td>
 
-                            <div style="
-                                font-size:22px;
-                                font-weight:800;
-                                letter-spacing:1px;
-                                color:#567C8D;
-                            ">
-                                BYTESTORE
-                            </div>
+            <td style="
+                border-top:1px solid #e9e9e9;
+                padding-top:17px;
+                text-align:right;
+                font-size:20px;
+                font-weight:700;
+                color:#567C8D;
+            ">
+                {order.total_amount:.2f} DH
+            </td>
+        </tr>
 
-                        </td>
-                    </tr>
+    </table>
 
-
-                    <!-- Confirmation -->
-                    <tr>
-                        <td
-                            align="center"
-                            style="padding:10px 30px 30px;"
-                        >
-
-                            <div style="
-                                width:64px;
-                                height:64px;
-                                line-height:64px;
-                                margin:0 auto 18px;
-                                border-radius:50%;
-                                background:#eef5f7;
-                                color:#567C8D;
-                                font-size:30px;
-                                font-weight:700;
-                            ">
-                                ✓
-                            </div>
-
-                            <h1 style="
-                                margin:0;
-                                font-size:28px;
-                                line-height:36px;
-                                color:#1d1d1f;
-                            ">
-                                Order Confirmed
-                            </h1>
-
-                            <p style="
-                                margin:10px 0 0;
-                                font-size:15px;
-                                line-height:24px;
-                                color:#777777;
-                            ">
-                                Thank you for your order,
-                                <strong>{order.customer_name}</strong>.
-                            </p>
-
-                            <p style="
-                                margin:4px 0 0;
-                                font-size:14px;
-                                color:#777777;
-                            ">
-                                Order #{order.id}
-                            </p>
-
-                        </td>
-                    </tr>
+</td>
+</tr>
 
 
-                    <!-- Order Summary -->
-                    <tr>
-                        <td style="padding:0 30px;">
+<!-- =====================================================
+     SHIPPING
+===================================================== -->
 
-                            <h2 style="
-                                margin:0 0 10px;
-                                font-size:16px;
-                                font-weight:800;
-                                letter-spacing:.3px;
-                            ">
-                                ORDER SUMMARY
-                            </h2>
+<tr>
+<td style="
+    padding:0 40px 35px 40px;
+">
 
-                            <table
-                                width="100%"
-                                cellpadding="0"
-                                cellspacing="0"
-                                border="0"
-                            >
-                                {items_html}
-                            </table>
+    <div style="
+        font-size:12px;
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:1.2px;
+        color:#333333;
+        margin-bottom:14px;
+    ">
+        Delivery details
+    </div>
 
-                        </td>
-                    </tr>
+    <table
+        width="100%"
+        cellpadding="0"
+        cellspacing="0"
+        border="0"
+        style="
+            background:#fafafa;
+            border-radius:12px;
+        "
+    >
 
+        <tr>
+            <td style="padding:18px 20px;">
 
-                    <!-- Totals -->
-                    <tr>
-                        <td style="padding:20px 30px 10px;">
+                <div style="
+                    font-size:13px;
+                    font-weight:600;
+                    color:#222222;
+                    margin-bottom:7px;
+                ">
+                    {customer_name}
+                </div>
 
-                            <table
-                                width="100%"
-                                cellpadding="0"
-                                cellspacing="0"
-                                border="0"
-                            >
-
-                                <tr>
-                                    <td style="
-                                        padding:5px 0;
-                                        font-size:14px;
-                                        color:#777777;
-                                    ">
-                                        Subtotal
-                                    </td>
-
-                                    <td
-                                        align="right"
-                                        style="
-                                            padding:5px 0;
-                                            font-size:14px;
-                                            font-weight:600;
-                                        "
-                                    >
-                                        ${subtotal:.2f}
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td style="
-                                        padding:5px 0;
-                                        font-size:14px;
-                                        color:#777777;
-                                    ">
-                                        Delivery
-                                    </td>
-
-                                    <td
-                                        align="right"
-                                        style="
-                                            padding:5px 0;
-                                            font-size:14px;
-                                            font-weight:600;
-                                        "
-                                    >
-                                        ${delivery_fee:.2f}
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td
-                                        style="
-                                            padding:14px 0 5px;
-                                            border-top:1px solid #eeeeee;
-                                            font-size:17px;
-                                            font-weight:800;
-                                        "
-                                    >
-                                        Total
-                                    </td>
-
-                                    <td
-                                        align="right"
-                                        style="
-                                            padding:14px 0 5px;
-                                            border-top:1px solid #eeeeee;
-                                            font-size:18px;
-                                            font-weight:800;
-                                            color:#567C8D;
-                                        "
-                                    >
-                                        ${float(order.total_amount):.2f}
-                                    </td>
-                                </tr>
-
-                            </table>
-
-                        </td>
-                    </tr>
-
-
-                    <!-- Delivery Information -->
-                    <tr>
-                        <td style="padding:25px 30px 10px;">
-
-                            <h2 style="
-                                margin:0 0 12px;
-                                font-size:16px;
-                                font-weight:800;
-                                letter-spacing:.3px;
-                            ">
-                                DELIVERY INFORMATION
-                            </h2>
-
-                            <div style="
-                                padding:16px;
-                                background:#f8f8f8;
-                                border-radius:10px;
-                                font-size:14px;
-                                line-height:23px;
-                                color:#555555;
-                            ">
-
-                                <strong style="color:#1d1d1f;">
-                                    {order.customer_name}
-                                </strong>
-
-                                <br>
-
-                                {order.shipping_address}
-                                <br>
-
-                                {order.shipping_city},
-                                {order.shipping_region}
-
-                                {f"<br>{order.shipping_postal_code}"
-                                if order.shipping_postal_code else ""}
-
-                                <br>
-
-                                {order.customer_phone}
-
-                            </div>
-
-                        </td>
-                    </tr>
-
-
-                    <!-- Payment -->
-                    <tr>
-                        <td style="padding:15px 30px 25px;">
-
-                            <h2 style="
-                                margin:0 0 12px;
-                                font-size:16px;
-                                font-weight:800;
-                                letter-spacing:.3px;
-                            ">
-                                PAYMENT
-                            </h2>
-
-                            <div style="
-                                padding:14px 16px;
-                                background:#f8f8f8;
-                                border-radius:10px;
-                                font-size:14px;
-                                color:#555555;
-                            ">
-                                <strong style="color:#1d1d1f;">
-                                    Cash on delivery
-                                </strong>
-
-                                <br>
-
-                                Pay when your order arrives.
-                            </div>
-
-                        </td>
-                    </tr>
-
-
-                    <!-- Button -->
-                    <tr>
-                        <td align="center" style="padding:5px 30px 35px;">
-
-                            <a
-                                href="https://your-domain.com/orders/{order.id}"
-                                style="
-                                    display:inline-block;
-                                    padding:13px 28px;
-                                    background:#567C8D;
-                                    color:#ffffff;
-                                    text-decoration:none;
-                                    border-radius:9px;
-                                    font-size:14px;
-                                    font-weight:700;
-                                "
-                            >
-                                View Your Order
-                            </a>
-
-                        </td>
-                    </tr>
-
-
-                    <!-- Footer -->
-                    <tr>
-                        <td
-                            align="center"
-                            style="
-                                padding:22px 30px;
-                                background:#fafafa;
-                                border-top:1px solid #eeeeee;
-                            "
-                        >
-
-                            <p style="
-                                margin:0;
-                                font-size:13px;
-                                color:#888888;
-                            ">
-                                Thank you for shopping with ByteStore.
-                            </p>
-
-                            <p style="
-                                margin:6px 0 0;
-                                font-size:12px;
-                                color:#aaaaaa;
-                            ">
-                                This is an automated confirmation email.
-                            </p>
-
-                        </td>
-                    </tr>
-
-                </table>
+                <div style="
+                    font-size:13px;
+                    line-height:1.7;
+                    color:#707070;
+                ">
+                    {shipping_address}<br>
+                    {shipping_location}<br>
+                    {customer_phone}
+                </div>
 
             </td>
         </tr>
+
     </table>
+
+</td>
+</tr>
+
+
+<!-- =====================================================
+     FOOTER MESSAGE
+===================================================== -->
+
+<tr>
+<td style="
+    background:#f7f9fa;
+    padding:28px 40px;
+    text-align:center;
+">
+
+    <div style="
+        font-size:13px;
+        font-weight:600;
+        color:#333333;
+        margin-bottom:7px;
+    ">
+        Thank you for choosing ByteStore.
+    </div>
+
+    <div style="
+        font-size:11px;
+        line-height:1.6;
+        color:#929292;
+    ">
+        If you have any questions about your order,
+        please contact our support team.
+    </div>
+
+</td>
+</tr>
+
+
+<!-- =====================================================
+     BRAND FOOTER
+===================================================== -->
+
+<tr>
+<td style="
+    padding:22px 40px;
+    text-align:center;
+    background:#ffffff;
+">
+
+    <div style="
+        font-size:14px;
+        font-weight:700;
+        color:#567C8D;
+        margin-bottom:6px;
+    ">
+        ByteStore
+    </div>
+
+    <div style="
+        font-size:10px;
+        color:#aaaaaa;
+    ">
+        © ByteStore. All rights reserved.
+    </div>
+
+</td>
+</tr>
+
+</table>
+
+<!-- END MAIN CONTAINER -->
+
+</td>
+</tr>
+</table>
 
 </body>
 </html>
 """
+
+    # ---------------------------------------------------------
+    # Plain-text fallback
+    # ---------------------------------------------------------
+
+    text_items = []
+
+    for item in order.items:
+        item_total = item.price * item.quantity
+
+        attributes = ""
+
+        if item.variant_attributes_snapshot:
+            attributes = " | " + ", ".join(
+                f"{key}: {value}"
+                for key, value in item.variant_attributes_snapshot.items()
+            )
+
+        text_items.append(
+            f"- {item.product_name}{attributes}\n"
+            f"  Quantity: {item.quantity}\n"
+            f"  Price: {item.price:.2f} DH\n"
+            f"  Total: {item_total:.2f} DH"
+        )
+
+    text_content = f"""
+ByteStore
+TECHNOLOGY. SIMPLIFIED.
+
+ORDER CONFIRMED
+
+Thank you, {order.customer_name}.
+
+Your order #{order.id} has been successfully received.
+
+YOUR ITEMS
+----------
+
+{chr(10).join(text_items)}
+
+TOTAL
+-----
+
+{order.total_amount:.2f} DH
+
+DELIVERY DETAILS
+----------------
+
+{order.customer_name}
+{order.shipping_address}
+{order.shipping_city}, {order.shipping_region}
+{order.shipping_postal_code or ""}
+{order.customer_phone}
+
+Payment: Cash on Delivery
+
+Thank you for choosing ByteStore.
+"""
+
+    # ---------------------------------------------------------
+    # Create email
+    # ---------------------------------------------------------
+
+    message = EmailMessage()
+
+    message["From"] = f"ByteStore <{settings.SMTP_USER}>"
+    message["To"] = customer_email
+    message["Subject"] = (
+        f"ByteStore — Order #{order.id} Confirmed"
+    )
+
+    # Plain-text version
+    message.set_content(text_content)
+
+    # HTML version
+    message.add_alternative(
+        html_content,
+        subtype="html",
+    )
+
+    # ---------------------------------------------------------
+    # Send through Gmail SMTP
+    # ---------------------------------------------------------
+
+    with smtplib.SMTP(
+        settings.SMTP_HOST,
+        settings.SMTP_PORT,
+    ) as server:
+
+        server.starttls()
+
+        server.login(
+            settings.SMTP_USER,
+            settings.SMTP_PASSWORD,
+        )
+
+        server.send_message(message)

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from resend.exceptions import ResendError
 
-from services.email import send_confirmation_email
+from services.email import send_order_confirmation
 from routes.cart import clear_cart
 from models.inventory import StockChange, StockChangeType
 from models.cart import Cart
@@ -218,9 +218,9 @@ def create_order(
         db.refresh(new_order)
 
         try:
-            send_confirmation_email(
-                customer_email=user.email,
+            send_order_confirmation(
                 order=new_order,
+                customer_email=user.email,
             )
         except ResendError as error:
             print(error)
