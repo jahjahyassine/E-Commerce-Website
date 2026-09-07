@@ -559,7 +559,7 @@ function Navbar() {
                     ========================================== */}
 
                     <li className="hover:text-foreground duration-300">
-                        <Link to="/products/promotion">
+                        <Link to="/products?promotion=true">
                             Promotions
                         </Link>
                     </li>

@@ -66,12 +66,6 @@ function ProductPage() {
         enabled: !!token,
     });
 
-    useEffect(() => {
-        if (!token || isErrorUser) {
-            navigate("/login");
-        }
-    }, [token, isErrorUser, navigate]);
-
     /* =========================================================
        PRODUCT
     ========================================================= */
@@ -1901,8 +1895,8 @@ function ProductPage() {
                                             : "Write your review..."
                                     }
                                     disabled={
-                                        hasReviewed &&
-                                        !isEditing
+                                        !currentUser ||
+                                        (hasReviewed && !isEditing)
                                     }
                                     className="
                                         w-full

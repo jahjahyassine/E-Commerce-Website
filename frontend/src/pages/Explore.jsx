@@ -9,10 +9,6 @@ import ProductCard from "../components/ProductCard";
 function Explore() {
     const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-    const [minPrice, setMinPrice] = useState("");
-    const [maxPrice, setMaxPrice] = useState("");
-    const [rating, setRating] = useState("");
-
     const [searchParams, setSearchParams] = useSearchParams();
 
     // ==========================================
@@ -22,11 +18,20 @@ function Explore() {
     const categoryId = searchParams.get("category_id") || "";
     const brandId = searchParams.get("brand_id") || "";
 
+    // Promotion filter
+    const promotion = searchParams.get("promotion") === "true";
+
     // Search can come from the Navbar
     const urlSearch = searchParams.get("search") || "";
-
     const [search, setSearch] = useState(urlSearch);
 
+    // ==========================================
+    // Local Filters
+    // ==========================================
+
+    const [minPrice, setMinPrice] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
+    const [rating, setRating] = useState("");
 
     // ==========================================
     // Fetch Products
@@ -59,6 +64,10 @@ function Explore() {
             params.set("search", search.trim());
         }
 
+        if (promotion) {
+            params.set("on_promotion", "true");
+        }
+
         const response = await fetch(
             `${BASE_URL}/products?${params.toString()}`,
             {
@@ -72,7 +81,6 @@ function Explore() {
 
         return await response.json();
     };
-
 
     // ==========================================
     // Fetch Categories
@@ -93,7 +101,6 @@ function Explore() {
         return await response.json();
     };
 
-
     // ==========================================
     // Fetch Brands
     // ==========================================
@@ -113,7 +120,6 @@ function Explore() {
         return await response.json();
     };
 
-
     // ==========================================
     // Products Query
     // ==========================================
@@ -131,10 +137,10 @@ function Explore() {
             maxPrice,
             rating,
             search,
+            promotion,
         ],
         queryFn: getProducts,
     });
-
 
     // ==========================================
     // Categories Query
@@ -150,7 +156,6 @@ function Explore() {
         staleTime: 5 * 60 * 1000,
     });
 
-
     // ==========================================
     // Brands Query
     // ==========================================
@@ -164,7 +169,6 @@ function Explore() {
         queryFn: getBrands,
         staleTime: 5 * 60 * 1000,
     });
-
 
     // ==========================================
     // Update URL Search
@@ -184,7 +188,6 @@ function Explore() {
         setSearchParams(params);
     };
 
-
     // ==========================================
     // Update Brand
     // ==========================================
@@ -200,7 +203,6 @@ function Explore() {
 
         setSearchParams(params);
     };
-
 
     // ==========================================
     // Update Category
@@ -218,6 +220,21 @@ function Explore() {
         setSearchParams(params);
     };
 
+    // ==========================================
+    // Update Promotion
+    // ==========================================
+
+    const updatePromotion = (checked) => {
+        const params = new URLSearchParams(searchParams);
+
+        if (checked) {
+            params.set("promotion", "true");
+        } else {
+            params.delete("promotion");
+        }
+
+        setSearchParams(params);
+    };
 
     // ==========================================
     // Clear All Filters
@@ -228,10 +245,8 @@ function Explore() {
         setMaxPrice("");
         setRating("");
         setSearch("");
-
         setSearchParams({});
     };
-
 
     return (
         <main className="relative min-h-screen">
@@ -243,7 +258,6 @@ function Explore() {
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
-
 
             {/* ==========================================
                 Background
@@ -276,7 +290,6 @@ function Explore() {
                 />
             </div>
 
-
             {/* ==========================================
                 Main Content
             ========================================== */}
@@ -308,7 +321,6 @@ function Explore() {
                 >
                     Discover our premium collection of electronics.
                 </h2>
-
 
                 {/* ==========================================
                     Search
@@ -352,7 +364,6 @@ function Explore() {
                     />
                 </div>
 
-
                 {/* ==========================================
                     Categories
                 ========================================== */}
@@ -365,7 +376,6 @@ function Explore() {
                         mb-5
                     "
                 >
-
                     <div
                         className="
                             flex
@@ -375,7 +385,6 @@ function Explore() {
                             gap-2
                         "
                     >
-
                         {/* All Categories */}
 
                         <button
@@ -398,7 +407,6 @@ function Explore() {
                             All Categories
                         </button>
 
-
                         {/* Loading */}
 
                         {categoriesLoading && (
@@ -413,7 +421,6 @@ function Explore() {
                                 Loading categories...
                             </span>
                         )}
-
 
                         {/* Categories */}
 
@@ -444,13 +451,9 @@ function Explore() {
                                 >
                                     {category.name}
                                 </button>
-                            ))
-                        }
-
+                            ))}
                     </div>
-
                 </div>
-
 
                 {/* ==========================================
                     Filters
@@ -490,7 +493,6 @@ function Explore() {
                             focus:border-border
                         "
                     >
-
                         <option value="">
                             All Brands
                         </option>
@@ -509,18 +511,14 @@ function Explore() {
                                 >
                                     {brand.name}
                                 </option>
-                            ))
-                        }
-
+                            ))}
                     </select>
-
 
                     {/* ======================================
                         Price
                     ====================================== */}
 
                     <div className="flex items-center gap-2">
-
                         <input
                             type="number"
                             min="0"
@@ -570,9 +568,7 @@ function Explore() {
                                 focus:border-border
                             "
                         />
-
                     </div>
-
 
                     {/* ======================================
                         Rating
@@ -598,7 +594,6 @@ function Explore() {
                             focus:border-border
                         "
                     >
-
                         <option value="">
                             Any Rating
                         </option>
@@ -622,9 +617,46 @@ function Explore() {
                         <option value="1">
                             ★☆☆☆☆ & up
                         </option>
-
                     </select>
 
+                    {/* ======================================
+                        Promotion
+                    ====================================== */}
+
+                    <label
+                        className="
+                            flex
+                            items-center
+                            gap-2
+                            px-3
+                            py-2
+                            rounded-xl
+                            border
+                            border-border-soft/70
+                            bg-white/30
+                            backdrop-blur-xl
+                            text-sm
+                            font-medium
+                            cursor-pointer
+                            select-none
+                        "
+                    >
+                        <input
+                            type="checkbox"
+                            checked={promotion}
+                            onChange={(e) =>
+                                updatePromotion(e.target.checked)
+                            }
+                            className="
+                                h-4
+                                w-4
+                                accent-black
+                                cursor-pointer
+                            "
+                        />
+
+                        On promotion
+                    </label>
 
                     {/* ======================================
                         Clear Filters
@@ -635,8 +667,8 @@ function Explore() {
                         minPrice ||
                         maxPrice ||
                         rating ||
-                        search) && (
-
+                        search ||
+                        promotion) && (
                         <button
                             type="button"
                             onClick={clearFilters}
@@ -655,9 +687,7 @@ function Explore() {
                             Clear filters
                         </button>
                     )}
-
                 </div>
-
 
                 {/* ==========================================
                     Error: Categories / Brands
@@ -668,7 +698,6 @@ function Explore() {
                         Failed to load categories or brands.
                     </p>
                 )}
-
 
                 {/* ==========================================
                     Products
@@ -699,7 +728,6 @@ function Explore() {
                         </p>
                     )}
 
-
                     {/* Error */}
 
                     {productsError && (
@@ -715,13 +743,11 @@ function Explore() {
                         </p>
                     )}
 
-
                     {/* Empty */}
 
                     {!productsLoading &&
                         !productsError &&
                         products.length === 0 && (
-
                             <p
                                 className="
                                     col-span-full
@@ -732,9 +758,7 @@ function Explore() {
                             >
                                 No products found.
                             </p>
-                        )
-                    }
-
+                        )}
 
                     {/* Products */}
 
@@ -745,13 +769,9 @@ function Explore() {
                                 product={product}
                                 key={product.id}
                             />
-                        ))
-                    }
-
+                        ))}
                 </section>
-
             </section>
-
         </main>
     );
 }

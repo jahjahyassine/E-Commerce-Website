@@ -64,6 +64,7 @@ def get_products(
     max_price: float | None = None,
     search: str | None = None,
     is_active: bool | None = True,
+    on_promotion: bool | None = None,
 ):
     query = db.query(Product)
 
@@ -149,6 +150,15 @@ def get_products(
     if is_active is not None:
         query = query.filter(
             Product.is_active == is_active
+        )
+
+    if on_promotion is True:
+        query = query.filter(
+            exists().where(
+                ProductVariant.product_id == Product.id,
+                ProductVariant.discount_percentage > 0,
+                ProductVariant.is_active.is_(True),
+            )
         )
 
     return query.all()
