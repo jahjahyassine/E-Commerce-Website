@@ -374,7 +374,8 @@ function ProfileCart() {
 
                 <section
                     className="
-                        flex-1
+                        mx-auto
+                        w-[70vw]
                         flex
                         flex-col
                         pt-20
@@ -413,15 +414,14 @@ function ProfileCart() {
                                         </span>
 
                                         <span className="text-emerald font-bold text-xl">
-                                            $
-                                            {totalAmount.toFixed(2)}
+                                             
+                                            {totalAmount.toFixed(2)} DH
                                         </span>
                                     </div>
 
                                     {discountAmount > 0 && (
                                         <span className="text-xs text-muted">
-                                            You're saving $
-                                            {discountAmount.toFixed(2)}
+                                            You're saving   <span className="text-primary font-bold">{discountAmount.toFixed(2)} DH</span>
                                         </span>
                                     )}
                                 </div>
@@ -489,7 +489,6 @@ function ProfileCart() {
                                 className="
                                     flex-1
                                     min-w-0
-                                    max-h-[600px]
                                     flex
                                     flex-col
                                     bg-chip
@@ -753,20 +752,20 @@ function ProfileCart() {
                                                 <div className="flex flex-col items-end gap-0.5">
                                                     {hasDiscount && (
                                                         <p className="text-xs text-muted line-through">
-                                                            $
+                                                            
                                                             {(
                                                                 originalPrice *
                                                                 cartItem.quantity
-                                                            ).toFixed(2)}
-                                                        </p>
+                                                            ).toFixed(2)} DH
+                                                        </p> 
                                                     )}
 
                                                     <p className="text-emerald font-bold text-xl">
-                                                        $
+                                                        
                                                         {(
                                                             discountedPrice *
                                                             cartItem.quantity
-                                                        ).toFixed(2)}
+                                                        ).toFixed(2)} DH
                                                     </p>
                                                 </div>
 

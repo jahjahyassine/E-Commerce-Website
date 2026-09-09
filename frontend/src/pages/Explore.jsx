@@ -5,6 +5,8 @@ import { useState } from "react";
 import DotField from "../components/animation/DotField";
 import Navbar from "../components/Navbar";
 import ProductCard from "../components/ProductCard";
+import FooterSection from "../components/FooterSection";
+import Footer from "../components/Footer";
 
 function Explore() {
     const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -252,26 +254,26 @@ function Explore() {
         <main className="relative min-h-screen">
 
             {/* ==========================================
-                Navbar
-            ========================================== */}
+            Navbar
+        ========================================== */}
 
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
 
             {/* ==========================================
-                Background
-            ========================================== */}
+            Background
+        ========================================== */}
 
             <div
                 className="
-                    fixed
-                    inset-0
-                    w-full
-                    h-full
-                    z-0
-                    pointer-events-none
-                "
+                fixed
+                inset-0
+                w-full
+                h-full
+                z-0
+                pointer-events-none
+            "
                 aria-hidden="true"
             >
                 <DotField
@@ -291,25 +293,21 @@ function Explore() {
             </div>
 
             {/* ==========================================
-                Main Content
-            ========================================== */}
+            Page Content
+        ========================================== */}
 
-            <section
-                className="
-                    relative
-                    z-10
-                    pt-20
-                    px-6
-                    pb-10
-                "
-            >
+            <section className="relative z-10 pt-20 pb-16">
 
-                {/* ==========================================
-                    Heading
-                ========================================== */}
+                {/* ======================================
+                Content Container
+            ====================================== */}
 
-                <h2
-                    className="
+                <div className="px-6">
+
+                    {/* Heading */}
+
+                    <h2
+                        className="
                         text-5xl
                         font-cormorant
                         text-center
@@ -318,167 +316,170 @@ function Explore() {
                         mb-6
                         pb-3
                     "
-                >
-                    Discover our premium collection of electronics.
-                </h2>
+                    >
+                        Discover our premium collection of electronics.
+                    </h2>
 
-                {/* ==========================================
+                    {/* ==================================
                     Search
-                ========================================== */}
+                ================================== */}
 
-                <div
-                    className="
-                        flex
-                        flex-col
-                        sm:flex-row
-                        sm:items-center
-                        sm:justify-between
-                        gap-3
-                        mb-5
-                    "
-                >
-                    <input
-                        type="search"
-                        placeholder="Search products"
-                        aria-label="Search products"
-                        value={search}
-                        onChange={(e) =>
-                            updateSearch(e.target.value)
-                        }
-                        className="
-                            w-full
-                            sm:w-80
-                            px-4
-                            py-2
-                            text-sm
-                            font-semibold
-                            backdrop-blur-xl
-                            rounded-2xl
-                            border
-                            border-border-soft
-                            bg-white/30
-                            focus:outline-none
-                            focus:border-border
-                            placeholder:text-subtle
-                        "
-                    />
-                </div>
+                    <div className="flex justify-center mb-8">
+                        <input
+                            type="search"
+                            placeholder="Search products..."
+                            aria-label="Search products"
+                            value={search}
+                            onChange={(e) => updateSearch(e.target.value)}
+                            className="
+                                w-full
+                                max-w-2xl
+                                px-6 py-4
+                                text-base
+                                font-medium
+                                backdrop-blur-xl
+                                rounded-2xl
+                                border
+                                border-border-soft
+                                bg-white/40
+                                shadow-sm
+                                transition-all
+                                duration-200
+                                focus:outline-none
+                                focus:ring-2
+                                focus:ring-primary/20
+                                focus:border-primary
+                                placeholder:text-subtle
+                            "
+                        />
+                    </div>
 
-                {/* ==========================================
+                    {/* ==================================
                     Categories
-                ========================================== */}
+                ================================== */}
 
-                <div
-                    className="
+                    <div
+                        className="
                         border-y
                         border-border-soft
                         py-3
                         mb-5
+                        overflow-hidden
                     "
-                >
-                    <div
-                        className="
-                            flex
-                            flex-wrap
-                            items-center
-                            justify-center
-                            gap-2
-                        "
                     >
-                        {/* All Categories */}
+                        <div
+                            className="
+                            flex
+                            items-center
+                            gap-2
+                            overflow-x-auto
+                            scrollbar-none
+                            px-1
+                            pb-1
+                        "
+                        >
+                            {/* All */}
 
-                        <button
-                            type="button"
-                            onClick={() => updateCategory("")}
-                            className={`
+                            <button
+                                type="button"
+                                onClick={() => updateCategory("")}
+                                className={`
+                                shrink-0
                                 px-4
                                 py-2
-                                rounded-xl
+                                rounded-full
                                 text-sm
                                 font-medium
-                                transition
-                                ${
-                                    categoryId === ""
+                                transition-all
+                                duration-200
+                                whitespace-nowrap
+                                ${categoryId === ""
                                         ? "bg-black text-white"
-                                        : "hover:bg-black/5"
-                                }
+                                        : "bg-white/40 hover:bg-black/5 text-gray-700"
+                                    }
                             `}
-                        >
-                            All Categories
-                        </button>
+                            >
+                                All
+                            </button>
 
-                        {/* Loading */}
+                            {/* Loading */}
 
-                        {categoriesLoading && (
-                            <span
-                                className="
+                            {categoriesLoading && (
+                                <span
+                                    className="
+                                    shrink-0
                                     px-4
                                     py-2
                                     text-sm
                                     text-muted
                                 "
-                            >
-                                Loading categories...
-                            </span>
-                        )}
-
-                        {/* Categories */}
-
-                        {!categoriesLoading &&
-                            categories.map((category) => (
-                                <button
-                                    key={category.id}
-                                    type="button"
-                                    onClick={() =>
-                                        updateCategory(
-                                            String(category.id)
-                                        )
-                                    }
-                                    className={`
-                                        px-4
-                                        py-2
-                                        rounded-xl
-                                        text-sm
-                                        font-medium
-                                        transition
-                                        ${
-                                            categoryId ===
-                                            String(category.id)
-                                                ? "bg-black text-white"
-                                                : "hover:bg-black/5"
-                                        }
-                                    `}
                                 >
-                                    {category.name}
-                                </button>
-                            ))}
+                                    Loading...
+                                </span>
+                            )}
+
+                            {/* Categories */}
+
+                            {!categoriesLoading &&
+                                categories.map((category) => {
+                                    const isActive =
+                                        categoryId ===
+                                        String(category.id);
+
+                                    return (
+                                        <button
+                                            key={category.id}
+                                            type="button"
+                                            onClick={() =>
+                                                updateCategory(
+                                                    String(category.id)
+                                                )
+                                            }
+                                            className={`
+                                            shrink-0
+                                            px-4
+                                            py-2
+                                            rounded-full
+                                            text-sm
+                                            font-medium
+                                            whitespace-nowrap
+                                            transition-all
+                                            duration-200
+                                            ${isActive
+                                                    ? "bg-black text-white"
+                                                    : "bg-white/40 text-gray-700 hover:bg-black/5"
+                                                }
+                                        `}
+                                        >
+                                            {category.name}
+                                        </button>
+                                    );
+                                })}
+                        </div>
                     </div>
-                </div>
 
-                {/* ==========================================
+                    {/* ==================================
                     Filters
-                ========================================== */}
+                ================================== */}
 
-                <div
-                    className="
+                    <div
+                        className="
                         flex
                         flex-wrap
                         items-center
                         gap-3
                         mb-6
+                        justify-around
                     "
-                >
+                    >
+                        {/* Brand */}
 
-                    {/* ======================================
-                        Brand
-                    ====================================== */}
-
-                    <select
-                        value={brandId}
-                        onChange={(e) =>
-                            updateBrand(e.target.value)
-                        }
-                        className="
+                        <select
+                            value={brandId}
+                            onChange={(e) =>
+                                updateBrand(e.target.value)
+                            }
+                            className="
                             min-w-36
                             rounded-xl
                             border
@@ -492,42 +493,40 @@ function Explore() {
                             outline-none
                             focus:border-border
                         "
-                    >
-                        <option value="">
-                            All Brands
-                        </option>
-
-                        {brandsLoading && (
-                            <option disabled>
-                                Loading brands...
+                        >
+                            <option value="">
+                                All Brands
                             </option>
-                        )}
 
-                        {!brandsLoading &&
-                            brands.map((brand) => (
-                                <option
-                                    key={brand.id}
-                                    value={brand.id}
-                                >
-                                    {brand.name}
+                            {brandsLoading && (
+                                <option disabled>
+                                    Loading brands...
                                 </option>
-                            ))}
-                    </select>
+                            )}
 
-                    {/* ======================================
-                        Price
-                    ====================================== */}
+                            {!brandsLoading &&
+                                brands.map((brand) => (
+                                    <option
+                                        key={brand.id}
+                                        value={brand.id}
+                                    >
+                                        {brand.name}
+                                    </option>
+                                ))}
+                        </select>
 
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="number"
-                            min="0"
-                            placeholder="Min price"
-                            value={minPrice}
-                            onChange={(e) =>
-                                setMinPrice(e.target.value)
-                            }
-                            className="
+                        {/* Price */}
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="number"
+                                min="0"
+                                placeholder="Min price"
+                                value={minPrice}
+                                onChange={(e) =>
+                                    setMinPrice(e.target.value)
+                                }
+                                className="
                                 w-32
                                 rounded-xl
                                 border
@@ -540,21 +539,21 @@ function Explore() {
                                 outline-none
                                 focus:border-border
                             "
-                        />
+                            />
 
-                        <span className="text-subtle">
-                            —
-                        </span>
+                            <span className="text-subtle">
+                                —
+                            </span>
 
-                        <input
-                            type="number"
-                            min="0"
-                            placeholder="Max price"
-                            value={maxPrice}
-                            onChange={(e) =>
-                                setMaxPrice(e.target.value)
-                            }
-                            className="
+                            <input
+                                type="number"
+                                min="0"
+                                placeholder="Max price"
+                                value={maxPrice}
+                                onChange={(e) =>
+                                    setMaxPrice(e.target.value)
+                                }
+                                className="
                                 w-32
                                 rounded-xl
                                 border
@@ -567,19 +566,17 @@ function Explore() {
                                 outline-none
                                 focus:border-border
                             "
-                        />
-                    </div>
+                            />
+                        </div>
 
-                    {/* ======================================
-                        Rating
-                    ====================================== */}
+                        {/* Rating */}
 
-                    <select
-                        value={rating}
-                        onChange={(e) =>
-                            setRating(e.target.value)
-                        }
-                        className="
+                        <select
+                            value={rating}
+                            onChange={(e) =>
+                                setRating(e.target.value)
+                            }
+                            className="
                             min-w-36
                             rounded-xl
                             border
@@ -593,38 +590,36 @@ function Explore() {
                             outline-none
                             focus:border-border
                         "
-                    >
-                        <option value="">
-                            Any Rating
-                        </option>
+                        >
+                            <option value="">
+                                Any Rating
+                            </option>
 
-                        <option value="5">
-                            ★★★★★
-                        </option>
+                            <option value="5">
+                                ★★★★★
+                            </option>
 
-                        <option value="4">
-                            ★★★★☆ & up
-                        </option>
+                            <option value="4">
+                                ★★★★☆ & up
+                            </option>
 
-                        <option value="3">
-                            ★★★☆☆ & up
-                        </option>
+                            <option value="3">
+                                ★★★☆☆ & up
+                            </option>
 
-                        <option value="2">
-                            ★★☆☆☆ & up
-                        </option>
+                            <option value="2">
+                                ★★☆☆☆ & up
+                            </option>
 
-                        <option value="1">
-                            ★☆☆☆☆ & up
-                        </option>
-                    </select>
+                            <option value="1">
+                                ★☆☆☆☆ & up
+                            </option>
+                        </select>
 
-                    {/* ======================================
-                        Promotion
-                    ====================================== */}
+                        {/* Promotion */}
 
-                    <label
-                        className="
+                        <label
+                            className="
                             flex
                             items-center
                             gap-2
@@ -640,39 +635,39 @@ function Explore() {
                             cursor-pointer
                             select-none
                         "
-                    >
-                        <input
-                            type="checkbox"
-                            checked={promotion}
-                            onChange={(e) =>
-                                updatePromotion(e.target.checked)
-                            }
-                            className="
+                        >
+                            <input
+                                type="checkbox"
+                                checked={promotion}
+                                onChange={(e) =>
+                                    updatePromotion(
+                                        e.target.checked
+                                    )
+                                }
+                                className="
                                 h-4
                                 w-4
                                 accent-black
                                 cursor-pointer
                             "
-                        />
+                            />
 
-                        On promotion
-                    </label>
+                            On promotion
+                        </label>
 
-                    {/* ======================================
-                        Clear Filters
-                    ====================================== */}
+                        {/* Clear */}
 
-                    {(categoryId ||
-                        brandId ||
-                        minPrice ||
-                        maxPrice ||
-                        rating ||
-                        search ||
-                        promotion) && (
-                        <button
-                            type="button"
-                            onClick={clearFilters}
-                            className="
+                        {(categoryId ||
+                            brandId ||
+                            minPrice ||
+                            maxPrice ||
+                            rating ||
+                            search ||
+                            promotion) && (
+                                <button
+                                    type="button"
+                                    onClick={clearFilters}
+                                    className="
                                 px-4
                                 py-2
                                 rounded-xl
@@ -683,95 +678,92 @@ function Explore() {
                                 hover:bg-black/5
                                 transition
                             "
-                        >
-                            Clear filters
-                        </button>
+                                >
+                                    Clear filters
+                                </button>
+                            )}
+                    </div>
+
+                    {/* ==================================
+                    Errors
+                ================================== */}
+
+                    {(categoriesError || brandsError) && (
+                        <p className="text-sm text-red-500 mb-4">
+                            Failed to load categories or brands.
+                        </p>
                     )}
-                </div>
 
-                {/* ==========================================
-                    Error: Categories / Brands
-                ========================================== */}
-
-                {(categoriesError || brandsError) && (
-                    <p className="text-sm text-red-500 mb-4">
-                        Failed to load categories or brands.
-                    </p>
-                )}
-
-                {/* ==========================================
+                    {/* ==================================
                     Products
-                ========================================== */}
+                ================================== */}
 
-                <section
-                    className="
-                        grid
-                        grid-cols-1
-                        sm:grid-cols-2
-                        md:grid-cols-3
-                        lg:grid-cols-5
-                        gap-4
+                    <section
+                        className="
+                        flex
+                        flex-wrap
+                        gap-6
                     "
-                >
+                    >
+                        {/* Loading */}
 
-                    {/* Loading */}
-
-                    {productsLoading && (
-                        <p
-                            className="
-                                col-span-full
-                                text-center
-                                py-10
-                            "
-                        >
-                            Loading products...
-                        </p>
-                    )}
-
-                    {/* Error */}
-
-                    {productsError && (
-                        <p
-                            className="
-                                col-span-full
-                                text-center
-                                py-10
-                                text-red-500
-                            "
-                        >
-                            Failed to load products.
-                        </p>
-                    )}
-
-                    {/* Empty */}
-
-                    {!productsLoading &&
-                        !productsError &&
-                        products.length === 0 && (
-                            <p
-                                className="
-                                    col-span-full
-                                    text-center
-                                    py-10
-                                    text-muted
-                                "
-                            >
-                                No products found.
+                        {productsLoading && (
+                            <p className="w-full text-center py-10">
+                                Loading products...
                             </p>
                         )}
 
-                    {/* Products */}
+                        {/* Error */}
 
-                    {!productsLoading &&
-                        !productsError &&
-                        products.map((product) => (
-                            <ProductCard
-                                product={product}
-                                key={product.id}
-                            />
-                        ))}
-                </section>
+                        {productsError && (
+                            <p className="w-full text-center py-10 text-red-500">
+                                Failed to load products.
+                            </p>
+                        )}
+
+                        {/* Empty */}
+
+                        {!productsLoading &&
+                            !productsError &&
+                            products.length === 0 && (
+                                <p className="w-full text-center py-10 text-muted">
+                                    No products found.
+                                </p>
+                            )}
+
+                        {/* Products */}
+
+                        {!productsLoading &&
+                            !productsError &&
+                            products.map((product) => (
+                                <div
+                                    key={product.id}
+                                    className="
+                                    w-full
+                                    sm:w-[calc(50%-0.75rem)]
+                                    md:w-[calc(33.333%-1rem)]
+                                    lg:w-[calc(25%-1.125rem)]
+                                    xl:w-[calc(20%-1.2rem)]
+                                "
+                                >
+                                    <ProductCard
+                                        product={product}
+                                    />
+                                </div>
+                            ))}
+                    </section>
+
+                </div>
             </section>
+
+            {/* ==========================================
+            Footer — Full Width
+        ========================================== */}
+
+            <footer className="relative z-10 w-full">
+                <Footer />
+            </footer>
+
         </main>
     );
 }

@@ -64,7 +64,7 @@ export function CategoryShow() {
         ]
     })
 
-    const products = productsResponse?.data;
+    const products = productsResponse;
 
     const totalProducts = total
 
@@ -588,7 +588,7 @@ export function CategoryShow() {
                         <StatCard
                             icon={<DollarSign className="h-6 w-6" />}
                             label="Total Revenue"
-                            value={`$${Number(totalRevenue || 0).toFixed(2)}`}
+                            value={`${Number(totalRevenue || 0).toFixed(2)} DH`}
                         />
                     </div>
 

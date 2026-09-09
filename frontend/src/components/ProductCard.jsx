@@ -43,7 +43,7 @@ function ProductCard({ product }) {
                     alt={product.name}
                     className="
                         w-full h-full
-                        object-cover
+                        object-contain
                         group-hover:scale-[1.03]
                         transition-transform
                         duration-300
@@ -62,12 +62,12 @@ function ProductCard({ product }) {
                         {discount > 0 ? (
                             <>
                                 <p className="text-minimal-green text-base font-bold">
-                                    ${finalPrice.toFixed(2)}
+                                    {finalPrice.toFixed(2)} DH
                                 </p>
 
                                 <div className="flex items-center justify-end gap-1">
                                     <span className="text-xs text-muted line-through">
-                                        ${originalPrice.toFixed(2)}
+                                        {originalPrice.toFixed(2)}
                                     </span>
 
                                     <span className="text-xs font-bold text-red-500">
@@ -77,7 +77,7 @@ function ProductCard({ product }) {
                             </>
                         ) : (
                             <p className="text-minimal-green text-base font-bold">
-                                ${originalPrice.toFixed(2)}
+                                {originalPrice.toFixed(2)} DH
                             </p>
                         )}
                     </div>

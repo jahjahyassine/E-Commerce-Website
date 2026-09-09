@@ -3,7 +3,7 @@ import chat2 from "../assets/chat2.jpg"
 import chat3 from "../assets/chat3.jpg"
 
 
-function ChatbotSection() {
+function hatbotSection() {
     return (
         <section id="assistant" className="h-screen pt-20 flex flex-col items-center text-center" aria-labelledby="assistant-heading">
             <h2 className="text-md uppercase tracking-[0.4em] text-muted">

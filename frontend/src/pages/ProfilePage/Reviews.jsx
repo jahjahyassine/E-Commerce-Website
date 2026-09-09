@@ -39,7 +39,7 @@ function Reviews() {
         }
     }, [isErrorUser, navigate]);
 
- 
+
 
     const getUserReviews = async () => {
         const response = await fetch(`${BASE_URL}/user/reviews`, {
@@ -137,17 +137,20 @@ function Reviews() {
                 className="
                     relative
                     z-10
-                    h-screen
                     bg-card/20
                     backdrop-blur-xl
                     flex
                 "
             >
-                <ProfileSidebar user={currentUser} />
+                <div className="h-screen">
+                    <ProfileSidebar user={currentUser} />
+                </div>
+
 
                 <section
                     className="
-                        flex-1
+                        w-[70vw]
+                        mx-auto
                         flex
                         flex-col
                         pt-20
@@ -157,8 +160,6 @@ function Reviews() {
                         scroll-smooth
                     "
                 >
-
-
                     <div
                         className="
                             flex
@@ -353,7 +354,7 @@ function Reviews() {
                                                                 key={star}
                                                                 className={
                                                                     star <=
-                                                                    rating
+                                                                        rating
                                                                         ? "text-amber-500"
                                                                         : "text-muted opacity-30"
                                                                 }

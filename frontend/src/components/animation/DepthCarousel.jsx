@@ -202,14 +202,14 @@ const DepthCarousel = ({
             const blurPx =
                 cfg.blur > 0
                     ? Math.min(
-                          cfg.blur,
-                          (behind /
-                              Math.max(
-                                  1,
-                                  cfg.visibleCards
-                              )) *
-                              cfg.blur
-                      )
+                        cfg.blur,
+                        (behind /
+                            Math.max(
+                                1,
+                                cfg.visibleCards
+                            )) *
+                        cfg.blur
+                    )
                     : 0;
 
             const zIndex = Math.round(
@@ -243,12 +243,12 @@ const DepthCarousel = ({
 
             if (overlay) {
                 overlay.style.opacity = clamp(
-                    behind *
-                        cfg.falloff *
-                        1.25,
+                    behind * cfg.falloff * 1.25,
                     0,
                     0.86
                 ).toFixed(3);
+
+                overlay.style.transition = "opacity 0.3s ease";
             }
         }
     }, []);
@@ -336,10 +336,10 @@ const DepthCarousel = ({
             const index = cfg.loop
                 ? ((rawIndex % n) + n) % n
                 : clamp(
-                      rawIndex,
-                      0,
-                      n - 1
-                  );
+                    rawIndex,
+                    0,
+                    n - 1
+                );
 
             let delta =
                 index - posRef.current;
@@ -438,7 +438,7 @@ const DepthCarousel = ({
                         Math.abs(
                             cfg.spread
                         ) *
-                            2 +
+                        2 +
                         120;
 
                     scaleRef.current =
@@ -496,7 +496,7 @@ const DepthCarousel = ({
 
             const raw =
                 Math.abs(event.deltaX) >
-                Math.abs(event.deltaY)
+                    Math.abs(event.deltaY)
                     ? event.deltaX
                     : event.deltaY;
 
@@ -507,8 +507,8 @@ const DepthCarousel = ({
 
             const step = clamp(
                 delta /
-                    (cfg.cardWidth *
-                        0.9),
+                (cfg.cardWidth *
+                    0.9),
                 -0.6,
                 0.6
             );
@@ -629,8 +629,8 @@ const DepthCarousel = ({
 
             const stepPx = Math.max(
                 cfg.cardWidth *
-                    0.55 *
-                    scaleRef.current,
+                0.55 *
+                scaleRef.current,
                 40
             );
 
@@ -708,15 +708,15 @@ const DepthCarousel = ({
 
         const stepPx = Math.max(
             cfg.cardWidth *
-                0.55 *
-                scaleRef.current,
+            0.55 *
+            scaleRef.current,
             40
         );
 
         const projected =
             posRef.current -
             (drag.v * 180) /
-                stepPx;
+            stepPx;
 
         setFocus(
             Math.round(projected),
@@ -762,7 +762,7 @@ const DepthCarousel = ({
     useEffect(() => {
         reducedRef.current =
             typeof window !==
-                "undefined" &&
+            "undefined" &&
             window.matchMedia(
                 "(prefers-reduced-motion: reduce)"
             ).matches;
@@ -1001,7 +1001,7 @@ const DepthCarousel = ({
                             item.discount > 0 &&
                             item.originalPrice &&
                             item.originalPrice >
-                                item.price;
+                            item.price;
 
                         return (
                             <div
@@ -1009,12 +1009,11 @@ const DepthCarousel = ({
                                     item.id ??
                                     index
                                 }
-                                className={`depth-carousel__card ${
-                                    active ===
+                                className={`depth-carousel__card ${active ===
                                     index
-                                        ? "is-active"
-                                        : ""
-                                }`}
+                                    ? "is-active"
+                                    : ""
+                                    }`}
                                 ref={(element) => {
                                     cardRefs.current[
                                         index
@@ -1028,9 +1027,8 @@ const DepthCarousel = ({
                                         radius,
                                 }}
                                 aria-roledescription="slide"
-                                aria-label={`${item.name || "Product"} — ${
-                                    index + 1
-                                } of ${count}`}
+                                aria-label={`${item.name || "Product"} — ${index + 1
+                                    } of ${count}`}
                                 aria-hidden={
                                     active !==
                                     index
@@ -1058,17 +1056,11 @@ const DepthCarousel = ({
 
                                     <span
                                         className="depth-carousel__tint"
-                                        ref={(
-                                            element
-                                        ) => {
-                                            overlayRefs.current[
-                                                index
-                                            ] =
-                                                element;
+                                        ref={(element) => {
+                                            overlayRefs.current[index] = element;
                                         }}
                                         style={{
-                                            background:
-                                                tint,
+                                            background: tint,
                                         }}
                                     />
 
@@ -1118,23 +1110,23 @@ const DepthCarousel = ({
 
                                         <span>
                                             {item.rating >
-                                            0
+                                                0
                                                 ? item.rating.toFixed(
-                                                      1
-                                                  )
+                                                    1
+                                                )
                                                 : "New"}
                                         </span>
 
                                         {item.reviews >
                                             0 && (
-                                            <span className="depth-carousel__reviews">
-                                                (
-                                                {item.reviews.toLocaleString(
-                                                    "en-US"
-                                                )}
-                                                )
-                                            </span>
-                                        )}
+                                                <span className="depth-carousel__reviews">
+                                                    (
+                                                    {item.reviews.toLocaleString(
+                                                        "en-US"
+                                                    )}
+                                                    )
+                                                </span>
+                                            )}
                                     </div>
 
                                     {/* PRICE */}
@@ -1226,16 +1218,14 @@ const DepthCarousel = ({
                                         active ===
                                         index
                                     }
-                                    aria-label={`Go to product ${
-                                        index +
+                                    aria-label={`Go to product ${index +
                                         1
-                                    }`}
-                                    className={`depth-carousel__dot ${
-                                        active ===
+                                        }`}
+                                    className={`depth-carousel__dot ${active ===
                                         index
-                                            ? "is-active"
-                                            : ""
-                                    }`}
+                                        ? "is-active"
+                                        : ""
+                                        }`}
                                     onClick={() =>
                                         setFocus(
                                             index,

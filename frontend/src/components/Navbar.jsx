@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+
 import { Link, useNavigate } from "react-router-dom";
+
 import { useQuery } from "@tanstack/react-query";
+
 import getCurrentUser from "../hooks/CurrentUser";
 
 function Navbar() {
@@ -8,49 +11,21 @@ function Navbar() {
 
     const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-    const [toggleSearch, setToggleSearch] = useState(false);
-    const [search, setSearch] = useState("");
     const [showCategories, setShowCategories] = useState(false);
     const [showBrands, setShowBrands] = useState(false);
 
-    const searchRef = useRef(null);
-
-
-    // ==========================================
-    // Search input focus
-    // ==========================================
+    
+    useEffect(() => {
+        if (showCategories) {
+            setShowBrands(false);
+        }
+    }, [showCategories]);
 
     useEffect(() => {
-        if (toggleSearch) {
-            searchRef.current?.focus();
+        if (showBrands) {
+            setShowCategories(false);
         }
-    }, [toggleSearch]);
-
-
-    // ==========================================
-    // Search
-    // ==========================================
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-
-        const value = search.trim();
-
-        if (!value) {
-            return;
-        }
-
-        navigate(
-            `/products?search=${encodeURIComponent(value)}`
-        );
-
-        setToggleSearch(false);
-    };
-
-
-    // ==========================================
-    // Current User
-    // ==========================================
+    }, [showBrands]);
 
     const {
         data: currentUser,
@@ -59,11 +34,6 @@ function Navbar() {
         queryFn: getCurrentUser,
         enabled: !!localStorage.getItem("access_token"),
     });
-
-
-    // ==========================================
-    // Categories
-    // ==========================================
 
     const getCategories = async () => {
         const response = await fetch(
@@ -86,12 +56,8 @@ function Navbar() {
     } = useQuery({
         queryKey: ["categories"],
         queryFn: getCategories,
+        staleTime: 5 * 60 * 1000,
     });
-
-
-    // ==========================================
-    // Brands
-    // ==========================================
 
     const getBrands = async () => {
         const response = await fetch(
@@ -114,12 +80,8 @@ function Navbar() {
     } = useQuery({
         queryKey: ["brands"],
         queryFn: getBrands,
+        staleTime: 5 * 60 * 1000,
     });
-
-
-    // ==========================================
-    // Category Navigation
-    // ==========================================
 
     const handleCategoryClick = (categoryId) => {
         setShowCategories(false);
@@ -129,11 +91,6 @@ function Navbar() {
         );
     };
 
-
-    // ==========================================
-    // Brand Navigation
-    // ==========================================
-
     const handleBrandClick = (brandId) => {
         setShowBrands(false);
 
@@ -141,7 +98,6 @@ function Navbar() {
             `/products?brand_id=${brandId}`
         );
     };
-
 
     return (
         <nav
@@ -160,13 +116,7 @@ function Navbar() {
                 font-sans
             "
         >
-
             <div className="flex items-center justify-between gap-6">
-
-
-                {/* ==========================================
-                    Logo
-                ========================================== */}
 
                 <Link
                     to="/"
@@ -183,11 +133,6 @@ function Navbar() {
                     ByteStore
                 </Link>
 
-
-                {/* ==========================================
-                    Desktop Navigation
-                ========================================== */}
-
                 <ul
                     className="
                         hidden
@@ -197,34 +142,17 @@ function Navbar() {
                         text-muted
                     "
                 >
-
-
-                    {/* ==========================================
-                        Store
-                    ========================================== */}
-
                     <li className="hover:text-foreground duration-300">
                         <Link to="/products">
                             Store
                         </Link>
                     </li>
 
-
-                    {/* ==========================================
-                        Categories
-                    ========================================== */}
-
                     <li
                         className="relative"
-                        onMouseEnter={() => {
-                            setShowCategories(true);
-                            setShowBrands(false);
-                        }}
-                        onMouseLeave={() => {
-                            setShowCategories(false);
-                        }}
+                        onMouseEnter={() => setShowCategories(true)}
+                        onMouseLeave={() => setShowCategories(false)}
                     >
-
                         <button
                             type="button"
                             className="
@@ -262,7 +190,6 @@ function Navbar() {
                             </svg>
                         </button>
 
-
                         {showCategories && (
                             <div
                                 className="
@@ -274,7 +201,6 @@ function Navbar() {
                                     w-56
                                 "
                             >
-
                                 <div
                                     className="
                                         rounded-2xl
@@ -286,9 +212,7 @@ function Navbar() {
                                         p-2
                                     "
                                 >
-
                                     {categoriesLoading ? (
-
                                         <div
                                             className="
                                                 px-4
@@ -299,39 +223,35 @@ function Navbar() {
                                         >
                                             Loading categories...
                                         </div>
-
                                     ) : categories.length > 0 ? (
-
-                                        categories.map((category) => (
-
-                                            <button
-                                                key={category.id}
-                                                type="button"
-                                                onClick={() =>
-                                                    handleCategoryClick(
-                                                        category.id
-                                                    )
-                                                }
-                                                className="
-                                                    w-full
-                                                    text-left
-                                                    px-4
-                                                    py-2.5
-                                                    rounded-xl
-                                                    text-muted
-                                                    hover:text-foreground
-                                                    hover:bg-foreground/5
-                                                    duration-200
-                                                    cursor-pointer
-                                                "
-                                            >
-                                                {category.name}
-                                            </button>
-
-                                        ))
-
+                                        categories
+                                            .slice(0, 8)
+                                            .map((category) => (
+                                                <button
+                                                    key={category.id}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleCategoryClick(
+                                                            category.id
+                                                        )
+                                                    }
+                                                    className="
+                                                        w-full
+                                                        text-left
+                                                        px-4
+                                                        py-2.5
+                                                        rounded-xl
+                                                        text-muted
+                                                        hover:text-foreground
+                                                        hover:bg-foreground/5
+                                                        duration-200
+                                                        cursor-pointer
+                                                    "
+                                                >
+                                                    {category.name}
+                                                </button>
+                                            ))
                                     ) : (
-
                                         <div
                                             className="
                                                 px-4
@@ -342,9 +262,7 @@ function Navbar() {
                                         >
                                             No categories available
                                         </div>
-
                                     )}
-
 
                                     <div
                                         className="
@@ -353,7 +271,6 @@ function Navbar() {
                                             my-2
                                         "
                                     />
-
 
                                     <Link
                                         to="/products"
@@ -373,30 +290,16 @@ function Navbar() {
                                     >
                                         View all categories
                                     </Link>
-
                                 </div>
-
                             </div>
                         )}
-
                     </li>
-
-
-                    {/* ==========================================
-                        Brands
-                    ========================================== */}
 
                     <li
                         className="relative"
-                        onMouseEnter={() => {
-                            setShowBrands(true);
-                            setShowCategories(false);
-                        }}
-                        onMouseLeave={() => {
-                            setShowBrands(false);
-                        }}
+                        onMouseEnter={() => setShowBrands(true)}
+                        onMouseLeave={() => setShowBrands(false)}
                     >
-
                         <button
                             type="button"
                             className="
@@ -434,7 +337,6 @@ function Navbar() {
                             </svg>
                         </button>
 
-
                         {showBrands && (
                             <div
                                 className="
@@ -446,7 +348,6 @@ function Navbar() {
                                     w-48
                                 "
                             >
-
                                 <div
                                     className="
                                         rounded-2xl
@@ -458,9 +359,7 @@ function Navbar() {
                                         p-2
                                     "
                                 >
-
                                     {brandsLoading ? (
-
                                         <div
                                             className="
                                                 px-4
@@ -471,39 +370,35 @@ function Navbar() {
                                         >
                                             Loading brands...
                                         </div>
-
                                     ) : brands.length > 0 ? (
-
-                                        brands.map((brand) => (
-
-                                            <button
-                                                key={brand.id}
-                                                type="button"
-                                                onClick={() =>
-                                                    handleBrandClick(
-                                                        brand.id
-                                                    )
-                                                }
-                                                className="
-                                                    w-full
-                                                    text-left
-                                                    px-4
-                                                    py-2.5
-                                                    rounded-xl
-                                                    text-muted
-                                                    hover:text-foreground
-                                                    hover:bg-foreground/5
-                                                    duration-200
-                                                    cursor-pointer
-                                                "
-                                            >
-                                                {brand.name}
-                                            </button>
-
-                                        ))
-
+                                        brands
+                                            .slice(0, 8)
+                                            .map((brand) => (
+                                                <button
+                                                    key={brand.id}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleBrandClick(
+                                                            brand.id
+                                                        )
+                                                    }
+                                                    className="
+                                                        w-full
+                                                        text-left
+                                                        px-4
+                                                        py-2.5
+                                                        rounded-xl
+                                                        text-muted
+                                                        hover:text-foreground
+                                                        hover:bg-foreground/5
+                                                        duration-200
+                                                        cursor-pointer
+                                                    "
+                                                >
+                                                    {brand.name}
+                                                </button>
+                                            ))
                                     ) : (
-
                                         <div
                                             className="
                                                 px-4
@@ -514,9 +409,7 @@ function Navbar() {
                                         >
                                             No brands available
                                         </div>
-
                                     )}
-
 
                                     <div
                                         className="
@@ -525,7 +418,6 @@ function Navbar() {
                                             my-2
                                         "
                                     />
-
 
                                     <Link
                                         to="/products"
@@ -545,191 +437,19 @@ function Navbar() {
                                     >
                                         View all brands
                                     </Link>
-
                                 </div>
-
                             </div>
                         )}
-
                     </li>
-
-
-                    {/* ==========================================
-                        Promotions
-                    ========================================== */}
 
                     <li className="hover:text-foreground duration-300">
                         <Link to="/products?promotion=true">
                             Promotions
                         </Link>
                     </li>
-
-
-                    {/* ==========================================
-                        Support
-                    ========================================== */}
-
-                    <li className="hover:text-foreground duration-300">
-                        <Link to="/support">
-                            Support
-                        </Link>
-                    </li>
-
                 </ul>
 
-
-                {/* ==========================================
-                    Right Actions
-                ========================================== */}
-
                 <div className="flex items-center gap-2">
-
-
-                    {/* ==========================================
-                        Search
-                    ========================================== */}
-
-                    <div className="flex items-center">
-
-                        {toggleSearch ? (
-
-                            <form
-                                onSubmit={handleSearch}
-                                className="
-                                    flex
-                                    items-center
-                                    bg-background-secondary
-                                    rounded-full
-                                    border
-                                    border-border-soft
-                                    focus-within:border-border
-                                    overflow-hidden
-                                    duration-300
-                                "
-                            >
-
-                                <svg
-                                    className="
-                                        w-5
-                                        h-5
-                                        ml-3
-                                        text-muted
-                                        shrink-0
-                                    "
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth="1.5"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                                    />
-                                </svg>
-
-
-                                <input
-                                    ref={searchRef}
-                                    value={search}
-                                    onChange={(e) =>
-                                        setSearch(e.target.value)
-                                    }
-                                    placeholder="Search products..."
-                                    className="
-                                        w-40
-                                        xl:w-56
-                                        px-3
-                                        py-2
-                                        bg-transparent
-                                        outline-none
-                                        text-sm
-                                        text-foreground
-                                        placeholder:text-muted
-                                    "
-                                />
-
-
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setSearch("");
-                                        setToggleSearch(false);
-                                    }}
-                                    className="
-                                        mr-2
-                                        text-muted
-                                        hover:text-foreground
-                                        duration-200
-                                        cursor-pointer
-                                    "
-                                    aria-label="Close search"
-                                >
-
-                                    <svg
-                                        className="w-5 h-5"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            d="M6 6l12 12M18 6 6 18"
-                                        />
-                                    </svg>
-
-                                </button>
-
-                            </form>
-
-                        ) : (
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setToggleSearch(true)
-                                }
-                                className="
-                                    bg-background-secondary
-                                    p-2
-                                    rounded-full
-                                    border
-                                    border-border-soft
-                                    hover:border-border
-                                    hover:bg-foreground/5
-                                    duration-300
-                                    cursor-pointer
-                                "
-                                aria-label="Search products"
-                            >
-
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth="1.5"
-                                    stroke="currentColor"
-                                    className="w-5 h-5"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                                    />
-                                </svg>
-
-                            </button>
-
-                        )}
-
-                    </div>
-
-
-                    {/* ==========================================
-                        Cart
-                    ========================================== */}
 
                     <Link
                         to="/cart"
@@ -745,7 +465,6 @@ function Navbar() {
                         "
                         aria-label="Shopping cart"
                     >
-
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -760,16 +479,9 @@ function Navbar() {
                                 d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974a1.125 1.125 0 0 1 1.119 1.007Z"
                             />
                         </svg>
-
                     </Link>
 
-
-                    {/* ==========================================
-                        Account
-                    ========================================== */}
-
                     {currentUser ? (
-
                         <Link
                             to="/profile"
                             className="
@@ -785,7 +497,6 @@ function Navbar() {
                             "
                             aria-label="Account"
                         >
-
                             <div
                                 className="
                                     h-full
@@ -806,11 +517,8 @@ function Navbar() {
                                     "
                                 />
                             </div>
-
                         </Link>
-
                     ) : (
-
                         <Link
                             to="/login"
                             className="
@@ -825,7 +533,6 @@ function Navbar() {
                             "
                             aria-label="Account"
                         >
-
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -840,15 +547,10 @@ function Navbar() {
                                     d="M15.75 6a3.75 3.75 0 1 1-7.5 0A3.75 3.75 0 0 1 15.75 6ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
                                 />
                             </svg>
-
                         </Link>
-
                     )}
-
                 </div>
-
             </div>
-
         </nav>
     );
 }

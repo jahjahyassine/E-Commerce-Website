@@ -7,6 +7,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 
+class OrderItemResponse (BaseModel):
+    product_variant_id: int
+    product_name: str
+    variant_attributes_snapshot: dict
+    quantity: int
+    price: Decimal
+
 # ============================================================
 # INVENTORY
 # ============================================================
@@ -65,6 +72,7 @@ class InventoryVariantResponse(BaseModel):
     attributes: dict[str, Any] | None = None
     is_active: bool
 
+    order_items: list[OrderItemResponse] = Field(default_factory=list)
     product: InventoryProductResponse
     inventory: InventoryStockResponse | None = None
 

@@ -15,6 +15,13 @@ import OrderConfirmation from './pages/Order/OrderConfirmation';
 import Reviews from './pages/ProfilePage/Reviews';
 import SecurityPage from './pages/ProfilePage/SecurityPage';
 import OrderShow from './pages/ProfilePage/OrderShow';
+import UseCaseDiagram from './pages/ClientUseCaseDiagram';
+import ClientUseCaseDiagram from './pages/ClientUseCaseDiagram';
+import AdminUseCaseDiagram from './pages/AdminUseCaseDiagram';
+import DataModelDiagram from './pages/DataModelDiagram';
+import SequenceDiagram from './pages/SequenceDiagram';
+import ArchitectureDiagram from './pages/ArchitectureDiagram';
+import AdminRoute from './admin/AdminRoute';
 
 function App() {
   return (
@@ -37,9 +44,19 @@ function App() {
         <Route path="security" element={<SecurityPage />} />
       </Route>
 
+      <Route path='client' element={<ClientUseCaseDiagram />} />
+      <Route path='use' element={<AdminUseCaseDiagram />} />
 
+      <Route path='data' element={<DataModelDiagram />} />
+      <Route path='sequence' element={<SequenceDiagram />} />
 
-      <Route path="/admin/*" element={<AdminApp />} />
+      <Route path='architecture' element={<ArchitectureDiagram />} />
+
+      <Route path="/admin/*" element={
+        <AdminRoute>
+          <AdminApp />
+        </AdminRoute>
+      } />
 
 
     </Routes>

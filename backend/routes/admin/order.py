@@ -1,3 +1,4 @@
+from enum import Enum
 import json
 
 from typing import Annotated
@@ -12,6 +13,7 @@ from fastapi import (
     status,
 )
 
+from pydantic import BaseModel
 from sqlalchemy import exists, func, or_
 from sqlalchemy.orm import Session
 
@@ -179,7 +181,135 @@ def get_orders (
 
 
 
+class OrderLifecycleStatus(str, Enum):
+    PENDING = "PENDING"
+    CONFIRMED = "CONFIRMED"
+    SHIPPED = "SHIPPED"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
 
+
+class OrderStatusUpdate(BaseModel):
+    status: OrderLifecycleStatus
+
+
+# ============================================================
+# SAFE ENUM/STRING NORMALIZATION
+#
+# Never assumes `.value` exists — this is what caused:
+#   Error updating order 2: 'str' object has no attribute 'value'
+# ============================================================
+
+def _raw(value):
+    """Return the plain string for `value`, whether it's an Enum
+    member or already a plain string. Never blindly calls `.value`."""
+    if isinstance(value, Enum):
+        return value.value
+    return value
+
+
+# ============================================================
+# THE SINGLE SOURCE OF TRUTH: lifecycle -> (order, shipping, payment)
+#
+# If your columns are plain String (not SQLAlchemy Enum) columns,
+# replace e.g. `OrderStatus.PENDING` with `OrderStatus.PENDING.value`
+# (or the plain string "PENDING") throughout this dict.
+# ============================================================
+
+LIFECYCLE_STATE_MAP: dict[OrderLifecycleStatus, tuple] = {
+    OrderLifecycleStatus.PENDING: (
+        OrderStatus.PENDING,
+        ShippingStatus.NOT_SHIPPED,
+        PaymentStatus.PENDING,
+    ),
+    OrderLifecycleStatus.CONFIRMED: (
+        OrderStatus.CONFIRMED,
+        ShippingStatus.NOT_SHIPPED,
+        PaymentStatus.PENDING,
+    ),
+    OrderLifecycleStatus.SHIPPED: (
+        OrderStatus.CONFIRMED,
+        ShippingStatus.SHIPPED,
+        PaymentStatus.PENDING,
+    ),
+    OrderLifecycleStatus.COMPLETED: (
+        OrderStatus.COMPLETED,
+        ShippingStatus.DELIVERED,
+        PaymentStatus.PAID,
+    ),
+    OrderLifecycleStatus.CANCELLED: (
+        OrderStatus.CANCELLED,
+        ShippingStatus.NOT_SHIPPED,
+        PaymentStatus.PENDING,
+    ),
+}
+
+
+def _lifecycle_from_order(order: Order) -> OrderLifecycleStatus | None:
+    """
+    Derive the current lifecycle stage from the order's three raw
+    columns. Returns None if the order is sitting in a combination
+    that doesn't match any known lifecycle stage (e.g. legacy/bad
+    data) — callers must treat that as "cannot safely transition".
+    """
+    raw_state = (
+        _raw(order.order_status),
+        _raw(order.shipping_status),
+        _raw(order.payment_status),
+    )
+    for lifecycle, state in LIFECYCLE_STATE_MAP.items():
+        if tuple(_raw(v) for v in state) == raw_state:
+            return lifecycle
+    return None
+
+
+# ============================================================
+# EXACT TRANSITION STATE MACHINE (no numeric ranks)
+# ============================================================
+
+ALLOWED_TRANSITIONS: dict[OrderLifecycleStatus, set] = {
+    OrderLifecycleStatus.PENDING: {
+        OrderLifecycleStatus.CONFIRMED,
+        OrderLifecycleStatus.CANCELLED,
+    },
+    OrderLifecycleStatus.CONFIRMED: {
+        OrderLifecycleStatus.SHIPPED,
+        OrderLifecycleStatus.CANCELLED,
+    },
+    OrderLifecycleStatus.SHIPPED: {
+        OrderLifecycleStatus.COMPLETED,
+    },
+    OrderLifecycleStatus.COMPLETED: set(),
+    OrderLifecycleStatus.CANCELLED: set(),
+}
+
+
+def _invalid_transition_message(
+    current: OrderLifecycleStatus,
+    target: OrderLifecycleStatus,
+) -> str:
+    if current == OrderLifecycleStatus.COMPLETED:
+        return "Completed orders cannot be modified."
+    if current == OrderLifecycleStatus.CANCELLED:
+        return "Cancelled orders cannot be modified."
+    if target == OrderLifecycleStatus.COMPLETED:
+        return "Cannot complete an order before it has been shipped."
+    if (
+        target == OrderLifecycleStatus.CANCELLED
+        and current == OrderLifecycleStatus.SHIPPED
+    ):
+        return "Cannot cancel an order after it has been shipped."
+    if (
+        target == OrderLifecycleStatus.SHIPPED
+        and current == OrderLifecycleStatus.PENDING
+    ):
+        return "Cannot ship an order that has not been confirmed."
+    return f"Cannot transition order from {current.value} to {target.value}."
+
+
+# ============================================================
+# ROUTE
+# ============================================================
 
 @router.patch(
     "/orders/{order_id}",
@@ -187,15 +317,9 @@ def get_orders (
 )
 def update_order(
     order_id: int,
-    order_data: StatusUpdate,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
+    order_data: OrderStatusUpdate,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
 ):
     require_admin(db, user_infos)
 
@@ -203,406 +327,111 @@ def update_order(
         order = (
             db.query(Order)
             .filter(Order.id == order_id)
+            .with_for_update()
             .first()
         )
-
         if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+
+        current_lifecycle = _lifecycle_from_order(order)
+        if current_lifecycle is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Order not found",
+                status_code=400,
+                detail=(
+                    "Order is in an inconsistent status combination and "
+                    "cannot be transitioned automatically. Please correct "
+                    "it manually before using lifecycle actions."
+                ),
             )
 
-        update_data = order_data.model_dump(
-            exclude_unset=True
-        )
+        target_lifecycle = order_data.status
 
-        if not update_data:
+        if target_lifecycle == current_lifecycle:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No changes provided",
+                status_code=400,
+                detail=f"Order is already {current_lifecycle.value}.",
             )
 
-        old_order_status = order.order_status
-        old_shipping_status = order.shipping_status
-        old_payment_status = order.payment_status
+        allowed_next = ALLOWED_TRANSITIONS.get(current_lifecycle, set())
+        if target_lifecycle not in allowed_next:
+            raise HTTPException(
+                status_code=400,
+                detail=_invalid_transition_message(
+                    current_lifecycle, target_lifecycle
+                ),
+            )
 
-        new_order_status = update_data.get(
-            "order_status",
-            old_order_status,
-        )
-
-        new_shipping_status = update_data.get(
-            "shipping_status",
-            old_shipping_status,
-        )
-
-        new_payment_status = update_data.get(
-            "payment_status",
-            old_payment_status,
-        )
-
-        if (
-            old_order_status == OrderStatus.CANCELLED
-        ):
-            if (
-                new_order_status
-                != OrderStatus.CANCELLED
+        # --------------------------------------------------
+        # CANCELLATION: restore inventory + record StockChange
+        #
+        # See the INVENTORY TIMING note at the top of this file
+        # before relying on this in production.
+        # --------------------------------------------------
+        if target_lifecycle == OrderLifecycleStatus.CANCELLED:
+            # Belt-and-suspenders: the transition table already
+            # guarantees only PENDING/CONFIRMED can reach here, but
+            # this keeps the business rule explicit and self-evident.
+            if current_lifecycle not in (
+                OrderLifecycleStatus.PENDING,
+                OrderLifecycleStatus.CONFIRMED,
             ):
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "A cancelled order cannot "
-                        "be reopened"
-                    ),
-                )
-
-            if (
-                new_shipping_status
-                != ShippingStatus.NOT_SHIPPED
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "A cancelled order cannot "
-                        "be shipped or delivered"
-                    ),
-                )
-
-            if (
-                new_payment_status
-                != old_payment_status
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "A cancelled order cannot "
-                        "change its payment status"
-                    ),
-                )
-
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cancelled order cannot be modified",
-            )
-
-        if (
-            old_order_status
-            == OrderStatus.COMPLETED
-        ):
-            if (
-                new_order_status
-                != OrderStatus.COMPLETED
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "A completed order cannot "
-                        "change its order status"
-                    ),
-                )
-
-            if (
-                new_shipping_status
-                != ShippingStatus.DELIVERED
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "A completed order must "
-                        "remain delivered"
-                    ),
-                )
-
-        if (
-            old_shipping_status
-            == ShippingStatus.DELIVERED
-            and new_shipping_status
-            != ShippingStatus.DELIVERED
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    "A delivered order cannot "
-                    "be moved back to shipping"
-                ),
-            )
-
-        if (
-            old_shipping_status
-            == ShippingStatus.SHIPPED
-            and new_shipping_status
-            == ShippingStatus.NOT_SHIPPED
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    "A shipped order cannot be "
-                    "moved back to not shipped"
-                ),
-            )
-
-        if (
-            old_order_status == OrderStatus.PENDING
-            and new_order_status
-            not in (
-                OrderStatus.PENDING,
-                OrderStatus.CONFIRMED,
-                OrderStatus.CANCELLED,
-            )
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    "A pending order can only be "
-                    "confirmed or cancelled"
-                ),
-            )
-
-        if (
-            old_order_status == OrderStatus.CONFIRMED
-            and new_order_status
-            not in (
-                OrderStatus.CONFIRMED,
-                OrderStatus.COMPLETED,
-                OrderStatus.CANCELLED,
-            )
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    "A confirmed order can only "
-                    "remain confirmed, be completed, "
-                    "or be cancelled"
-                ),
-            )
-
-        if (
-            old_order_status == OrderStatus.PENDING
-            and new_shipping_status
-            != ShippingStatus.NOT_SHIPPED
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    "A pending order cannot be shipped"
-                ),
-            )
-
-        if (
-            new_shipping_status
-            == ShippingStatus.SHIPPED
-            and new_order_status
-            not in (
-                OrderStatus.CONFIRMED,
-            )
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    "Only confirmed orders can "
-                    "be shipped"
-                ),
-            )
-
-        if (
-            new_shipping_status
-            == ShippingStatus.DELIVERED
-            and new_order_status
-            != OrderStatus.COMPLETED
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    "An order must be completed "
-                    "when it is delivered"
-                ),
-            )
-
-        if (
-            new_order_status
-            == OrderStatus.COMPLETED
-            and new_shipping_status
-            != ShippingStatus.DELIVERED
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    "An order must be delivered "
-                    "before it can be completed"
-                ),
-            )
-
-        if (
-            new_order_status
-            == OrderStatus.CANCELLED
-        ):
-            if (
-                old_shipping_status
-                != ShippingStatus.NOT_SHIPPED
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "A shipped or delivered order "
-                        "cannot be cancelled"
-                    ),
-                )
-
-            if (
-                old_order_status
-                == OrderStatus.CANCELLED
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Order is already cancelled",
+                    status_code=400,
+                    detail="Cannot cancel an order after it has been shipped.",
                 )
 
             for order_item in order.items:
                 product_variant = (
                     db.query(ProductVariant)
                     .filter(
-                        ProductVariant.id
-                        == order_item.product_variant_id
+                        ProductVariant.id == order_item.product_variant_id
                     )
                     .with_for_update()
                     .first()
                 )
-
                 if not product_variant:
                     raise HTTPException(
-                        status_code=status.HTTP_404_NOT_FOUND,
+                        status_code=404,
                         detail=(
-                            "Product variant "
-                            f"{order_item.product_variant_id} "
-                            "not found"
+                            f"Product variant "
+                            f"{order_item.product_variant_id} not found"
                         ),
                     )
 
-                if not product_variant.inventory:
+                inventory = product_variant.inventory
+                if not inventory:
                     raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
+                        status_code=400,
                         detail=(
-                            "Inventory not found for "
-                            f"product variant "
+                            f"Inventory not found for product variant "
                             f"{product_variant.id}"
                         ),
                     )
 
-                product_variant.inventory.quantity += (
-                    order_item.quantity
+                inventory.quantity += order_item.quantity
+
+                db.add(
+                    StockChange(
+                        product_variant_id=product_variant.id,
+                        change_type=StockChangeType.IN,
+                        quantity=order_item.quantity,
+                        order_id=order.id,
+                    )
                 )
 
-                stock_change = StockChange(
-                    product_variant_id=(
-                        product_variant.id
-                    ),
-                    change_type=StockChangeType.IN,
-                    quantity=order_item.quantity,
-                    order_id=order.id,
-                )
-
-                db.add(stock_change)
-
-            update_data["order_status"] = (
-                OrderStatus.CANCELLED
-            )
-
-            update_data["shipping_status"] = (
-                ShippingStatus.NOT_SHIPPED
-            )
-
-            if (
-                old_payment_status
-                == PaymentStatus.PAID
-            ):
-                update_data["payment_status"] = (
-                    PaymentStatus.REFUNDED
-                )
-            else:
-                update_data["payment_status"] = (
-                    PaymentStatus.PENDING
-                )
-
-        if (
-            new_payment_status
-            == PaymentStatus.REFUNDED
-        ):
-            if (
-                old_payment_status
-                != PaymentStatus.PAID
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "Only a paid order can "
-                        "be refunded"
-                    ),
-                )
-
-            if (
-                new_order_status
-                != OrderStatus.CANCELLED
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "An order must be cancelled "
-                        "before it can be refunded"
-                    ),
-                )
-
-        if (
-            new_payment_status
-            == PaymentStatus.PAID
-        ):
-            if (
-                old_payment_status
-                == PaymentStatus.REFUNDED
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "A refunded order cannot "
-                        "be marked as paid again"
-                    ),
-                )
-
-            if (
-                new_order_status
-                == OrderStatus.CANCELLED
-            ):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "A cancelled order cannot "
-                        "be marked as paid"
-                    ),
-                )
-
-        if (
-            new_order_status
-            == OrderStatus.COMPLETED
-            and new_payment_status
-            != PaymentStatus.PAID
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    "An order must be paid "
-                    "before it can be completed"
-                ),
-            )
-
-        for field, value in update_data.items():
-            setattr(
-                order,
-                field,
-                value,
-            )
+        # --------------------------------------------------
+        # APPLY THE NEW LIFECYCLE STATE — the backend derives
+        # all three fields; the frontend never sends them.
+        # --------------------------------------------------
+        new_order_status, new_shipping_status, new_payment_status = (
+            LIFECYCLE_STATE_MAP[target_lifecycle]
+        )
+        order.order_status = new_order_status
+        order.shipping_status = new_shipping_status
+        order.payment_status = new_payment_status
 
         db.commit()
         db.refresh(order)
-
         return order
 
     except HTTPException:
@@ -611,17 +440,9 @@ def update_order(
 
     except Exception as e:
         db.rollback()
-
-        print(
-            f"Error updating order {order_id}: {e}"
-        )
-
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Couldn't update order",
-        )
-
-
+        print(f"Error updating order {order_id}: {e}")
+        raise HTTPException(status_code=500, detail="Couldn't update order")
+    
 
 @router.get("/orders/{order_id}", response_model=AdminOrderResponse)
 def get_order(

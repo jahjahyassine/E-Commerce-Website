@@ -164,7 +164,8 @@ function OrdersHistory() {
 
                 <section
                     className="
-                        flex-1
+                        w-[70vw]
+                        mx-auto
                         flex
                         flex-col
                         pt-20
@@ -310,9 +311,9 @@ function OrdersHistory() {
 
                                         {/* Order Total */}
                                         <p className="font-bold">
-                                            ${Number(
+                                        {Number(
                                                 order.total_amount
-                                            ).toFixed(2)}
+                                            ).toFixed(2)} DH
                                         </p>
                                     </div>
 
@@ -487,20 +488,20 @@ function OrdersHistory() {
                                                     <div className="ml-auto shrink-0 flex flex-col items-end gap-0.5">
                                                         {hasDiscount && (
                                                             <p className="text-xs text-muted line-through">
-                                                                $
+                                                                
                                                                 {(
                                                                     originalItemPrice *
                                                                     item.quantity
-                                                                ).toFixed(2)}
+                                                                ).toFixed(2)} DH
                                                             </p>
                                                         )}
 
                                                         <p className="text-base font-bold text-emerald">
-                                                            $
+                                                            
                                                             {(
                                                                 paidItemPrice *
                                                                 item.quantity
-                                                            ).toFixed(2)}
+                                                            ).toFixed(2)} DH
                                                         </p>
                                                     </div>
                                                 </div>

@@ -36,6 +36,14 @@ class BrandPatchRequest(BaseModel):
     is_active: bool | None = None
 
 
+class OrderItemResponse (BaseModel):
+    product_variant_id: int
+    product_name: str
+    variant_attributes_snapshot: dict
+    quantity: int
+    price: Decimal
+
+
 # ============================================================
 # CATEGORY
 # ============================================================
@@ -199,6 +207,8 @@ class ProductVariantResponse(BaseModel):
     is_active: bool
 
     product: ProductResponseBrief | None = None
+
+    order_items: list[OrderItemResponse] = Field(default_factory=list)
 
     inventory: InventoryStockResponse | None = None
 

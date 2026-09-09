@@ -288,7 +288,8 @@ function OrderShow() {
 
                 <section
                     className="
-                        flex-1
+                        w-[70vw]
+                        mx-auto
                         flex
                         flex-col
                         pt-20
@@ -319,7 +320,7 @@ function OrderShow() {
                                 </span>
 
                                 <span className="text-success font-bold text-xl">
-                                    ${totalAmount.toFixed(2)}
+                                    {totalAmount.toFixed(2)} DH
                                 </span>
                             </div>
                         )}
@@ -680,20 +681,20 @@ function OrderShow() {
                                                 <div className="flex flex-col items-end gap-0.5">
                                                     {hasDiscount && (
                                                         <p className="text-xs text-muted line-through">
-                                                            $
+                                                            
                                                             {(
                                                                 originalItemPrice *
                                                                 orderItem.quantity
-                                                            ).toFixed(2)}
+                                                            ).toFixed(2)} DH
                                                         </p>
                                                     )}
 
                                                     <p className="text-success font-bold text-xl">
-                                                        $
+                                                        
                                                         {(
                                                             paidItemPrice *
                                                             orderItem.quantity
-                                                        ).toFixed(2)}
+                                                        ).toFixed(2)} DH
                                                     </p>
                                                 </div>
                                             </div>

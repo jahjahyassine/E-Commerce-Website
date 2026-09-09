@@ -23,7 +23,7 @@ def require_admin(
             detail="User not found",
         )
 
-    if user.role != UserRole.CUSTOMER:
+    if user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Unauthorized action",

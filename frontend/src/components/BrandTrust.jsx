@@ -39,7 +39,7 @@ function BrandTrust() {
             aria-labelledby="brands-heading"
         >
             <header className="text-center mb-10 sm:mb-14">
-                <p className="text-sm uppercase tracking-[0.35em] text-muted">
+                <p className="text-md uppercase tracking-[0.35em] text-muted">
                     Trusted Partners
                 </p>
                 <h2
@@ -55,40 +55,38 @@ function BrandTrust() {
                 </p>
             </header>
 
-            <div
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    {BRANDS.map(({ name, icon: Icon }) => (
+        <div
+            key={name}
+            title={name}
+            className="
+                h-32
+                rounded-xl
+                border border-border-soft
+                bg-background/70
+                backdrop-blur-md
+                flex items-center justify-center
+                transition-all duration-300
+                hover:-translate-y-0.5
+                hover:border-border
+                hover:bg-background-secondary
+                group
+            "
+        >
+            <Icon
+                aria-label={name}
                 className="
-                    max-w-7xl mx-auto
-                    grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8
-                    gap-3 sm:gap-4
+                    text-6xl
+                    text-muted
+                    transition-all duration-300
+                    group-hover:text-foreground
+                    group-hover:scale-110
                 "
-            >
-                {BRANDS.map(({ name, icon: Icon }) => (
-                    <div
-                        key={name}
-                        title={name}
-                        className="
-                            h-16 sm:h-20 lg:h-24
-                            rounded-xl
-                            border border-border-soft
-                            bg-background/70 backdrop-blur-md
-                            flex items-center justify-center
-                            transition-all duration-300
-                            hover:-translate-y-0.5 hover:border-border hover:bg-background-secondary
-                            group
-                        "
-                    >
-                        <Icon
-                            aria-label={name}
-                            className="
-                                text-2xl sm:text-3xl lg:text-4xl
-                                text-muted
-                                transition-all duration-300
-                                group-hover:text-foreground group-hover:scale-110
-                            "
-                        />
-                    </div>
-                ))}
-            </div>
+            />
+        </div>
+    ))}
+</div>
         </section>
     );
 }

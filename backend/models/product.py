@@ -144,19 +144,35 @@ class Category (Base):
 
 
 
-class Media (Base):
+class Media(Base):
     __tablename__ = "medias"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    media_url: Mapped[str] = mapped_column(String, nullable=False)
 
-    product_id: Mapped[int | None] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
+    media_url: Mapped[str] = mapped_column(
+        String,
+        nullable=False
+    )
+
+    public_id: Mapped[str] = mapped_column(
+        String,
+        nullable=False
+    )
+
+    product_id: Mapped[int | None] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE")
+    )
+
     variant_id: Mapped[int | None] = mapped_column(
         ForeignKey("product_variants.id", ondelete="CASCADE"),
         nullable=True
     )
 
-    product: Mapped["Product | None"] = relationship("Product", back_populates="media")
+    product: Mapped["Product | None"] = relationship(
+        "Product",
+        back_populates="media"
+    )
+
     product_variant: Mapped["ProductVariant | None"] = relationship(
         "ProductVariant",
         back_populates="media"
@@ -164,7 +180,8 @@ class Media (Base):
 
     __table_args__ = (
         CheckConstraint(
-            "(product_id IS NOT NULL AND variant_id IS NULL) OR (product_id IS NULL AND variant_id IS NOT NULL)",
+            "(product_id IS NOT NULL AND variant_id IS NULL) OR "
+            "(product_id IS NULL AND variant_id IS NOT NULL)",
             name="media_exactly_one_owner",
         ),
     )

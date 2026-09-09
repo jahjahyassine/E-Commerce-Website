@@ -13,9 +13,12 @@ import {
 
 import { useMutation } from "@tanstack/react-query";
 import { StatusModal } from "../../../../modals/StatusModal";
+import { useNavigate } from "react-router-dom";
 
 export function SupplierCreate() {
     const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+    const navigate = useNavigate()
 
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -59,6 +62,7 @@ export function SupplierCreate() {
 
         onSuccess: (data) => {
             console.log("Supplier created:", data);
+            navigate("/admin/suppliers")
         },
 
         onError: (error) => {

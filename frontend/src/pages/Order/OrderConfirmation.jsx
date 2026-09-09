@@ -118,7 +118,7 @@ function OrderConfirmation() {
                 />
             </div>
 
-            <section className="relative z-10 pt-20 px-6 flex flex-col gap-5">
+            <section className="relative z-10 pt-20 px-6 w-[70vw] mx-auto flex flex-col gap-5">
                 <section className="w-full flex flex-col items-center">
                     <h2 className="text-4xl font-bold tracking-wider mb-5">
                         Order Complete
@@ -288,7 +288,7 @@ function OrderConfirmation() {
 
                                             <div className="ml-auto shrink-0">
                                                 <p className="text-base font-bold text-emerald">
-                                                    ${(item.quantity * Number(item.price)).toFixed(2)}
+                                                    {(item.quantity * Number(item.price)).toFixed(2)} DH
                                                 </p>
                                             </div>
                                         </div>
@@ -356,7 +356,7 @@ function OrderConfirmation() {
                                         Subtotal
                                     </span>
                                     <span className="font-semibold">
-                                        ${Number(subtotal ?? 0).toFixed(2)}
+                                        {Number(subtotal ?? 0).toFixed(2)} DH
                                     </span>
                                 </div>
 
@@ -365,7 +365,7 @@ function OrderConfirmation() {
                                         Shipping
                                     </span>
                                     <span className="font-semibold">
-                                        ${Number(shippingCost).toFixed(2)}
+                                        {Number(shippingCost).toFixed(2)} DH
                                     </span>
                                 </div>
 
@@ -376,7 +376,7 @@ function OrderConfirmation() {
                                         Total
                                     </span>
                                     <span className="text-lg font-bold text-emerald">
-                                        ${Number(order.total_amount ?? 0).toFixed(2)}
+                                        {Number(order.total_amount ?? 0).toFixed(2)} DH
                                     </span>
                                 </div>
 
@@ -387,7 +387,7 @@ function OrderConfirmation() {
                         <section className="flex justify-end gap-2">
                             <button
                                 className="flex bg-primary text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-primary-hover duration-300 ease-in-out cursor-pointer"
-                                onClick={() => navigate(`/track-order/${order.id}`)}
+                                onClick={() => navigate(`/profile/orders/${order.id}`)}
                             >
                                 <p>Track Order</p>
                                 <PackageSearch className="h-4 w-4" />

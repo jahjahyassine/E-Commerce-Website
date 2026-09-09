@@ -10,6 +10,7 @@ from fastapi import (
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
+from services.auth import require_admin
 from core.database import get_db
 from core.security import decode_access_token
 
@@ -39,40 +40,7 @@ router = APIRouter(
 )
 
 
-# ============================================================
-# ADMIN AUTH
-# ============================================================
 
-def require_admin(
-    db: Session,
-    user_infos: dict,
-):
-    user_id = user_infos.get("id")
-
-    user = (
-        db.query(User)
-        .filter(User.id == user_id)
-        .first()
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-
-    if user.role != UserRole.CUSTOMER:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Unauthorized action {user.role}",
-        )
-
-    return user
-
-
-# ============================================================
-# GET STOCK CHANGES
-# ============================================================
 
 @router.get(
     "",

@@ -1,17 +1,25 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+
 import Navbar from "../../components/Navbar";
 import ProfileSidebar from "../../components/ProfileSidebar";
-import DotField from "../../components/animation/DotField";
+import CursorGrid from "../../components/animation/CursorGrid";
 import getCurrentUser from "../../hooks/CurrentUser";
+
 import { useNavigate } from "react-router-dom";
+
 import { Upload, Edit3Icon } from "lucide-react";
+
 import { useState, useEffect } from "react";
+
 import ProfilePictureModal from "../../modals/ProfilePictureModal";
+
 import { queryClient } from "../../lib/queryClient";
 
 function Profile() {
     const BASE_URL = import.meta.env.VITE_BASE_URL;
+
     const token = localStorage.getItem("access_token");
+
     const navigate = useNavigate();
 
     const [username, setUsername] = useState("");
@@ -19,7 +27,9 @@ function Profile() {
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
+
     const [editingField, setEditingField] = useState("");
+
     const [showPictureModal, setShowPictureModal] = useState(false);
 
     /* ---------------- AUTH CHECK ---------------- */
@@ -149,11 +159,10 @@ function Profile() {
         setEditingField("");
     };
 
-
     if (isLoading) {
         return (
-            <main className="min-h-screen bg-card flex items-center justify-center">
-                <p className="text-sm text-muted">
+            <main className="min-h-screen flex items-center justify-center">
+                <p className="text-base text-muted">
                     Loading...
                 </p>
             </main>
@@ -172,30 +181,40 @@ function Profile() {
             </header>
 
             {/* BACKGROUND */}
-
-            <div
-                className="fixed inset-0 w-full h-full z-0 pointer-events-none"
-                aria-hidden="true"
-            >
-                <DotField
-                    dotRadius={1.2}
-                    dotSpacing={18}
-                    bulgeStrength={40}
-                    glowRadius={140}
-                    sparkle={false}
-                    waveAmplitude={0}
-                    cursorRadius={420}
-                    cursorForce={0.08}
-                    bulgeOnly
-                    gradientFrom="#6e6e7380"
-                    gradientTo="#d2d2d760"
-                    glowColor="#1d1d1f20"
-                />
-            </div>
+<div
+    className="
+        fixed
+        inset-0
+        z-0
+        w-screen
+        h-screen
+        pointer-events-none
+        overflow-hidden
+    "
+    aria-hidden="true"
+>
+    <div className="relative w-full h-full">
+        <CursorGrid
+            cellSize={70}
+            color="#567C8D"
+            radius={140}
+            falloff="smooth"
+            holdTime={400}
+            fadeDuration={800}
+            lineWidth={1.2}
+            maxOpacity={1}
+            fillOpacity={0}
+            gridOpacity={0}
+            cellRadius={0}
+            clickPulse
+            pulseSpeed={600}
+        />
+    </div>
+</div>
 
             {/* MAIN CONTENT */}
 
-            <section className="relative z-10 h-screen bg-card/20 backdrop-blur-xl flex">
+            <section className="relative z-10 h-screen flex">
 
                 {/* SIDEBAR */}
 
@@ -203,11 +222,32 @@ function Profile() {
 
                 {/* ACCOUNT CONTENT */}
 
-                <section className="flex-1 flex flex-col pt-20 p-8 overflow-y-auto">
+                <section
+                    className="
+                        flex-1
+                        flex
+                        flex-col
+                        gap-10
+                        items-center
+                        pt-20
+                        p-8
+                        overflow-y-auto
+                    "
+                >
 
                     {/* TITLE */}
 
-                    <h2 className="text-2xl font-semibold border-b border-border pb-2">
+                    <h2
+                        className="
+                            text-3xl
+                            self-start
+                            w-full
+                            font-semibold
+                            border-b
+                            border-border
+                            pb-2
+                        "
+                    >
                         Account
                     </h2>
 
@@ -216,16 +256,18 @@ function Profile() {
                     <div className="mt-6 flex gap-5">
 
                         <div className="h-25 w-25 rounded-full overflow-hidden border border-border-soft">
+
                             <img
                                 src={currentUser?.profile_pic_path}
                                 alt="Profile"
                                 className="h-full w-full object-cover"
                             />
+
                         </div>
 
                         <div className="flex flex-col justify-around">
 
-                            <p className="text-base font-semibold tracking-wide">
+                            <p className="text-lg font-semibold tracking-wide">
                                 Profile Picture
                             </p>
 
@@ -250,12 +292,11 @@ function Profile() {
                                         duration-300
                                         ease-in-out
                                         cursor-pointer
-                                        
-                                        text-sm
+                                        text-base
                                     "
                                 >
                                     <Upload
-                                        className="w-4 h-4 text-inverse"
+                                        className="w-5 h-5 text-inverse"
                                     />
 
                                     <p className="text-inverse">
@@ -292,15 +333,16 @@ function Profile() {
                                         duration-300
                                         ease-in-out
                                         cursor-pointer
-                                        
-                                        text-sm
+                                        text-base
                                     "
                                 >
                                     Remove
                                 </button>
 
                             </div>
+
                         </div>
+
                     </div>
 
                     {/* FORM */}
@@ -308,13 +350,10 @@ function Profile() {
                     <form
                         onSubmit={handleSubmit}
                         className="
-                            mt-12
-                            grid
-                            grid-cols-1
-                            md:grid-cols-2
-                            lg:grid-cols-3
-                            gap-x-5
-                            gap-y-8
+                            w-[40vw]
+                            flex
+                            flex-col
+                            gap-5
                         "
                     >
 
@@ -324,12 +363,16 @@ function Profile() {
 
                             <label
                                 htmlFor="username"
-                                className="text-xs font-medium text-muted"
+                                className="
+                                    text-sm
+                                    font-medium
+                                    text-muted
+                                "
                             >
                                 Username
                             </label>
 
-                            <div className="relative bg-chip rounded-xl  px-4 py-3">
+                            <div className="relative bg-chip rounded-xl px-4 py-3">
 
                                 <input
                                     id="username"
@@ -344,7 +387,7 @@ function Profile() {
                                     className="
                                         w-full
                                         pr-8
-                                        text-base
+                                        text-lg
                                         font-medium
                                         bg-transparent
                                         outline-none
@@ -372,6 +415,7 @@ function Profile() {
                                 </button>
 
                             </div>
+
                         </div>
 
                         {/* FULL NAME */}
@@ -380,12 +424,16 @@ function Profile() {
 
                             <label
                                 htmlFor="fullName"
-                                className="text-xs font-medium text-muted"
+                                className="
+                                    text-sm
+                                    font-medium
+                                    text-muted
+                                "
                             >
                                 Full Name
                             </label>
 
-                            <div className="relative bg-chip rounded-xl  px-4 py-3">
+                            <div className="relative bg-chip rounded-xl px-4 py-3">
 
                                 <input
                                     id="fullName"
@@ -400,7 +448,7 @@ function Profile() {
                                     className="
                                         w-full
                                         pr-8
-                                        text-base
+                                        text-lg
                                         font-medium
                                         bg-transparent
                                         outline-none
@@ -428,6 +476,7 @@ function Profile() {
                                 </button>
 
                             </div>
+
                         </div>
 
                         {/* EMAIL */}
@@ -436,12 +485,16 @@ function Profile() {
 
                             <label
                                 htmlFor="email"
-                                className="text-xs font-medium text-muted"
+                                className="
+                                    text-sm
+                                    font-medium
+                                    text-muted
+                                "
                             >
                                 Email
                             </label>
 
-                            <div className="relative bg-chip rounded-xl  px-4 py-3">
+                            <div className="relative bg-chip rounded-xl px-4 py-3">
 
                                 <input
                                     id="email"
@@ -456,7 +509,7 @@ function Profile() {
                                     className="
                                         w-full
                                         pr-8
-                                        text-base
+                                        text-lg
                                         font-medium
                                         bg-transparent
                                         outline-none
@@ -484,6 +537,7 @@ function Profile() {
                                 </button>
 
                             </div>
+
                         </div>
 
                         {/* PHONE */}
@@ -492,12 +546,16 @@ function Profile() {
 
                             <label
                                 htmlFor="phone"
-                                className="text-xs font-medium text-muted"
+                                className="
+                                    text-sm
+                                    font-medium
+                                    text-muted
+                                "
                             >
                                 Phone
                             </label>
 
-                            <div className="relative bg-chip rounded-xl  px-4 py-3">
+                            <div className="relative bg-chip rounded-xl px-4 py-3">
 
                                 <input
                                     id="phone"
@@ -512,7 +570,7 @@ function Profile() {
                                     className="
                                         w-full
                                         pr-8
-                                        text-base
+                                        text-lg
                                         font-medium
                                         bg-transparent
                                         outline-none
@@ -540,6 +598,7 @@ function Profile() {
                                 </button>
 
                             </div>
+
                         </div>
 
                         {/* ADDRESS */}
@@ -548,12 +607,16 @@ function Profile() {
 
                             <label
                                 htmlFor="address"
-                                className="text-xs font-medium text-muted"
+                                className="
+                                    text-sm
+                                    font-medium
+                                    text-muted
+                                "
                             >
                                 Main Address
                             </label>
 
-                            <div className="relative bg-chip rounded-xl  px-4 py-3">
+                            <div className="relative bg-chip rounded-xl px-4 py-3">
 
                                 <input
                                     id="address"
@@ -568,7 +631,7 @@ function Profile() {
                                     className="
                                         w-full
                                         pr-8
-                                        text-base
+                                        text-lg
                                         font-medium
                                         bg-transparent
                                         outline-none
@@ -596,12 +659,21 @@ function Profile() {
                                 </button>
 
                             </div>
+
                         </div>
 
                         {/* ERROR */}
 
                         {errorPatch && (
-                            <p className="lg:col-span-3 md:col-span-2 text-sm font-medium text-danger">
+                            <p
+                                className="
+                                    lg:col-span-3
+                                    md:col-span-2
+                                    text-base
+                                    font-medium
+                                    text-danger
+                                "
+                            >
                                 {errorPatch.message}
                             </p>
                         )}
@@ -635,8 +707,7 @@ function Profile() {
                                     duration-300
                                     ease-in-out
                                     cursor-pointer
-                                    
-                                    text-sm
+                                    text-base
                                     font-semibold
                                 "
                                 onClick={handleCancel}
@@ -658,9 +729,8 @@ function Profile() {
                                     duration-300
                                     ease-in-out
                                     cursor-pointer
-                                    
                                     text-inverse
-                                    text-sm
+                                    text-base
                                     font-semibold
                                     disabled:opacity-50
                                     disabled:cursor-not-allowed
@@ -670,9 +740,13 @@ function Profile() {
                             </button>
 
                         </div>
+
                     </form>
+
                 </section>
+
             </section>
+
         </main>
     );
 }

@@ -374,7 +374,7 @@ function CheckoutPage() {
                 />
             </div>
 
-            <section className="relative z-10 pt-20 px-6 flex flex-col max-h-screen gap-10">
+            <section className="relative z-10 pt-20 px-6 flex flex-col w-[70vw] mx-auto max-h-screen gap-10">
                 <section className="w-full flex flex-col items-center">
                     <h2 className="text-4xl font-bold tracking-wider mb-5">
                         Checkout Details
@@ -413,295 +413,294 @@ function CheckoutPage() {
                         </section>
 
                         <section className="w-full h-full flex flex-col gap-4">
-                            <form
-                                onSubmit={handleForm}
-                                className="mt-12 flex flex-col gap-4"
-                            >
-                                <div className="flex flex-col">
-                                    <label
-                                        htmlFor="fullName"
-                                        className="text-sm font-bold text-muted px-1"
-                                    >
-                                        Full Name
-                                    </label>
+<form
+    onSubmit={handleForm}
+    className="mt-12 flex flex-col gap-4"
+>
+    {/* Full Name + Phone */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                                    <input
-                                        id="fullName"
-                                        type="text"
-                                        placeholder="Enter your Name"
-                                        required
-                                        value={fullName}
-                                        disabled={!isEditing}
-                                        onChange={(e) =>
-                                            setFullName(e.target.value)
-                                        }
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-                                    />
-                                </div>
+        <div className="flex flex-col">
+            <label
+                htmlFor="fullName"
+                className="text-sm font-bold text-muted px-1"
+            >
+                Full Name
+            </label>
 
-                                <div className="flex flex-col">
-                                    <label
-                                        htmlFor="phone"
-                                        className="text-sm font-bold text-muted px-1"
-                                    >
-                                        Phone
-                                    </label>
+            <input
+                id="fullName"
+                type="text"
+                placeholder="Enter your Name"
+                required
+                value={fullName}
+                disabled={!isEditing}
+                onChange={(e) => setFullName(e.target.value)}
+                className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+            />
+        </div>
 
-                                    <input
-                                        id="phone"
-                                        type="text"
-                                        required
-                                        placeholder="Enter your Phone number"
-                                        value={phone}
-                                        disabled={!isEditing}
-                                        onChange={(e) =>
-                                            setPhone(e.target.value)
-                                        }
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-                                    />
-                                </div>
+        <div className="flex flex-col">
+            <label
+                htmlFor="phone"
+                className="text-sm font-bold text-muted px-1"
+            >
+                Phone
+            </label>
 
-                                <div className="flex flex-col">
-                                    <label
-                                        htmlFor="address"
-                                        className="text-sm font-bold text-muted px-1"
-                                    >
-                                        Shipping Address
-                                    </label>
+            <input
+                id="phone"
+                type="text"
+                required
+                placeholder="Enter your Phone number"
+                value={phone}
+                disabled={!isEditing}
+                onChange={(e) => setPhone(e.target.value)}
+                className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+            />
+        </div>
 
-                                    <input
-                                        id="address"
-                                        type="text"
-                                        required
-                                        placeholder="Enter your Shipping Address"
-                                        value={address}
-                                        disabled={!isEditing}
-                                        onChange={(e) =>
-                                            setAddress(e.target.value)
-                                        }
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-                                    />
+    </div>
 
-                                    <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
-                                        <input
-                                            id="addressDefault"
-                                            type="checkbox"
-                                            disabled={!isEditing}
-                                            checked={addressDefault}
-                                            onChange={(e) =>
-                                                setAddressDefault(
-                                                    e.target.checked
-                                                )
-                                            }
-                                            className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
-                                        />
 
-                                        <label
-                                            htmlFor="addressDefault"
-                                            className="text-muted cursor-pointer select-none"
-                                        >
-                                            Set as Default
-                                        </label>
-                                    </div>
-                                </div>
+    {/* Shipping Address */}
+    <div className="flex flex-col">
+        <label
+            htmlFor="address"
+            className="text-sm font-bold text-muted px-1"
+        >
+            Shipping Address
+        </label>
 
-                                <div className="flex flex-col">
-                                    <label
-                                        htmlFor="city"
-                                        className="text-sm font-bold text-muted px-1"
-                                    >
-                                        City
-                                    </label>
+        <input
+            id="address"
+            type="text"
+            required
+            placeholder="Enter your Shipping Address"
+            value={address}
+            disabled={!isEditing}
+            onChange={(e) => setAddress(e.target.value)}
+            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+        />
 
-                                    <input
-                                        id="city"
-                                        type="text"
-                                        required
-                                        placeholder="Enter Shipping City"
-                                        value={city}
-                                        disabled={!isEditing}
-                                        onChange={(e) =>
-                                            setCity(e.target.value)
-                                        }
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-                                    />
+        <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
+            <input
+                id="addressDefault"
+                type="checkbox"
+                disabled={!isEditing}
+                checked={addressDefault}
+                onChange={(e) => setAddressDefault(e.target.checked)}
+                className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
+            />
 
-                                    <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
-                                        <input
-                                            id="cityDefault"
-                                            type="checkbox"
-                                            disabled={!isEditing}
-                                            checked={cityDefault}
-                                            onChange={(e) =>
-                                                setCityDefault(
-                                                    e.target.checked
-                                                )
-                                            }
-                                            className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
-                                        />
+            <label
+                htmlFor="addressDefault"
+                className="text-muted cursor-pointer select-none"
+            >
+                Set as Default
+            </label>
+        </div>
+    </div>
 
-                                        <label
-                                            htmlFor="cityDefault"
-                                            className="text-muted cursor-pointer select-none"
-                                        >
-                                            Set as Default
-                                        </label>
-                                    </div>
-                                </div>
 
-                                <div className="flex flex-col">
-                                    <label
-                                        htmlFor="region"
-                                        className="text-sm font-bold text-muted px-1"
-                                    >
-                                        Region
-                                    </label>
+    {/* City + Region + Postal Code */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
-                                    <input
-                                        id="region"
-                                        type="text"
-                                        required
-                                        placeholder="Enter Shipping Region"
-                                        value={region}
-                                        disabled={!isEditing}
-                                        onChange={(e) =>
-                                            setRegion(e.target.value)
-                                        }
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-                                    />
+        {/* City */}
+        <div className="flex flex-col">
+            <label
+                htmlFor="city"
+                className="text-sm font-bold text-muted px-1"
+            >
+                City
+            </label>
 
-                                    <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
-                                        <input
-                                            id="regionDefault"
-                                            type="checkbox"
-                                            disabled={!isEditing}
-                                            checked={regionDefault}
-                                            onChange={(e) =>
-                                                setRegionDefault(
-                                                    e.target.checked
-                                                )
-                                            }
-                                            className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
-                                        />
+            <input
+                id="city"
+                type="text"
+                required
+                placeholder="Enter Shipping City"
+                value={city}
+                disabled={!isEditing}
+                onChange={(e) => setCity(e.target.value)}
+                className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+            />
 
-                                        <label
-                                            htmlFor="regionDefault"
-                                            className="text-muted cursor-pointer select-none"
-                                        >
-                                            Set as Default
-                                        </label>
-                                    </div>
-                                </div>
+            <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
+                <input
+                    id="cityDefault"
+                    type="checkbox"
+                    disabled={!isEditing}
+                    checked={cityDefault}
+                    onChange={(e) => setCityDefault(e.target.checked)}
+                    className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
+                />
 
-                                <div className="flex flex-col">
-                                    <label
-                                        htmlFor="postalCode"
-                                        className="text-sm font-bold text-muted px-1"
-                                    >
-                                        Postal Code
-                                    </label>
+                <label
+                    htmlFor="cityDefault"
+                    className="text-muted cursor-pointer select-none"
+                >
+                    Set as Default
+                </label>
+            </div>
+        </div>
 
-                                    <input
-                                        id="postalCode"
-                                        type="text"
-                                        required
-                                        placeholder="Enter Postal Code"
-                                        value={postalCode}
-                                        disabled={!isEditing}
-                                        onChange={(e) =>
-                                            setPostalCode(e.target.value)
-                                        }
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-                                    />
 
-                                    <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
-                                        <input
-                                            id="postalCodeDefault"
-                                            type="checkbox"
-                                            disabled={!isEditing}
-                                            checked={postalCodeDefault}
-                                            onChange={(e) =>
-                                                setPostalCodeDefault(
-                                                    e.target.checked
-                                                )
-                                            }
-                                            className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
-                                        />
+        {/* Region */}
+        <div className="flex flex-col">
+            <label
+                htmlFor="region"
+                className="text-sm font-bold text-muted px-1"
+            >
+                Region
+            </label>
 
-                                        <label
-                                            htmlFor="postalCodeDefault"
-                                            className="text-muted cursor-pointer select-none"
-                                        >
-                                            Set as Default
-                                        </label>
-                                    </div>
-                                </div>
+            <input
+                id="region"
+                type="text"
+                required
+                placeholder="Enter Shipping Region"
+                value={region}
+                disabled={!isEditing}
+                onChange={(e) => setRegion(e.target.value)}
+                className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+            />
 
-                                <div className="flex flex-col gap-3">
-                                    <p className="text-sm font-bold text-muted px-1">
-                                        Payment Method
-                                    </p>
+            <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
+                <input
+                    id="regionDefault"
+                    type="checkbox"
+                    disabled={!isEditing}
+                    checked={regionDefault}
+                    onChange={(e) => setRegionDefault(e.target.checked)}
+                    className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
+                />
 
-                                    <div className="flex items-center justify-between p-3 rounded-xl border border-border-soft bg-card">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-lg bg-chip flex items-center justify-center">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="18"
-                                                    height="18"
-                                                    fill="currentColor"
-                                                    viewBox="0 0 16 16"
-                                                >
-                                                    <path d="M3 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H3zm0 1h10a1 1 0 0 1 1 1v2H2V3a1 1 0 0 1 1-1z" />
-                                                    <path d="M2 6h12v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6z" />
-                                                </svg>
-                                            </div>
+                <label
+                    htmlFor="regionDefault"
+                    className="text-muted cursor-pointer select-none"
+                >
+                    Set as Default
+                </label>
+            </div>
+        </div>
 
-                                            <div className="flex flex-col">
-                                                <span className="font-semibold text-foreground">
-                                                    Cash on delivery
-                                                </span>
 
-                                                <span className="text-sm text-muted">
-                                                    Pay when your order arrives
-                                                </span>
-                                            </div>
-                                        </div>
+        {/* Postal Code */}
+        <div className="flex flex-col">
+            <label
+                htmlFor="postalCode"
+                className="text-sm font-bold text-muted px-1"
+            >
+                Postal Code
+            </label>
 
-                                        <span className="text-xs font-semibold text-muted bg-chip px-2 py-1 rounded-lg">
-                                            COD
-                                        </span>
-                                    </div>
-                                </div>
+            <input
+                id="postalCode"
+                type="text"
+                required
+                placeholder="Enter Postal Code"
+                value={postalCode}
+                disabled={!isEditing}
+                onChange={(e) => setPostalCode(e.target.value)}
+                className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+            />
 
-                                <div className="flex justify-end items-center gap-2">
-                                    {isEditing && (
-                                        <button
-                                            type="button"
-                                            onClick={handleCancel}
-                                            className="px-5 py-2 rounded-xl bg-card text-muted border border-border-soft hover:bg-chip duration-300 ease-in-out cursor-pointer shadow-inner text-lg font-bold"
-                                        >
-                                            Cancel
-                                        </button>
-                                    )}
+            <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
+                <input
+                    id="postalCodeDefault"
+                    type="checkbox"
+                    disabled={!isEditing}
+                    checked={postalCodeDefault}
+                    onChange={(e) => setPostalCodeDefault(e.target.checked)}
+                    className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
+                />
 
-                                    <button
-                                        type={isEditing ? "submit" : "button"}
-                                        onClick={
-                                            !isEditing
-                                                ? () => setIsEditing(true)
-                                                : undefined
-                                        }
-                                        className="px-12 py-2 rounded-xl bg-primary hover:bg-primary-hover duration-300 ease-in-out cursor-pointer shadow-inner text-inverse text-lg font-bold"
-                                    >
-                                        {isEditing ? "Save" : "Edit"}
-                                    </button>
-                                </div>
-                            </form>
+                <label
+                    htmlFor="postalCodeDefault"
+                    className="text-muted cursor-pointer select-none"
+                >
+                    Set as Default
+                </label>
+            </div>
+        </div>
+
+    </div>
+
+
+    {/* Payment Method */}
+    <div className="flex flex-col gap-3">
+        <p className="text-sm font-bold text-muted px-1">
+            Payment Method
+        </p>
+
+        <div className="flex items-center justify-between p-3 rounded-xl border border-border-soft bg-card">
+            <div className="flex items-center gap-3">
+
+                <div className="w-9 h-9 rounded-lg bg-chip flex items-center justify-center">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                    >
+                        <path d="M3 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H3zm0 1h10a1 1 0 0 1 1 1v2H2V3a1 1 0 0 1 1-1z" />
+                        <path d="M2 6h12v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6z" />
+                    </svg>
+                </div>
+
+                <div className="flex flex-col">
+                    <span className="font-semibold text-foreground">
+                        Cash on delivery
+                    </span>
+
+                    <span className="text-sm text-muted">
+                        Pay when your order arrives
+                    </span>
+                </div>
+
+            </div>
+
+            <span className="text-xs font-semibold text-muted bg-chip px-2 py-1 rounded-lg">
+                COD
+            </span>
+        </div>
+    </div>
+
+
+    {/* Buttons */}
+    <div className="flex justify-end items-center gap-2">
+
+        {isEditing && (
+            <button
+                type="button"
+                onClick={handleCancel}
+                className="px-5 py-2 rounded-xl bg-card text-muted border border-border-soft hover:bg-chip duration-300 ease-in-out cursor-pointer shadow-inner text-lg font-bold"
+            >
+                Cancel
+            </button>
+        )}
+
+        <button
+            type={isEditing ? "submit" : "button"}
+            onClick={
+                !isEditing
+                    ? () => setIsEditing(true)
+                    : undefined
+            }
+            className="px-12 py-2 rounded-xl bg-primary hover:bg-primary-hover duration-300 ease-in-out cursor-pointer shadow-inner text-inverse text-lg font-bold"
+        >
+            {isEditing ? "Save" : "Edit"}
+        </button>
+
+    </div>
+</form>
+
                         </section>
                     </section>
 
-                    <section className="bg-chip p-2 h-fit md:w-[25vw] lg:w-[30vw] rounded-3xl">
+                    <section className="bg-chip p-2 h-fit w-[20vw] rounded-3xl">
                         <div className="bg-card p-4 flex gap-7 flex-col rounded-2xl">
                             <h3 className="text-xl font-bold">
                                 Order Summary
@@ -714,7 +713,7 @@ function CheckoutPage() {
                                     </p>
 
                                     <p className="font-bold">
-                                        ${originalSubtotalAmount.toFixed(2)}
+                                        {originalSubtotalAmount.toFixed(2)} DH
                                     </p>
                                 </div>
 
@@ -725,7 +724,7 @@ function CheckoutPage() {
                                         </p>
 
                                         <p className="font-bold text-red-500">
-                                            -${discountAmount.toFixed(2)}
+                                            -{discountAmount.toFixed(2)} DH
                                         </p>
                                     </div>
                                 )}
@@ -736,7 +735,7 @@ function CheckoutPage() {
                                     </p>
 
                                     <p className="font-bold">
-                                        ${deliveryFee.toFixed(2)}
+                                        {deliveryFee.toFixed(2)} DH
                                     </p>
                                 </div>
                             </div>
@@ -747,7 +746,7 @@ function CheckoutPage() {
                                 </p>
 
                                 <p className="text-lg font-bold">
-                                    ${totalAmount.toFixed(2)}
+                                    {totalAmount.toFixed(2)} DH
                                 </p>
                             </div>
 

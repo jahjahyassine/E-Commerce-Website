@@ -66,7 +66,7 @@ const columns = [
 
         cell: (info) => (
             <p>
-                ${Number(info.getValue() || 0).toFixed(2)}
+             {Number(info.getValue() || 0).toFixed(2)} DH
             </p>
         ),
     },
@@ -105,7 +105,7 @@ const columns = [
                     ) ?? 0,
         cell: (info) => (
             <p>
-                ${Number(info.getValue() || 0).toFixed(2)}
+                {Number(info.getValue() || 0).toFixed(2)} DH
             </p>
         ),
     },
@@ -687,7 +687,7 @@ export function InventoryList() {
                         </h3>
 
                         <p className="text-lg font-bold">
-                            ${totalRevenue.toFixed(2)}
+                            {totalRevenue.toFixed(2)} DH
                         </p>
                     </div>
 

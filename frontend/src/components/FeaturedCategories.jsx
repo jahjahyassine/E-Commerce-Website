@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import AccordionGallery from "../components/animation/AccordionGallery";
+import { ArrowRight } from "lucide-react";
 
 function FeaturedCategories() {
     const BASE_URL =
@@ -104,11 +105,9 @@ function FeaturedCategories() {
         .map((category) => {
             const categoryProducts = products.filter(
                 (product) =>
-                    Number(product?.category_id) ===
-                    Number(category?.id)
+                    Number(product?.category_id) === Number(category?.id)
             );
 
-            // Find the first product that has an image
             const productWithImage = categoryProducts.find(
                 (product) => getProductImage(product)
             );
@@ -125,7 +124,8 @@ function FeaturedCategories() {
                 category,
             };
         })
-        .filter((item) => item.image);
+        .filter((item) => item.image)
+        .slice(0, 8);
 
     // -----------------------------------------
     // Loading
@@ -302,15 +302,14 @@ function FeaturedCategories() {
         <section
             id="categories"
             className="
-                min-h-screen
-                w-full
-                px-6
-                py-20
-                text-foreground
-                flex
-                flex-col
-                justify-center
-            "
+            w-full
+            px-6
+            py-20
+            text-foreground
+            flex
+            flex-col
+            justify-center
+        "
             aria-label="Featured categories"
         >
             <div className="w-full max-w-7xl mx-auto">
@@ -319,37 +318,37 @@ function FeaturedCategories() {
                 <div className="mb-8">
                     <p
                         className="
-                            text-sm
-                            font-semibold
-                            uppercase
-                            tracking-[0.2em]
-                            text-muted
-                        "
+                        text-sm
+                        font-semibold
+                        uppercase
+                        tracking-[0.2em]
+                        text-muted
+                    "
                     >
                         Explore
                     </p>
 
                     <h2
                         className="
-                            mt-2
-                            text-4xl
-                            md:text-5xl
-                            lg:text-6xl
-                            font-cormorant
-                            font-semibold
-                        "
+                        mt-2
+                        text-4xl
+                        md:text-5xl
+                        lg:text-6xl
+                        font-cormorant
+                        font-semibold
+                    "
                     >
                         Featured Categories
                     </h2>
 
                     <p
                         className="
-                            mt-3
-                            max-w-2xl
-                            text-sm
-                            md:text-base
-                            text-muted
-                        "
+                        mt-3
+                        max-w-2xl
+                        text-sm
+                        md:text-base
+                        text-muted
+                    "
                     >
                         Discover carefully selected categories
                         designed around the way you use technology.
@@ -382,6 +381,97 @@ function FeaturedCategories() {
                         );
                     }}
                 />
+
+                {/* =====================================================
+                BELOW ACCORDION — SHOPPING CTA
+            ====================================================== */}
+
+                <div
+                    className="
+                    mt-16
+                    flex
+                    flex-col
+                    md:flex-row
+                    items-start
+                    md:items-center
+                    justify-between
+                    gap-8
+                    border-t
+                    border-black/10
+                    pt-10
+                "
+                >
+                    <div className="max-w-2xl">
+                        <p
+                            className="
+                            text-sm
+                            font-semibold
+                            uppercase
+                            tracking-[0.2em]
+                            text-muted
+                        "
+                        >
+                            Your next upgrade
+                        </p>
+
+                        <h3
+                            className="
+                            mt-2
+                            text-3xl
+                            md:text-4xl
+                            lg:text-5xl
+                            font-cormorant
+                            font-semibold
+                        "
+                        >
+                            Find something worth bringing home.
+                        </h3>
+
+                        <p
+                            className="
+                            mt-3
+                            text-sm
+                            md:text-base
+                            text-muted
+                            max-w-xl
+                        "
+                        >
+                            From everyday essentials to powerful
+                            machines, explore the full ByteStore
+                            collection and find what fits you.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => navigate("/products")}
+                        className="
+                        shrink-0
+                        inline-flex
+                        items-center
+                        gap-3
+                        rounded-full
+                        bg-[#567C8D]
+                        px-7
+                        py-3.5
+                        text-sm
+                        font-semibold
+                        text-white
+                        transition-all
+                        duration-300
+                        hover:scale-[1.03]
+                        hover:shadow-lg
+                    "
+                    >
+                        Explore all products
+
+                        <ArrowRight
+                            size={17}
+                            strokeWidth={1.8}
+                        />
+                    </button>
+                </div>
+
             </div>
         </section>
     );

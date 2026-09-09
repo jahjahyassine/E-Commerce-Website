@@ -15,6 +15,7 @@
   perspective-origin: 50% 50%;
 }
 
+
 .accordion-gallery--vertical {
   flex-direction: column;
 }
@@ -81,9 +82,17 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+
   background:
-    linear-gradient(180deg, transparent 45%, color-mix(in srgb, var(--ag-overlay) 78%, transparent) 100%),
-    color-mix(in srgb, var(--ag-overlay) calc(var(--ag-dim, 0.35) * 100%), transparent);
+    linear-gradient(
+      180deg,
+      transparent 45%,
+      color-mix(in srgb, var(--ag-overlay) 78%, transparent) 100%
+    ),
+    color-mix(in srgb, var(--ag-overlay) 35%, transparent);
+
+  opacity: 1; /* GSAP animates this directly now */
+  z-index: 1;
 }
 
 .ag-panel__label {
@@ -127,10 +136,12 @@
     perspective: none;
     height: auto !important;
   }
+
   .ag-panel {
     min-height: 84px;
     transform: none !important;
   }
+
   .accordion-gallery .ag-panel__media {
     width: 100%;
     height: var(--ag-media-size);
@@ -138,6 +149,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .ag-panel,
   .ag-panel__media {
     will-change: auto;

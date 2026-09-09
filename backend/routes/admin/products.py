@@ -123,6 +123,7 @@ async def add_product(
 
         new_image = Media(
             media_url=upload["secure_url"],
+            public_id=upload["public_id"],
             product_id=new_product.id,
         )
 
@@ -395,6 +396,7 @@ async def add_product_variant(
 
         new_image = Media(
             media_url=upload["secure_url"],
+            public_id=upload["public_id"],
             variant_id=new_variant.id,
         )
 
@@ -910,3 +912,272 @@ def get_tags(
     ],
 ):
     return db.query(Tag).all()
+
+
+
+
+
+
+
+
+
+@router.post("/products/{product_id}/media")
+async def add_product_media(
+    product_id: int,
+    media: list[UploadFile] = File(default=[]),
+    db: Annotated[
+        Session,
+        Depends(get_db),
+    ] = None,
+    user_infos: Annotated[
+        dict,
+        Depends(decode_access_token),
+    ] = None,
+):
+    require_admin(db, user_infos)
+
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id)
+        .first()
+    )
+
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found",
+        )
+
+    uploaded_media = []
+
+    try:
+        for image in media:
+
+            if not image.filename:
+                continue
+
+            upload = cloudinary.uploader.upload(
+                await image.read()
+            )
+
+            new_image = Media(
+                media_url=upload["secure_url"],
+                public_id=upload["public_id"],
+                product_id=product_id,
+            )
+
+            db.add(new_image)
+            uploaded_media.append(new_image)
+
+        db.commit()
+
+        for image in uploaded_media:
+            db.refresh(image)
+
+        return uploaded_media
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to upload product images",
+        )
+    
+
+
+
+
+
+@router.post(
+    "/products/{product_id}/variants/{variant_id}/media"
+)
+async def add_variant_media(
+    product_id: int,
+    variant_id: int,
+    media: list[UploadFile] = File(default=[]),
+    db: Annotated[
+        Session,
+        Depends(get_db),
+    ] = None,
+    user_infos: Annotated[
+        dict,
+        Depends(decode_access_token),
+    ] = None,
+):
+    require_admin(db, user_infos)
+
+    variant = (
+        db.query(ProductVariant)
+        .filter(
+            ProductVariant.id == variant_id,
+            ProductVariant.product_id == product_id,
+        )
+        .first()
+    )
+
+    if not variant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Variant not found for this product",
+        )
+
+    uploaded_media = []
+
+    try:
+        for image in media:
+
+            if not image.filename:
+                continue
+
+            upload = cloudinary.uploader.upload(
+                await image.read()
+            )
+
+            new_image = Media(
+                media_url=upload["secure_url"],
+                public_id=upload["public_id"],
+                variant_id=variant_id,
+            )
+
+            db.add(new_image)
+            uploaded_media.append(new_image)
+
+        db.commit()
+
+        for image in uploaded_media:
+            db.refresh(image)
+
+        return uploaded_media
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to upload variant images",
+        )
+    
+
+
+@router.delete(
+    "/products/{product_id}/media/{media_id}"
+)
+def delete_product_media(
+    product_id: int,
+    media_id: int,
+    db: Annotated[
+        Session,
+        Depends(get_db),
+    ],
+    user_infos: Annotated[
+        dict,
+        Depends(decode_access_token),
+    ],
+):
+    require_admin(db, user_infos)
+
+    media = (
+        db.query(Media)
+        .filter(
+            Media.id == media_id,
+            Media.product_id == product_id,
+        )
+        .first()
+    )
+
+    if not media:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product image not found",
+        )
+
+    try:
+        # Delete from Cloudinary
+        cloudinary.uploader.destroy(
+            media.public_id
+        )
+
+        # Delete from database
+        db.delete(media)
+        db.commit()
+
+        return {
+            "message": "Product image deleted successfully"
+        }
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete product image",
+        )
+    
+
+
+@router.delete(
+    "/products/{product_id}/variants/{variant_id}/media/{media_id}"
+)
+def delete_variant_media(
+    product_id: int,
+    variant_id: int,
+    media_id: int,
+    db: Annotated[
+        Session,
+        Depends(get_db),
+    ],
+    user_infos: Annotated[
+        dict,
+        Depends(decode_access_token),
+    ],
+):
+    require_admin(db, user_infos)
+
+    media = (
+        db.query(Media)
+        .filter(
+            Media.id == media_id,
+            Media.variant_id == variant_id,
+        )
+        .first()
+    )
+
+    if not media:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Variant image not found",
+        )
+
+    variant = (
+        db.query(ProductVariant)
+        .filter(
+            ProductVariant.id == variant_id,
+            ProductVariant.product_id == product_id,
+        )
+        .first()
+    )
+
+    if not variant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Variant not found for this product",
+        )
+
+    try:
+        cloudinary.uploader.destroy(
+            media.public_id
+        )
+
+        db.delete(media)
+        db.commit()
+
+        return {
+            "message": "Variant image deleted successfully"
+        }
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete variant image",
+        )

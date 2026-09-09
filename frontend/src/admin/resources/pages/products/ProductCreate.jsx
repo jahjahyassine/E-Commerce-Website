@@ -4,11 +4,14 @@ import { useMemo, useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { StatusModal } from "../../../../modals/StatusModal";
+import { useNavigate } from "react-router-dom";
 
 export function ProductCreate() {
 
     const token = localStorage.getItem("access_token")
     const BASE_URL = import.meta.env.VITE_BASE_URL
+
+    const navigate = useNavigate()
 
     const fetchBrands = async () => {
         const response = await fetch(
@@ -155,6 +158,7 @@ export function ProductCreate() {
         mutationFn: createProductFunction,
         onSuccess: (data) => {
             console.log("Product created:", data);
+            navigate("/admin/products")
         },
         onError: (error) => {
             console.error("Failed:", error);

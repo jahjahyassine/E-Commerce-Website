@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
+
 import Navbar from "../components/Navbar";
 import DotField from "../components/animation/DotField";
+import loginImage from "../assets/bg1.jpg";
+
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 
 function Login() {
     const BASE_URL = import.meta.env.VITE_BASE_URL;
+
     const navigate = useNavigate();
 
-    const [identifier, setIdentifier] = useState("")
+    const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const [rememberOption, setRememberOption] = useState(false);
 
@@ -40,12 +44,15 @@ function Login() {
         isPending,
         isError,
         error,
-        isSuccess
     } = useMutation({
         mutationFn: loginUser,
 
         onSuccess: (data) => {
-            localStorage.setItem("access_token", data.access_token)
+            localStorage.setItem(
+                "access_token",
+                data.access_token
+            );
+
             navigate("/products");
         },
     });
@@ -53,20 +60,26 @@ function Login() {
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        const cleanIdentifier = identifier.trim();
+
+        if (!cleanIdentifier) {
+            return;
+        }
+
         login({
-            identifier,
+            identifier: cleanIdentifier,
             password,
-            rememberOption
+            rememberOption,
         });
     };
 
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
 
-    useEffect( () => {
-        const token = localStorage.getItem("access_token")
         if (token) {
-            navigate("/profile")
+            navigate("/profile");
         }
-    }, [])
+    }, [navigate]);
 
     return (
         <main className="bg-background min-h-screen">
@@ -94,6 +107,32 @@ function Login() {
                 />
             </div>
 
+            <div
+                className="
+        fixed
+        inset-0
+        z-[1]
+        pointer-events-none
+        flex
+        items-center
+        justify-center
+        overflow-hidden
+    "
+                aria-hidden="true"
+            >
+                <img
+                    src={loginImage}
+                    alt=""
+                    className="
+            w-full
+            h-full
+            object-cover
+            select-none
+            mix-blend-darken
+        "
+                />
+            </div>
+
             <section className="relative z-10 min-h-screen w-full flex flex-col items-center justify-center px-4 pt-20">
                 <section className="flex flex-col justify-between items-center bg-card/20 py-8 px-10 md:px-18 rounded-3xl backdrop-blur-xl shadow-product w-full max-w-lg">
 
@@ -102,7 +141,7 @@ function Login() {
                             Welcome Back
                         </h2>
 
-                        <p className="text-muted font-bold mt-2">
+                        <p className="text-foreground font-bold mt-2">
                             Sign in to your ByteStore account.
                             <br />
                             Your favorite products are waiting.
@@ -113,8 +152,6 @@ function Login() {
                         className="flex flex-col gap-4 items-center w-full"
                         onSubmit={handleSubmit}
                     >
-
-
                         <input
                             type="text"
                             className="bg-chip placeholder:text-muted text-foreground font-bold text-lg py-2 px-4 rounded-xl focus:outline-0 border border-border focus:shadow-product w-full"
@@ -123,9 +160,11 @@ function Login() {
                             onChange={(e) =>
                                 setIdentifier(e.target.value)
                             }
+                            minLength={3}
+                            maxLength={255}
                             required
+                            autoComplete="username"
                         />
-
 
                         <input
                             type="password"
@@ -135,16 +174,20 @@ function Login() {
                             onChange={(e) =>
                                 setPassword(e.target.value)
                             }
+                            minLength={8}
+                            maxLength={128}
                             required
+                            autoComplete="current-password"
                         />
 
-
-                        <div className="flex items-start gap-2 w-full text-sm text-muted justify-end">
+                        <div className="flex items-start gap-2 w-full text-sm text-foreground justify-end">
                             <input
                                 type="checkbox"
                                 checked={rememberOption}
                                 onChange={(e) =>
-                                    setRememberOption(e.target.checked)
+                                    setRememberOption(
+                                        e.target.checked
+                                    )
                                 }
                                 className="mt-1"
                             />
@@ -155,7 +198,7 @@ function Login() {
                         </div>
 
                         {isError && (
-                            <p className="text-minimal-red text-sm font-bold  text-center">
+                            <p className="text-minimal-red text-sm font-bold text-center">
                                 {error?.message ||
                                     "Login failed."}
                             </p>
@@ -174,6 +217,7 @@ function Login() {
 
                     <p className="mt-6">
                         Don't have an account?
+
                         <Link
                             to="/register"
                             className="text-emerald/80 font-bold"

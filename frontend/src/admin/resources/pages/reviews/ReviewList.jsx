@@ -806,11 +806,6 @@ export function ReviewList() {
                                     rows.map((row) => (
                                         <tr
                                             key={row.id}
-                                            onClick={() =>
-                                                navigate(
-                                                    `/admin/reviews/${row.original.id}`
-                                                )
-                                            }
                                             className="
                                                 border-b
                                                 border-slate-700/70

@@ -1,8 +1,8 @@
-"""New Database
+"""initial schema
 
-Revision ID: 27050c00de80
+Revision ID: 855abc972cd2
 Revises: 
-Create Date: 2026-08-13 10:27:47.712713
+Create Date: 2026-09-08 07:41:58.066696
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '27050c00de80'
+revision: str = '855abc972cd2'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,6 +24,7 @@ def upgrade() -> None:
     op.create_table('brands',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
@@ -31,6 +32,7 @@ def upgrade() -> None:
     op.create_table('categories',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
@@ -62,6 +64,9 @@ def upgrade() -> None:
     sa.Column('password_hash', sa.String(length=255), nullable=False),
     sa.Column('phone', sa.String(length=20), nullable=True),
     sa.Column('address', sa.Text(), nullable=True),
+    sa.Column('city', sa.String(length=100), nullable=True),
+    sa.Column('region', sa.String(length=100), nullable=True),
+    sa.Column('postal_code', sa.String(length=20), nullable=True),
     sa.Column('role', sa.Enum('CUSTOMER', 'ADMIN', name='userrole'), server_default='CUSTOMER', nullable=False),
     sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
     sa.Column('profile_pic', sa.Text(), nullable=True),
@@ -85,7 +90,12 @@ def upgrade() -> None:
     op.create_table('orders',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('customer_name', sa.String(length=255), nullable=False),
+    sa.Column('customer_phone', sa.String(length=30), nullable=False),
     sa.Column('shipping_address', sa.Text(), nullable=False),
+    sa.Column('shipping_city', sa.String(length=100), nullable=False),
+    sa.Column('shipping_region', sa.String(length=100), nullable=False),
+    sa.Column('shipping_postal_code', sa.String(length=20), nullable=True),
     sa.Column('order_status', sa.Enum('PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', name='orderstatus'), server_default='PENDING', nullable=False),
     sa.Column('shipping_status', sa.Enum('NOT_SHIPPED', 'SHIPPED', 'DELIVERED', name='shippingstatus'), server_default='NOT_SHIPPED', nullable=False),
     sa.Column('payment_status', sa.Enum('PENDING', 'PAID', 'REFUNDED', name='paymentstatus'), server_default='PENDING', nullable=False),
@@ -192,6 +202,7 @@ def upgrade() -> None:
     op.create_table('medias',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('media_url', sa.String(), nullable=False),
+    sa.Column('public_id', sa.String(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=True),
     sa.Column('variant_id', sa.Integer(), nullable=True),
     sa.CheckConstraint('(product_id IS NOT NULL AND variant_id IS NULL) OR (product_id IS NULL AND variant_id IS NOT NULL)', name='media_exactly_one_owner'),

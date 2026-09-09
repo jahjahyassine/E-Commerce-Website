@@ -981,6 +981,7 @@ export function BrandList() {
                         border-slate-700
                         bg-admin-surface
                         rounded-2xl
+                        w-[50vw] mx-auto
                     "
                 >
                     <table className="w-full text-left">

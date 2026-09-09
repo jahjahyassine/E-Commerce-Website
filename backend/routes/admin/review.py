@@ -107,7 +107,37 @@ def delete_review(
             detail="Review not found",
         )
 
+    product_id = review.product_id
+    
+    product = (
+        db.query(Product)
+        .filter(
+            Product.id == product_id
+        )
+        .first()
+    )
+
+    if product is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found",
+        )
+
     db.delete(review)
+
+    db.flush()
+    
+    reviews = db.query(Review).filter(
+        Review.product_id == product.id
+    ).all()
+    
+    product.count_reviews = len(reviews)
+
+    if reviews:
+        product.average_rating = sum(r.rating for r in reviews) / len(reviews)
+    else:
+        product.average_rating = 0
+
     db.commit()
 
     return {

@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { gsap } from "gsap";
-
 import "./AccordionGallery.css";
 
 const DEFAULT_ITEMS = [
@@ -34,30 +33,40 @@ const DEFAULT_ITEMS = [
 const AccordionGallery = ({
     items = DEFAULT_ITEMS,
     defaultIndex = 2,
+
     accentColor = "#ffffff",
     overlayColor = "#060010",
     textColor = "#ffffff",
+
     height = 460,
     gap = 10,
     radius = 16,
+
     expandRatio = 0.52,
     orientation = "horizontal",
+
     duration = 0.6,
     ease = "power3.out",
+
     parallax = 0.5,
     tilt = 8,
     stagger = 0.06,
+
     trigger = "hover",
     showLabels = true,
     grayscale = true,
+
     className = "",
+
     onItemClick,
 }) => {
     const rootRef = useRef(null);
     const panelRefs = useRef([]);
     const mediaRefs = useRef([]);
+    const overlayRefs = useRef([]);
     const barRefs = useRef([]);
     const textRefs = useRef([]);
+
     const tlRef = useRef(null);
     const firstRunRef = useRef(true);
     const mediaSizeRef = useRef(320);
@@ -72,12 +81,15 @@ const AccordionGallery = ({
         )
     );
 
+    // Track which panel is currently hovered.
+    const [hovered, setHovered] = useState(null);
+
     const prefersReduced =
         typeof window !== "undefined" &&
-        window.matchMedia
+            window.matchMedia
             ? window.matchMedia(
-                  "(prefers-reduced-motion: reduce)"
-              ).matches
+                "(prefers-reduced-motion: reduce)"
+            ).matches
             : false;
 
     const applyLayout = useCallback(
@@ -111,7 +123,10 @@ const AccordionGallery = ({
                 if (!panel) return;
 
                 const isActive = i === active;
+                const isHovered = i === hovered;
+
                 const media = mediaRefs.current[i];
+                const overlay = overlayRefs.current[i];
                 const bar = barRefs.current[i];
                 const text = textRefs.current[i];
 
@@ -125,6 +140,10 @@ const AccordionGallery = ({
                     ? { rotateX: -rot }
                     : { rotateY: rot };
 
+                // ---------------------------------------------
+                // PANEL
+                // ---------------------------------------------
+
                 tl.to(
                     panel,
                     {
@@ -136,10 +155,17 @@ const AccordionGallery = ({
                     0
                 );
 
+                // ---------------------------------------------
+                // IMAGE
+                // ---------------------------------------------
+
                 if (media) {
                     const drift = Math.max(
                         -1.5,
-                        Math.min(1.5, active - i)
+                        Math.min(
+                            1.5,
+                            active - i
+                        )
                     );
 
                     const shift =
@@ -149,7 +175,7 @@ const AccordionGallery = ({
                         0.06;
 
                     const gray = grayscale
-                        ? isActive
+                        ? isActive || isHovered
                             ? 0
                             : 1
                         : 0;
@@ -159,20 +185,21 @@ const AccordionGallery = ({
                         {
                             xPercent: -50,
                             yPercent: -50,
+
                             x: vertical
                                 ? 0
                                 : isActive
                                     ? 0
                                     : shift,
+
                             y: vertical
                                 ? isActive
                                     ? 0
                                     : shift
                                 : 0,
+
                             "--ag-gray": gray,
-                            "--ag-dim": isActive
-                                ? 0
-                                : 0.35,
+
                             duration: dur,
                             ease,
                         },
@@ -180,8 +207,35 @@ const AccordionGallery = ({
                     );
                 }
 
-                if (showLabels && bar && text) {
-                    if (isActive) {
+                // ---------------------------------------------
+                // OVERLAY
+                // ---------------------------------------------
+
+                if (overlay) {
+                    tl.to(
+                        overlay,
+                        {
+                            opacity:
+                                isHovered || isActive
+                                    ? 0
+                                    : 1,
+                            duration: dur,
+                            ease,
+                        },
+                        0
+                    );
+                }
+
+                // ---------------------------------------------
+                // LABEL
+                // ---------------------------------------------
+
+                if (
+                    showLabels &&
+                    bar &&
+                    text
+                ) {
+                    if (isActive || isHovered) {
                         tl.to(
                             [bar, text],
                             {
@@ -214,6 +268,7 @@ const AccordionGallery = ({
         },
         [
             active,
+            hovered,
             count,
             expandRatio,
             duration,
@@ -228,13 +283,18 @@ const AccordionGallery = ({
         ]
     );
 
+    // ---------------------------------------------------------
+    // MEASURE
+    // ---------------------------------------------------------
+
     useEffect(() => {
         const el = rootRef.current;
 
         if (!el) return;
 
         const measure = () => {
-            const rect = el.getBoundingClientRect();
+            const rect =
+                el.getBoundingClientRect();
 
             const total = vertical
                 ? rect.height
@@ -248,11 +308,14 @@ const AccordionGallery = ({
             const size = Math.max(
                 140,
                 usable *
-                    Math.min(
-                        Math.max(expandRatio, 0.2),
-                        0.9
-                    ) *
-                    1.22
+                Math.min(
+                    Math.max(
+                        expandRatio,
+                        0.2
+                    ),
+                    0.9
+                ) *
+                1.22
             );
 
             mediaSizeRef.current = size;
@@ -262,7 +325,9 @@ const AccordionGallery = ({
                 `${size}px`
             );
 
-            applyLayout(!firstRunRef.current);
+            applyLayout(
+                !firstRunRef.current
+            );
         };
 
         measure();
@@ -280,11 +345,21 @@ const AccordionGallery = ({
         vertical,
     ]);
 
+    // ---------------------------------------------------------
+    // APPLY LAYOUT
+    // ---------------------------------------------------------
+
     useEffect(() => {
-        applyLayout(!firstRunRef.current);
+        applyLayout(
+            !firstRunRef.current
+        );
 
         firstRunRef.current = false;
     }, [applyLayout]);
+
+    // ---------------------------------------------------------
+    // CLEANUP
+    // ---------------------------------------------------------
 
     useEffect(() => {
         return () => {
@@ -292,22 +367,41 @@ const AccordionGallery = ({
         };
     }, []);
 
+    // ---------------------------------------------------------
+    // ENTER
+    // ---------------------------------------------------------
+
     const handleEnter = (i) => {
         if (trigger === "hover") {
             setActive(i);
         }
     };
 
+    // ---------------------------------------------------------
+    // CLICK
+    // ---------------------------------------------------------
+
     const handleClick = (i, e) => {
         if (i !== active) {
             e.preventDefault();
 
             setActive(i);
-            onItemClick?.(items[i], i);
+
+            onItemClick?.(
+                items[i],
+                i
+            );
         } else {
-            onItemClick?.(items[i], i);
+            onItemClick?.(
+                items[i],
+                i
+            );
         }
     };
+
+    // ---------------------------------------------------------
+    // KEYBOARD
+    // ---------------------------------------------------------
 
     const handleKeyDown = (i, e) => {
         if (
@@ -316,10 +410,15 @@ const AccordionGallery = ({
         ) {
             e.preventDefault();
 
-            const nextIndex = (i + 1) % count;
+            const nextIndex =
+                (i + 1) % count;
 
             setActive(nextIndex);
-            onItemClick?.(items[nextIndex], nextIndex);
+
+            onItemClick?.(
+                items[nextIndex],
+                nextIndex
+            );
         } else if (
             e.key === "ArrowLeft" ||
             e.key === "ArrowUp"
@@ -330,7 +429,11 @@ const AccordionGallery = ({
                 (i - 1 + count) % count;
 
             setActive(nextIndex);
-            onItemClick?.(items[nextIndex], nextIndex);
+
+            onItemClick?.(
+                items[nextIndex],
+                nextIndex
+            );
         }
     };
 
@@ -343,7 +446,8 @@ const AccordionGallery = ({
                 accordion-gallery
                 ${vertical
                     ? "accordion-gallery--vertical"
-                    : ""}
+                    : ""
+                }
                 ${className}
             `}
             style={{
@@ -352,45 +456,68 @@ const AccordionGallery = ({
                 "--ag-text": textColor,
                 "--ag-gap": `${gap}px`,
                 "--ag-radius": `${radius}px`,
+
                 height: vertical
-                    ? `${Math.round(height * 1.6)}px`
+                    ? `${Math.round(
+                        height * 1.6
+                    )}px`
                     : `${height}px`,
             }}
             role="list"
             aria-label="Product categories"
         >
             {items.map((item, i) => {
-                const isActive = i === active;
+                const isActive =
+                    i === active;
 
-                const Tag = item.link ? "a" : "div";
+                const Tag = item.link
+                    ? "a"
+                    : "div";
 
                 return (
                     <Tag
                         key={i}
                         ref={(el) =>
-                            (panelRefs.current[i] = el)
+                        (panelRefs.current[i] =
+                            el)
                         }
                         className={`
                             ag-panel
-                            ${
-                                isActive
-                                    ? "ag-panel--active"
-                                    : ""
+                            ${isActive
+                                ? "ag-panel--active"
+                                : ""
                             }
                         `}
                         style={{
-                            borderRadius: `${radius}px`,
+                            borderRadius:
+                                `${radius}px`,
                         }}
-                        href={item.link || undefined}
+                        href={
+                            item.link ||
+                            undefined
+                        }
                         onClick={(e) =>
                             handleClick(i, e)
                         }
-                        onMouseEnter={() =>
-                            handleEnter(i)
-                        }
-                        onFocus={() => setActive(i)}
+                        onMouseEnter={() => {
+                            handleEnter(i);
+                            setHovered(i);
+                        }}
+                        onMouseLeave={() => {
+                            setHovered(null);
+                        }}
+                        onFocus={() => {
+                            setActive(i);
+                            setHovered(i);
+                        }}
+                        onBlur={() => {
+                            setHovered(null);
+                        }}
                         onKeyDown={(e) =>
-                            handleKeyDown(i, e)
+                            handleKeyDown(
+                                i,
+                                e
+                            )
                         }
                         role="listitem"
                         tabIndex={0}
@@ -399,14 +526,21 @@ const AccordionGallery = ({
                                 ? "true"
                                 : undefined
                         }
-                        aria-label={item.label}
+                        aria-label={
+                            item.label
+                        }
                     >
+                        {/* -----------------------------------------
+                            IMAGE FRAME
+                        ----------------------------------------- */}
+
                         <span className="ag-panel__frame">
                             <span
                                 className="ag-panel__media"
                                 ref={(el) =>
-                                    (mediaRefs.current[i] =
-                                        el)
+                                (mediaRefs.current[
+                                    i
+                                ] = el)
                                 }
                             >
                                 <img
@@ -423,27 +557,35 @@ const AccordionGallery = ({
                             <span
                                 className="ag-panel__overlay"
                                 aria-hidden="true"
+                                ref={(el) =>
+                                (overlayRefs.current[
+                                    i
+                                ] = el)
+                                }
                             />
                         </span>
 
+                        {/* -----------------------------------------
+                            LABEL
+                        ----------------------------------------- */}
+
                         {showLabels && (
-                            <span
-                                className="ag-panel__label"
-                                aria-hidden="true"
-                            >
+                            <span className="ag-panel__label">
                                 <span
                                     className="ag-panel__bar"
                                     ref={(el) =>
-                                        (barRefs.current[i] =
-                                            el)
+                                    (barRefs.current[
+                                        i
+                                    ] = el)
                                     }
                                 />
 
                                 <span
                                     className="ag-panel__text"
                                     ref={(el) =>
-                                        (textRefs.current[i] =
-                                            el)
+                                    (textRefs.current[
+                                        i
+                                    ] = el)
                                     }
                                 >
                                     {item.label}

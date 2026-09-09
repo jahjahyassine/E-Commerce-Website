@@ -33,6 +33,9 @@ export function ProductVariantShow() {
     const { id, variantId } = useParams();
     const navigate = useNavigate();
 
+    const token = localStorage.getItem("access_token");
+    const BASE_URL = import.meta.env.VITE_BASE_URL;
+
     /* ============================================================
        Product editing
     ============================================================ */
@@ -78,6 +81,20 @@ export function ProductVariantShow() {
 
 
     /* ============================================================
+       Media
+    ============================================================ */
+
+    const [isUploadingMedia, setIsUploadingMedia] =
+        useState(false);
+
+    const [deletingMediaId, setDeletingMediaId] =
+        useState(null);
+
+    const [mediaError, setMediaError] =
+        useState("");
+
+
+    /* ============================================================
        Attribute helpers
     ============================================================ */
 
@@ -95,7 +112,11 @@ export function ProductVariantShow() {
     };
 
 
-    const updateAttribute = (index, field, value) => {
+    const updateAttribute = (
+        index,
+        field,
+        value
+    ) => {
         setVariantForm((prev) => ({
             ...prev,
             attributes: prev.attributes.map(
@@ -199,7 +220,6 @@ export function ProductVariantShow() {
 
     /* ============================================================
        Inventory API
-       POST /admin/inventory/{variant_id}
     ============================================================ */
 
     const {
@@ -278,7 +298,9 @@ export function ProductVariantShow() {
     ============================================================ */
 
     useEffect(() => {
-        if (!product) return;
+        if (!product) {
+            return;
+        }
 
         setForm({
             name: product.name ?? "",
@@ -370,7 +392,9 @@ export function ProductVariantShow() {
 
 
     const handleCancel = () => {
-        if (!product) return;
+        if (!product) {
+            return;
+        }
 
         setForm({
             name: product.name ?? "",
@@ -448,7 +472,9 @@ export function ProductVariantShow() {
     const handleStartEditVariant = (
         variant
     ) => {
-        if (!variant) return;
+        if (!variant) {
+            return;
+        }
 
         setEditingVariantId(
             variant.id
@@ -635,14 +661,6 @@ export function ProductVariantShow() {
 
     /* ============================================================
        Add Stock
-
-       POST /admin/inventory/{variant_id}
-
-       Body:
-       {
-           quantity: number,
-           supplier_id: number
-       }
     ============================================================ */
 
     const handleAddStock = () => {
@@ -724,20 +742,194 @@ export function ProductVariantShow() {
 
 
     /* ============================================================
+       Upload Variant Media
+    ============================================================ */
+
+    const handleUploadMedia = async (
+        event
+    ) => {
+        const files = Array.from(
+            event.target.files || []
+        );
+
+        if (files.length === 0) {
+            return;
+        }
+
+        setMediaError("");
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+        ];
+
+        const invalidFiles =
+            files.filter(
+                (file) =>
+                    !allowedTypes.includes(
+                        file.type
+                    )
+            );
+
+        if (invalidFiles.length > 0) {
+            setMediaError(
+                "Only JPG, PNG, and WebP images are allowed."
+            );
+
+            event.target.value = "";
+
+            return;
+        }
+
+        setIsUploadingMedia(true);
+
+        try {
+            const formData =
+                new FormData();
+
+            files.forEach((file) => {
+                formData.append(
+                    "media",
+                    file
+                );
+            });
+
+            const response =
+                await fetch(
+                    `${BASE_URL}/admin/products/${id}/variants/${variantId}/media`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`,
+                        },
+
+                        body: formData,
+                    }
+                );
+
+            const data =
+                await response
+                    .json()
+                    .catch(() => null);
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.detail ||
+                    "Failed to upload variant images."
+                );
+            }
+
+            await refetch();
+
+        } catch (error) {
+            console.error(
+                "Variant media upload error:",
+                error
+            );
+
+            setMediaError(
+                error?.message ||
+                "Failed to upload variant images."
+            );
+
+        } finally {
+            setIsUploadingMedia(false);
+
+            event.target.value = "";
+        }
+    };
+
+
+    /* ============================================================
+       Delete Variant Media
+    ============================================================ */
+
+    const handleDeleteMedia = async (
+        mediaId
+    ) => {
+        if (!mediaId) {
+            return;
+        }
+
+        const confirmed =
+            window.confirm(
+                "Delete this image?"
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setMediaError("");
+        setDeletingMediaId(mediaId);
+
+        try {
+            const response =
+                await fetch(
+                    `${BASE_URL}/admin/products/${id}/variants/${variantId}/media/${mediaId}`,
+                    {
+                        method: "DELETE",
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`,
+                        },
+                    }
+                );
+
+            const data =
+                await response
+                    .json()
+                    .catch(() => null);
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.detail ||
+                    "Failed to delete variant image."
+                );
+            }
+
+            await refetch();
+
+        } catch (error) {
+            console.error(
+                "Variant media deletion error:",
+                error
+            );
+
+            setMediaError(
+                error?.message ||
+                "Failed to delete variant image."
+            );
+
+        } finally {
+            setDeletingMediaId(null);
+        }
+    };
+
+
+    /* ============================================================
        Delete Variant
     ============================================================ */
 
     const handleDeleteVariant = (
         variant
     ) => {
-        if (!variant) return;
+        if (!variant) {
+            return;
+        }
 
         const confirmed =
             window.confirm(
                 `Delete variant "${variant.sku}"?`
             );
 
-        if (!confirmed) return;
+        if (!confirmed) {
+            return;
+        }
 
         deleteVariant(
             {
@@ -1949,8 +2141,6 @@ export function ProductVariantShow() {
                                 "
                             >
 
-                                {/* Current Stock */}
-
                                 <div>
 
                                     <label
@@ -1980,8 +2170,6 @@ export function ProductVariantShow() {
 
                                 </div>
 
-
-                                {/* Quantity */}
 
                                 <div>
 
@@ -2052,8 +2240,6 @@ export function ProductVariantShow() {
 
                                 </div>
 
-
-                                {/* Supplier */}
 
                                 <div>
 
@@ -2128,8 +2314,6 @@ export function ProductVariantShow() {
                             </div>
 
 
-                            {/* Summary */}
-
                             <div
                                 className="
                                     mt-5
@@ -2181,9 +2365,7 @@ export function ProductVariantShow() {
                                     </div>
 
 
-                                    <div className="
-                                        text-right
-                                    ">
+                                    <div className="text-right">
 
                                         <p
                                             className="
@@ -2219,8 +2401,6 @@ export function ProductVariantShow() {
 
                             </div>
 
-
-                            {/* Buttons */}
 
                             <div
                                 className="
@@ -2284,10 +2464,7 @@ export function ProductVariantShow() {
 
                                     {isAddingStockPending
                                         ? "Adding..."
-                                        : `Add ${
-                                            stockAmount ||
-                                            "0"
-                                        } pcs`}
+                                        : `Add ${stockAmount || "0"} pcs`}
 
                                 </button>
 
@@ -2302,6 +2479,7 @@ export function ProductVariantShow() {
                     ================================================= */}
 
                     {editingVariantId && (
+
                         <div
                             className="
                                 p-6
@@ -2337,8 +2515,7 @@ export function ProductVariantShow() {
                                             mt-1
                                         "
                                     >
-                                        Update the
-                                        variant
+                                        Update the variant
                                         information.
                                     </p>
 
@@ -2349,12 +2526,16 @@ export function ProductVariantShow() {
                                     onClick={
                                         handleCancelVariant
                                     }
+                                    disabled={
+                                        isUpdatingVariant
+                                    }
                                     className="
                                         p-2
                                         rounded-lg
                                         text-admin-muted
                                         hover:text-admin-text
                                         hover:bg-slate-800
+                                        disabled:opacity-50
                                     "
                                 >
                                     <X
@@ -2415,9 +2596,7 @@ export function ProductVariantShow() {
                                 </FormField>
 
 
-                                <FormField
-                                    label="Discount %"
-                                >
+                                <FormField label="Discount %">
 
                                     <input
                                         type="number"
@@ -2509,8 +2688,7 @@ export function ProductVariantShow() {
                                                     text-admin-muted
                                                 "
                                             >
-                                                Variant
-                                                Attributes
+                                                Variant Attributes
                                             </label>
 
                                             <p
@@ -2521,12 +2699,9 @@ export function ProductVariantShow() {
                                                 "
                                             >
                                                 Specifications
-                                                such as
-                                                RAM,
-                                                storage,
-                                                color,
-                                                or
-                                                processor.
+                                                such as RAM,
+                                                storage, color,
+                                                or processor.
                                             </p>
 
                                         </div>
@@ -2555,7 +2730,6 @@ export function ProductVariantShow() {
                                             <Plus
                                                 className="h-4 w-4"
                                             />
-
                                             Add Attribute
                                         </button>
 
@@ -2573,7 +2747,7 @@ export function ProductVariantShow() {
                                     >
 
                                         {variantForm.attributes.length ===
-                                            0 ? (
+                                        0 ? (
 
                                             <div
                                                 className="
@@ -2780,12 +2954,12 @@ export function ProductVariantShow() {
                                             text-admin-muted
                                             hover:text-admin-text
                                             hover:bg-slate-800
+                                            disabled:opacity-50
                                         "
                                     >
                                         <X
                                             className="h-4 w-4"
                                         />
-
                                         Cancel
                                     </button>
 
@@ -2812,7 +2986,6 @@ export function ProductVariantShow() {
                                             disabled:opacity-50
                                         "
                                     >
-
                                         <Save
                                             className="h-4 w-4"
                                         />
@@ -2820,7 +2993,6 @@ export function ProductVariantShow() {
                                         {isUpdatingVariant
                                             ? "Saving..."
                                             : "Save Variant"}
-
                                     </button>
 
                                 </div>
@@ -2828,6 +3000,7 @@ export function ProductVariantShow() {
                             </div>
 
                         </div>
+
                     )}
 
 
@@ -2836,6 +3009,7 @@ export function ProductVariantShow() {
                     ================================================= */}
 
                     {!editingVariantId && (
+
                         <div
                             className="
                                 p-6
@@ -2870,10 +3044,10 @@ export function ProductVariantShow() {
                                         <DollarSign className="h-5 w-5" />
                                     }
                                     label="Price"
-                                    value={`$${Number(
+                                    value={`${Number(
                                         selectedVariant.price ||
                                         0
-                                    ).toFixed(2)}`}
+                                    ).toFixed(2)} DH`}
                                 />
 
 
@@ -2900,7 +3074,9 @@ export function ProductVariantShow() {
                             </div>
 
 
-                            {/* Images */}
+                            {/* =================================================
+                                Images
+                            ================================================= */}
 
                             <div className="mb-6">
 
@@ -2908,29 +3084,128 @@ export function ProductVariantShow() {
                                     className="
                                         flex
                                         items-center
-                                        gap-2
-                                        mb-3
+                                        justify-between
+                                        gap-3
+                                        mb-4
                                     "
                                 >
 
-                                    <ImagePlus
+                                    <div
                                         className="
-                                            h-5
-                                            w-5
-                                            text-admin-primary
-                                        "
-                                    />
-
-                                    <h3
-                                        className="
-                                            font-semibold
+                                            flex
+                                            items-center
+                                            gap-2
                                         "
                                     >
-                                        Images
-                                    </h3>
+
+                                        <ImagePlus
+                                            className="
+                                                h-5
+                                                w-5
+                                                text-admin-primary
+                                            "
+                                        />
+
+                                        <div>
+
+                                            <h3
+                                                className="
+                                                    font-semibold
+                                                "
+                                            >
+                                                Images
+                                            </h3>
+
+                                            <p
+                                                className="
+                                                    text-xs
+                                                    text-admin-muted
+                                                    mt-1
+                                                "
+                                            >
+                                                Images associated
+                                                with this variant.
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    {/* Upload button */}
+
+                                    <label
+                                        className={`
+                                            inline-flex
+                                            items-center
+                                            gap-2
+                                            px-4
+                                            py-2
+                                            rounded-xl
+                                            bg-admin-primary
+                                            border
+                                            border-admin-primary-border
+                                            hover:bg-admin-primary-hover
+                                            font-semibold
+                                            transition
+                                            ${
+                                                isUploadingMedia
+                                                    ? "opacity-50 cursor-not-allowed"
+                                                    : "cursor-pointer"
+                                            }
+                                        `}
+                                    >
+
+                                        <ImagePlus
+                                            className="h-4 w-4"
+                                        />
+
+                                        {isUploadingMedia
+                                            ? "Uploading..."
+                                            : "Add Images"}
+
+                                        <input
+                                            type="file"
+                                            accept="image/png,image/jpeg,image/webp"
+                                            multiple
+                                            disabled={
+                                                isUploadingMedia
+                                            }
+                                            onChange={
+                                                handleUploadMedia
+                                            }
+                                            className="hidden"
+                                        />
+
+                                    </label>
 
                                 </div>
 
+
+                                {/* Media error */}
+
+                                {mediaError && (
+
+                                    <div
+                                        className="
+                                            mb-4
+                                            px-4
+                                            py-3
+                                            rounded-xl
+                                            border
+                                            border-red-500/20
+                                            bg-red-500/10
+                                            text-sm
+                                            text-red-400
+                                        "
+                                    >
+                                        {mediaError}
+                                    </div>
+
+                                )}
+
+
+                                {/* Images */}
 
                                 {media.length > 0 ? (
 
@@ -2949,67 +3224,187 @@ export function ProductVariantShow() {
                                             (
                                                 image,
                                                 index
-                                            ) => (
+                                            ) => {
 
-                                                <div
-                                                    key={
-                                                        image.id ??
-                                                        index
-                                                    }
-                                                    className="
-                                                        aspect-square
-                                                        rounded-xl
-                                                        overflow-hidden
-                                                        border
-                                                        border-admin-border
-                                                        bg-slate-900
-                                                    "
-                                                >
+                                                const isDeleting =
+                                                    deletingMediaId ===
+                                                    image.id;
 
-                                                    <img
-                                                        src={
-                                                            image.media_url
+                                                return (
+
+                                                    <div
+                                                        key={
+                                                            image.id ??
+                                                            index
                                                         }
-                                                        alt={`${selectedVariant.sku} ${index + 1}`}
                                                         className="
-                                                            w-full
-                                                            h-full
-                                                            object-cover
+                                                            relative
+                                                            aspect-square
+                                                            rounded-xl
+                                                            overflow-hidden
+                                                            border
+                                                            border-admin-border
+                                                            bg-slate-900
+                                                            group
                                                         "
-                                                    />
+                                                    >
 
-                                                </div>
+                                                        <img
+                                                            src={
+                                                                image.media_url
+                                                            }
+                                                            alt={`${selectedVariant.sku} ${index + 1}`}
+                                                            className="
+                                                                w-full
+                                                                h-full
+                                                                object-cover
+                                                            "
+                                                        />
 
-                                            )
+
+                                                        {/* Image number */}
+
+                                                        <div
+                                                            className="
+                                                                absolute
+                                                                top-2
+                                                                left-2
+                                                                px-2
+                                                                py-1
+                                                                rounded-md
+                                                                bg-black/60
+                                                                text-xs
+                                                                text-white
+                                                            "
+                                                        >
+                                                            #{index + 1}
+                                                        </div>
+
+
+                                                        {/* Delete button */}
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleDeleteMedia(
+                                                                    image.id
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                isDeleting ||
+                                                                isUploadingMedia
+                                                            }
+                                                            className="
+                                                                absolute
+                                                                top-2
+                                                                right-2
+                                                                p-2
+                                                                rounded-lg
+                                                                bg-red-500/90
+                                                                text-white
+                                                                opacity-0
+                                                                group-hover:opacity-100
+                                                                transition
+                                                                hover:bg-red-500
+                                                                disabled:opacity-50
+                                                                disabled:cursor-not-allowed
+                                                            "
+                                                            title="Delete image"
+                                                        >
+                                                            <Trash2
+                                                                className="h-4 w-4"
+                                                            />
+                                                        </button>
+
+
+                                                        {/* Delete overlay */}
+
+                                                        {isDeleting && (
+
+                                                            <div
+                                                                className="
+                                                                    absolute
+                                                                    inset-0
+                                                                    flex
+                                                                    items-center
+                                                                    justify-center
+                                                                    bg-black/60
+                                                                "
+                                                            >
+
+                                                                <span
+                                                                    className="
+                                                                        text-xs
+                                                                        font-medium
+                                                                    "
+                                                                >
+                                                                    Deleting...
+                                                                </span>
+
+                                                            </div>
+
+                                                        )}
+
+                                                    </div>
+
+                                                );
+                                            }
                                         )}
 
                                     </div>
 
                                 ) : (
 
+                                    /* Empty state */
+
                                     <div
                                         className="
                                             flex
+                                            flex-col
                                             items-center
+                                            justify-center
                                             gap-3
                                             px-4
-                                            py-5
+                                            py-10
                                             rounded-xl
                                             bg-slate-900/50
                                             border
+                                            border-dashed
                                             border-admin-border
                                             text-admin-muted
                                         "
                                     >
 
                                         <ImagePlus
-                                            className="h-5 w-5"
+                                            className="
+                                                h-8
+                                                w-8
+                                                opacity-40
+                                            "
                                         />
 
-                                        <span className="text-sm">
-                                            No images available
-                                            for this variant.
-                                        </span>
+                                        <div className="text-center">
+
+                                            <p
+                                                className="
+                                                    text-sm
+                                                    font-medium
+                                                "
+                                            >
+                                                No images available
+                                            </p>
+
+                                            <p
+                                                className="
+                                                    text-xs
+                                                    mt-1
+                                                "
+                                            >
+                                                Add images using
+                                                the button above.
+                                            </p>
+
+                                        </div>
 
                                     </div>
 
@@ -3018,7 +3413,9 @@ export function ProductVariantShow() {
                             </div>
 
 
-                            {/* Attributes */}
+                            {/* =================================================
+                                Attributes
+                            ================================================= */}
 
                             <div className="mb-6">
 
@@ -3136,7 +3533,9 @@ export function ProductVariantShow() {
                             </div>
 
 
-                            {/* Status */}
+                            {/* =================================================
+                                Status
+                            ================================================= */}
 
                             <div
                                 className="
@@ -3195,8 +3594,7 @@ export function ProductVariantShow() {
                                             `}
                                         >
                                             {selectedVariant.is_active
-                                                ? currentStock >
-                                                    0
+                                                ? currentStock > 0
                                                     ? "Active"
                                                     : "Out of Stock"
                                                 : "Inactive"}
@@ -3244,6 +3642,7 @@ export function ProductVariantShow() {
                             </div>
 
                         </div>
+
                     )}
 
                 </div>
@@ -3331,6 +3730,7 @@ function InfoCard({
                     mb-2
                 "
             >
+
                 {icon}
 
                 <span className="text-xs">

@@ -204,10 +204,12 @@ function CartPage() {
 
     return (
         <main className="relative min-h-screen">
+            {/* Navbar */}
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
 
+            {/* Background */}
             <div
                 className="fixed inset-0 w-full h-full z-0 pointer-events-none"
                 aria-hidden="true"
@@ -228,7 +230,9 @@ function CartPage() {
                 />
             </div>
 
-            <section className="relative z-10 pt-20 px-6 flex flex-col max-h-screen gap-10">
+            {/* Main Content */}
+            <section className="relative z-10 pt-20 px-6 flex flex-col w-[80vw] mx-auto gap-10">
+                {/* Header */}
                 <section className="w-full flex flex-col items-center">
                     <h2 className="text-4xl font-bold tracking-wider mb-5">
                         Your Shopping Cart
@@ -258,8 +262,11 @@ function CartPage() {
                     </div>
                 </section>
 
-                <section className="flex gap-5">
-                    <section className="h-full flex flex-col gap-2 flex-1">
+                {/* Cart + Summary */}
+                <section className="flex gap-5 w-full items-start">
+                    {/* Cart Section */}
+                    <section className="flex-1 min-w-0 flex flex-col gap-2">
+                        {/* Select All */}
                         <section className="bg-chip p-2 rounded-3xl">
                             <div className="flex gap-2 bg-card rounded-2xl overflow-hidden px-4 py-3 items-center">
                                 <input
@@ -293,6 +300,7 @@ function CartPage() {
                             </div>
                         </section>
 
+                        {/* Cart Items */}
                         <section className="max-h-[600px] flex flex-col bg-chip gap-4 p-2 rounded-3xl overflow-y-auto">
                             {cartItems.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-20">
@@ -354,6 +362,7 @@ function CartPage() {
                                                     : "bg-card"
                                             }`}
                                         >
+                                            {/* Checkbox */}
                                             <div className="flex items-center">
                                                 <input
                                                     type="checkbox"
@@ -367,7 +376,8 @@ function CartPage() {
                                                 />
                                             </div>
 
-                                            <div className="aspect-square rounded-xl overflow-hidden h-full w-[120px] shrink-0 bg-chip">
+                                            {/* Image */}
+                                            <div className="aspect-square rounded-xl overflow-hidden h-[120px] w-[120px] shrink-0 bg-chip">
                                                 {image ? (
                                                     <img
                                                         src={image}
@@ -386,8 +396,9 @@ function CartPage() {
                                                 )}
                                             </div>
 
-                                            <div className="flex flex-col">
-                                                <h3 className="text-xl font-bold text-black">
+                                            {/* Product Info */}
+                                            <div className="flex flex-col min-w-0">
+                                                <h3 className="text-xl font-bold text-black truncate">
                                                     {
                                                         variant
                                                             .product
@@ -437,7 +448,8 @@ function CartPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="ml-auto flex flex-col justify-between gap-4 items-end">
+                                            {/* Price / Delete */}
+                                            <div className="ml-auto shrink-0 flex flex-col justify-between gap-4 items-end">
                                                 <button
                                                     className="text-minimal-red font-bold hover:scale-[1.1] duration-300 ease-linear cursor-pointer"
                                                     onClick={() =>
@@ -477,7 +489,10 @@ function CartPage() {
 
                                                             <span className="text-xs font-bold text-minimal-red">
                                                                 -
-                                                                {discount}%
+                                                                {
+                                                                    discount
+                                                                }
+                                                                %
                                                             </span>
                                                         </div>
                                                     )}
@@ -497,7 +512,8 @@ function CartPage() {
                         </section>
                     </section>
 
-                    <section className="bg-chip p-2 h-fit md:w-[25vw] lg:w-[30vw] rounded-3xl">
+                    {/* Summary */}
+                    <section className="w-[320px] lg:w-[360px] shrink-0 bg-chip p-2 h-fit rounded-3xl">
                         <div className="bg-card p-4 flex gap-7 flex-col rounded-2xl">
                             <h3 className="text-xl font-bold">
                                 Cart Summary
@@ -537,8 +553,7 @@ function CartPage() {
                                 </p>
 
                                 <p className="text-lg font-bold">
-                                    ${" "}
-                                    {totalAmount.toFixed(2)}
+                                    {totalAmount.toFixed(2)} DH
                                 </p>
                             </div>
 

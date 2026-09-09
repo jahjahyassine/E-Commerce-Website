@@ -1,7 +1,6 @@
 import DotField from "../components/animation/DotField";
 import BestSellers from "../components/BestSellers";
 import BrandTrust from "../components/BrandTrust";
-import ChatbotSection from "../components/ChatbotSection";
 import FeaturedCategories from "../components/FeaturedCategories";
 import FooterSection from "../components/FooterSection";
 import HeroSection from "../components/HeroSection";
@@ -39,7 +38,6 @@ function Landing() {
                 <FeaturedCategories />
                 <BestSellers />
                 <BrandTrust />
-                <ChatbotSection />
                 <FooterSection />
             </main>
         </div>

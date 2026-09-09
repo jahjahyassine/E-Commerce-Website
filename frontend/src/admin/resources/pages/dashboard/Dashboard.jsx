@@ -34,10 +34,10 @@ const BASE_URL = import.meta.env.VITE_BASE_URL
 
 
 function formatCurrency(value) {
-    return `$${Number(value || 0).toLocaleString("en-US", {
+    return `${Number(value || 0).toLocaleString("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    })}`;
+    })} DH`;
 }
 
 

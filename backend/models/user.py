@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from models.review import Review
     from models.order import Order
     from models.cart import Cart
-    from models.wishlist import Wishlist
 
 from sqlalchemy import Boolean, Integer, String, Enum, Text, DateTime, text
 from sqlalchemy.orm import mapped_column, Mapped, relationship

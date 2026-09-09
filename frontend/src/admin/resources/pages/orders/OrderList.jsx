@@ -10,6 +10,9 @@ import DotField from "../../../../components/animation/DotField.jsx";
 import { Search, X, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/* ============================================================
+   STATUS STYLES (read-only badge colors — unchanged)
+   ============================================================ */
 const shippingStatusStyles = {
     NOT_SHIPPED:
         "text-admin-warning bg-admin-warning/10 border-admin-warning/40",
@@ -39,6 +42,10 @@ const paymentStatusStyles = {
         "text-admin-primary bg-admin-primary/10 border-admin-primary/40",
 };
 
+/* ============================================================
+   OPTIONS — still used for the read-only badge labels and the
+   list filter dropdowns. NOT used to build write payloads.
+   ============================================================ */
 const shippingStatusOptions = [
     { value: "NOT_SHIPPED", label: "Not Shipped" },
     { value: "SHIPPED", label: "Shipped" },
@@ -58,131 +65,155 @@ const paymentStatusOptions = [
     { value: "REFUNDED", label: "Refunded" },
 ];
 
+/* ============================================================
+   LIFECYCLE — this mirrors the backend state machine for UX
+   purposes only. It is NOT the source of truth: the backend
+   still enforces every transition rule independently. This
+   just decides which actions to *show* the admin.
+   ============================================================ */
+const LIFECYCLE_ACTIONS = {
+    PENDING: [
+        { status: "CONFIRMED", label: "Confirm Order" },
+        { status: "CANCELLED", label: "Cancel Order" },
+    ],
+    CONFIRMED: [
+        { status: "SHIPPED", label: "Ship Order" },
+        { status: "CANCELLED", label: "Cancel Order" },
+    ],
+    SHIPPED: [{ status: "COMPLETED", label: "Complete Order" }],
+    COMPLETED: [],
+    CANCELLED: [],
+};
+
+/**
+ * Derive the current lifecycle stage from the three DB fields, purely
+ * for deciding which action(s) to display. If the combination doesn't
+ * match a known lifecycle stage (e.g. legacy/inconsistent data), no
+ * actions are offered — the admin should investigate that order
+ * directly rather than being offered a guessed action.
+ */
+function deriveLifecycle(order) {
+    const { order_status, shipping_status, payment_status } = order;
+
+    if (
+        order_status === "COMPLETED" &&
+        shipping_status === "DELIVERED" &&
+        payment_status === "PAID"
+    ) {
+        return "COMPLETED";
+    }
+    if (order_status === "CANCELLED") {
+        return "CANCELLED";
+    }
+    if (order_status === "CONFIRMED" && shipping_status === "SHIPPED") {
+        return "SHIPPED";
+    }
+    if (order_status === "CONFIRMED" && shipping_status === "NOT_SHIPPED") {
+        return "CONFIRMED";
+    }
+    if (order_status === "PENDING") {
+        return "PENDING";
+    }
+    return null;
+}
+
+/* ============================================================
+   STATUS BADGE (read-only)
+   ============================================================ */
 function StatusBadge({ label, styles }) {
     return (
         <span
-            className={`
-                inline-block
-                rounded-md
-                border
-                px-2
-                py-1
-                text-sm
-                font-medium
-                ${styles || ""}
-            `}
+            className={`inline-block rounded-md border px-2 py-1 text-sm font-medium ${
+                styles || ""
+            }`}
         >
             {label}
         </span>
     );
 }
 
-function StatusEditor({
-    label,
-    value,
-    options,
-    onChange,
-    disabled,
-}) {
-    const [localValue, setLocalValue] = useState(value || "");
+/* ============================================================
+   LIFECYCLE ACTION SELECT
+   Replaces the old three independent StatusEditor dropdowns.
+   Selecting an action immediately fires the mutation with
+   ONLY `{ status: <action> }` — the backend derives everything
+   else.
+   ============================================================ */
+function LifecycleActionSelect({ order, disabled, onSelect }) {
+    const lifecycle = deriveLifecycle(order);
+    const actions = lifecycle ? LIFECYCLE_ACTIONS[lifecycle] ?? [] : [];
 
-    const selectedValue = localValue || value || "";
-
-    const handleChange = (newValue) => {
-        setLocalValue(newValue);
-        onChange(newValue);
-    };
+    if (!lifecycle || actions.length === 0) {
+        return (
+            <span className="text-sm text-admin-muted italic">
+                No actions available
+            </span>
+        );
+    }
 
     return (
         <div
-            className="flex flex-col gap-1"
+            className="relative"
             onClick={(e) => e.stopPropagation()}
         >
-            <span
-                className="
-                    text-xs
-                    font-semibold
-                    text-admin-muted
-                    uppercase
-                    tracking-wide
-                "
+            <select
+                defaultValue=""
+                disabled={disabled}
+                onChange={(e) => {
+                    const value = e.target.value;
+                    if (!value) return;
+                    onSelect(value);
+                    // Reset back to placeholder; the row will re-render
+                    // with the new server state once the mutation settles.
+                    e.target.value = "";
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                className={`
+                    appearance-none
+                    min-w-[180px]
+                    rounded-lg
+                    border
+                    border-admin-input-border
+                    bg-admin-input
+                    px-3
+                    py-2
+                    pr-9
+                    text-sm
+                    text-admin-text
+                    outline-none
+                    cursor-pointer
+                    focus:border-admin-primary
+                    transition-colors
+                    ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+                `}
             >
-                {label}
-            </span>
-
-            <div className="relative">
-                <select
-                    value={selectedValue}
-                    disabled={disabled}
-                    onChange={(e) =>
-                        handleChange(e.target.value)
-                    }
-                    onClick={(e) =>
-                        e.stopPropagation()
-                    }
-                    onMouseDown={(e) =>
-                        e.stopPropagation()
-                    }
-                    onPointerDown={(e) =>
-                        e.stopPropagation()
-                    }
-                    className={`
-                        appearance-none
-                        min-w-[160px]
-                        rounded-lg
-                        border
-                        border-admin-input-border
-                        bg-admin-input
-                        px-3
-                        py-2
-                        pr-9
-                        text-sm
-                        text-admin-text
-                        outline-none
-                        cursor-pointer
-                        focus:border-admin-primary
-                        transition-colors
-                        ${
-                            disabled
-                                ? "opacity-50 cursor-not-allowed"
-                                : ""
-                        }
-                    `}
-                >
-                    {options.map((option) => (
-                        <option
-                            key={option.value}
-                            value={option.value}
-                            className="
-                                bg-admin-surface
-                                text-admin-text
-                            "
-                        >
-                            {option.label}
-                        </option>
-                    ))}
-                </select>
-
-                <ChevronDown
-                    className="
-                        pointer-events-none
-                        absolute
-                        right-3
-                        top-1/2
-                        h-4
-                        w-4
-                        -translate-y-1/2
-                        text-admin-muted
-                    "
-                />
-            </div>
+                <option value="" disabled>
+                    {disabled ? "Updating..." : "Select action..."}
+                </option>
+                {actions.map((action) => (
+                    <option
+                        key={action.status}
+                        value={action.status}
+                        className="bg-admin-surface text-admin-text"
+                    >
+                        {action.label}
+                    </option>
+                ))}
+            </select>
+            <ChevronDown
+                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-admin-muted"
+            />
         </div>
     );
 }
 
+/* ============================================================
+   ORDER LIST
+   ============================================================ */
 export function OrderList() {
     const navigate = useNavigate();
-
     const [rowSelection, setRowSelection] = useState({});
     const [expandedRows, setExpandedRows] = useState({});
     const [search, setSearch] = useState("");
@@ -200,29 +231,30 @@ export function OrderList() {
         }));
     };
 
-    const updateOrderStatus = (
-        orderId,
-        field,
-        value
-    ) => {
-        setUpdatingOrderId(orderId);
+    /* ========================================================
+       UPDATE ORDER — sends ONLY the lifecycle action. The
+       backend derives order_status / shipping_status /
+       payment_status. Pessimistic mode: order updates can also
+       touch inventory + stock history, so we wait for the
+       backend to confirm before trusting the UI state.
+       ======================================================== */
+    const updateOrderLifecycle = (order, nextStatus) => {
+        setUpdatingOrderId(order.id);
 
         updateOrder(
             {
                 resource: "orders",
-                id: orderId,
+                id: order.id,
                 values: {
-                    [field]: value,
+                    status: nextStatus,
                 },
-                mutationMode: "optimistic",
+                mutationMode: "pessimistic",
                 successNotification: {
-                    message:
-                        "Order status updated successfully",
+                    message: "Order status updated successfully",
                     type: "success",
                 },
                 errorNotification: {
-                    message:
-                        "Failed to update order status",
+                    message: "Failed to update order status",
                     type: "error",
                 },
             },
@@ -234,6 +266,9 @@ export function OrderList() {
         );
     };
 
+    /* ========================================================
+       FILTERS
+       ======================================================== */
     const hasFilters =
         search !== "" ||
         shippingStatus !== "all" ||
@@ -247,16 +282,12 @@ export function OrderList() {
         setPaymentStatus("all");
     };
 
+    /* ========================================================
+       FETCH ORDERS
+       ======================================================== */
     const {
-        result: {
-            data: orders = [],
-            total: totalOrders = 0,
-        },
-        query: {
-            isError,
-            isPending,
-            error: ordersError,
-        },
+        result: { data: orders = [], total: totalOrders = 0 },
+        query: { isError, isPending, error: ordersError },
     } = useList({
         resource: "orders",
         filters: [
@@ -269,7 +300,6 @@ export function OrderList() {
                       },
                   ]
                 : []),
-
             ...(shippingStatus !== "all"
                 ? [
                       {
@@ -279,7 +309,6 @@ export function OrderList() {
                       },
                   ]
                 : []),
-
             ...(orderStatus !== "all"
                 ? [
                       {
@@ -289,7 +318,6 @@ export function OrderList() {
                       },
                   ]
                 : []),
-
             ...(paymentStatus !== "all"
                 ? [
                       {
@@ -304,10 +332,12 @@ export function OrderList() {
         sorters: null,
     });
 
+    /* ========================================================
+       TABLE COLUMNS
+       ======================================================== */
     const columns = [
         {
             id: "select",
-
             header: ({ table }) => (
                 <input
                     type="checkbox"
@@ -319,62 +349,33 @@ export function OrderList() {
                         }
                     }}
                     onChange={table.getToggleAllRowsSelectedHandler()}
-                    onClick={(e) =>
-                        e.stopPropagation()
-                    }
-                    onMouseDown={(e) =>
-                        e.stopPropagation()
-                    }
-                    className="
-                        h-4
-                        w-4
-                        cursor-pointer
-                        accent-blue-500
-                    "
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="h-4 w-4 cursor-pointer accent-blue-500"
                 />
             ),
-
             cell: ({ row }) => (
                 <input
                     type="checkbox"
                     checked={row.getIsSelected()}
                     disabled={!row.getCanSelect()}
                     onChange={row.getToggleSelectedHandler()}
-                    onClick={(e) =>
-                        e.stopPropagation()
-                    }
-                    onMouseDown={(e) =>
-                        e.stopPropagation()
-                    }
-                    className="
-                        h-4
-                        w-4
-                        cursor-pointer
-                        accent-blue-500
-                    "
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="h-4 w-4 cursor-pointer accent-blue-500"
                 />
             ),
         },
-
         {
             accessorKey: "id",
-
             header: "Order Id",
-
             cell: (info) => (
                 <button
                     type="button"
                     onClick={() =>
-                        navigate(
-                            `/admin/orders/${info.getValue()}`
-                        )
+                        navigate(`/admin/orders/${info.getValue()}`)
                     }
-                    className="
-                        text-admin-muted
-                        hover:text-admin-primary
-                        transition-colors
-                        cursor-pointer
-                    "
+                    className="text-admin-muted hover:text-admin-primary transition-colors cursor-pointer"
                 >
                     Order{" "}
                     <span className="font-bold text-admin-text">
@@ -383,40 +384,27 @@ export function OrderList() {
                 </button>
             ),
         },
-
         {
             id: "customer",
-
             header: "Customer",
-
             cell: (info) => {
-                const user =
-                    info.row.original.user;
-
+                const user = info.row.original.user;
                 return (
                     <p className="text-admin-text">
-                        {user?.full_name ||
-                            user?.username ||
-                            "Unknown"}
+                        {user?.full_name || user?.username || "Unknown"}
                     </p>
                 );
             },
         },
-
         {
             accessorKey: "created_at",
-
             header: "Ordered",
-
             cell: (info) => {
                 const value = info.getValue();
-
                 if (!value) {
                     return "-";
                 }
-
                 const date = new Date(value);
-
                 return (
                     <p className="text-admin-muted">
                         {date.toLocaleString("en-GB", {
@@ -430,147 +418,85 @@ export function OrderList() {
                 );
             },
         },
-
         {
             accessorKey: "total_amount",
-
             header: "Total",
-
             cell: (info) => (
                 <p className="font-medium">
-                    $
-                    {Number(
-                        info.getValue() || 0
-                    ).toFixed(2)}
+                    {Number(info.getValue() || 0).toFixed(2)} DH
                 </p>
             ),
         },
-
         {
             accessorKey: "shipping_status",
-
             header: "Shipping Status",
-
             cell: (info) => (
                 <StatusBadge
                     label={
                         shippingStatusOptions.find(
-                            (option) =>
-                                option.value ===
-                                info.getValue()
-                        )?.label ||
-                        info.getValue()
+                            (option) => option.value === info.getValue()
+                        )?.label || info.getValue()
                     }
-                    styles={
-                        shippingStatusStyles[
-                            info.getValue()
-                        ]
-                    }
+                    styles={shippingStatusStyles[info.getValue()]}
                 />
             ),
         },
-
         {
             accessorKey: "order_status",
-
             header: "Order Status",
-
             cell: (info) => (
                 <StatusBadge
                     label={
                         orderStatusOptions.find(
-                            (option) =>
-                                option.value ===
-                                info.getValue()
-                        )?.label ||
-                        info.getValue()
+                            (option) => option.value === info.getValue()
+                        )?.label || info.getValue()
                     }
-                    styles={
-                        orderStatusStyles[
-                            info.getValue()
-                        ]
-                    }
+                    styles={orderStatusStyles[info.getValue()]}
                 />
             ),
         },
-
         {
             accessorKey: "payment_status",
-
             header: "Payment Status",
-
             cell: (info) => (
                 <StatusBadge
                     label={
                         paymentStatusOptions.find(
-                            (option) =>
-                                option.value ===
-                                info.getValue()
-                        )?.label ||
-                        info.getValue()
+                            (option) => option.value === info.getValue()
+                        )?.label || info.getValue()
                     }
-                    styles={
-                        paymentStatusStyles[
-                            info.getValue()
-                        ]
-                    }
+                    styles={paymentStatusStyles[info.getValue()]}
                 />
             ),
         },
-
         {
             id: "expand",
-
             header: "",
-
             cell: ({ row }) => (
                 <button
                     type="button"
                     onClick={(e) => {
                         e.stopPropagation();
-
-                        toggleExpanded(
-                            row.original.id
-                        );
+                        toggleExpanded(row.original.id);
                     }}
-                    onMouseDown={(e) =>
-                        e.stopPropagation()
-                    }
-                    className="
-                        flex
-                        items-center
-                        justify-center
-                        h-8
-                        w-8
-                        rounded-lg
-                        border
-                        border-admin-border
-                        text-admin-muted
-                        hover:text-admin-text
-                        hover:border-admin-border-hover
-                        transition-colors
-                        cursor-pointer
-                    "
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="flex items-center justify-center h-8 w-8 rounded-lg border border-admin-border text-admin-muted hover:text-admin-text hover:border-admin-border-hover transition-colors cursor-pointer"
                 >
                     <ChevronDown
-                        className={`
-                            h-4
-                            w-4
-                            transition-transform
-                            ${
-                                expandedRows[
-                                    row.original.id
-                                ]
-                                    ? "rotate-180"
-                                    : ""
-                            }
-                        `}
+                        className={`h-4 w-4 transition-transform ${
+                            expandedRows[row.original.id]
+                                ? "rotate-180"
+                                : ""
+                        }`}
                     />
                 </button>
             ),
         },
     ];
 
+    /* ========================================================
+       TABLE
+       ======================================================== */
     const table = useReactTable({
         data: orders,
         columns,
@@ -582,80 +508,38 @@ export function OrderList() {
         },
     });
 
+    /* ========================================================
+       LOADING / ERROR
+       ======================================================== */
     if (isPending) {
         return (
-            <section
-                className="
-                    h-screen
-                    max-w-full
-                    font-sans
-                    bg-[#0F172A]
-                    text-admin-text
-                    flex
-                    justify-center
-                    items-center
-                "
-            >
-                <div>
-                    Loading orders...
-                </div>
+            <section className="h-screen max-w-full font-sans bg-[#0F172A] text-admin-text flex justify-center items-center">
+                <div>Loading orders...</div>
             </section>
         );
     }
 
     if (isError) {
         return (
-            <section
-                className="
-                    h-screen
-                    max-w-full
-                    font-sans
-                    bg-[#0F172A]
-                    text-admin-text
-                    flex
-                    justify-center
-                    items-center
-                "
-            >
+            <section className="h-screen max-w-full font-sans bg-[#0F172A] text-admin-text flex justify-center items-center">
                 <div>
-                    Error:{" "}
-                    {ordersError?.message ||
-                        "Failed to load orders"}
+                    Error: {ordersError?.message || "Failed to load orders"}
                 </div>
             </section>
         );
     }
 
+    /* ========================================================
+       RENDER
+       ======================================================== */
     return (
-        <main
-            className="
-                h-screen
-                max-w-full
-                font-sans
-                bg-[#0F172A]
-                flex
-                gap-4
-            "
-        >
-            <header
-                className="
-                    relative
-                    z-10
-                    h-screen
-                "
-            >
+        <main className="h-screen max-w-full font-sans bg-[#0F172A] flex gap-4">
+            <header className="relative z-10 h-screen">
                 <AdminSidebar />
             </header>
 
             <div
-                className="
-                    fixed
-                    inset-0
-                    w-full
-                    h-full
-                    z-0
-                    pointer-events-none
-                "
+                className="fixed inset-0 w-full h-full z-0 pointer-events-none"
                 aria-hidden="true"
             >
                 <DotField
@@ -674,226 +558,69 @@ export function OrderList() {
                 />
             </div>
 
-            <section
-                className="
-                    relative
-                    z-10
-                    h-screen
-                    flex-1
-                    text-admin-text
-                    order-2
-                    overflow-y-auto
-                    p-4
-                "
-            >
-                <div
-                    className="
-                        flex
-                        items-center
-                        justify-between
-                        gap-4
-                        border-b
-                        border-admin-border
-                        pb-3
-                        mb-4
-                    "
-                >
-                    <h1 className="text-3xl">
-                        Orders
-                    </h1>
+            <section className="relative z-10 h-screen flex-1 text-admin-text order-2 overflow-y-auto p-4">
+                <div className="flex items-center justify-between gap-4 border-b border-admin-border pb-3 mb-4">
+                    <h1 className="text-3xl">Orders</h1>
                 </div>
 
-                <div
-                    className="
-                        border
-                        border-admin-border
-                        bg-admin-surface
-                        rounded-2xl
-                        p-4
-                        mb-4
-                    "
-                >
-                    <p
-                        className="
-                            text-admin-muted
-                            text-sm
-                            pb-2
-                        "
-                    >
-                        Filters
-                    </p>
-
-                    <div
-                        className="
-                            flex
-                            flex-wrap
-                            items-center
-                            gap-3
-                        "
-                    >
+                {/* FILTERS */}
+                <div className="border border-admin-border bg-admin-surface rounded-2xl p-4 mb-4">
+                    <p className="text-admin-muted text-sm pb-2">Filters</p>
+                    <div className="flex flex-wrap items-center gap-3">
                         <div className="relative">
-                            <Search
-                                className="
-                                    absolute
-                                    left-3
-                                    top-1/2
-                                    -translate-y-1/2
-                                    h-4
-                                    w-4
-                                    text-admin-muted
-                                "
-                            />
-
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-admin-muted" />
                             <input
                                 type="text"
                                 placeholder="Search ordered products..."
                                 value={search}
-                                onChange={(e) =>
-                                    setSearch(
-                                        e.target.value
-                                    )
-                                }
-                                className="
-                                    w-64
-                                    pl-9
-                                    pr-3
-                                    py-2
-                                    rounded-lg
-                                    bg-admin-input
-                                    border
-                                    border-admin-input-border
-                                    text-admin-text
-                                    placeholder:text-admin-muted
-                                    outline-none
-                                    focus:border-admin-primary
-                                    transition-colors
-                                "
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-64 pl-9 pr-3 py-2 rounded-lg bg-admin-input border border-admin-input-border text-admin-text placeholder:text-admin-muted outline-none focus:border-admin-primary transition-colors"
                             />
                         </div>
 
                         <select
                             value={shippingStatus}
                             onChange={(e) =>
-                                setShippingStatus(
-                                    e.target.value
-                                )
+                                setShippingStatus(e.target.value)
                             }
-                            className="
-                                px-3
-                                py-2
-                                rounded-lg
-                                bg-admin-input
-                                border
-                                border-admin-input-border
-                                text-admin-text
-                                outline-none
-                                focus:border-admin-primary
-                            "
+                            className="px-3 py-2 rounded-lg bg-admin-input border border-admin-input-border text-admin-text outline-none focus:border-admin-primary"
                         >
-                            <option value="all">
-                                All Shipping
-                            </option>
-                            <option value="NOT_SHIPPED">
-                                Not Shipped
-                            </option>
-                            <option value="SHIPPED">
-                                Shipped
-                            </option>
-                            <option value="DELIVERED">
-                                Delivered
-                            </option>
+                            <option value="all">All Shipping</option>
+                            <option value="NOT_SHIPPED">Not Shipped</option>
+                            <option value="SHIPPED">Shipped</option>
+                            <option value="DELIVERED">Delivered</option>
                         </select>
 
                         <select
                             value={orderStatus}
-                            onChange={(e) =>
-                                setOrderStatus(
-                                    e.target.value
-                                )
-                            }
-                            className="
-                                px-3
-                                py-2
-                                rounded-lg
-                                bg-admin-input
-                                border
-                                border-admin-input-border
-                                text-admin-text
-                                outline-none
-                                focus:border-admin-primary
-                            "
+                            onChange={(e) => setOrderStatus(e.target.value)}
+                            className="px-3 py-2 rounded-lg bg-admin-input border border-admin-input-border text-admin-text outline-none focus:border-admin-primary"
                         >
-                            <option value="all">
-                                All Orders
-                            </option>
-                            <option value="PENDING">
-                                Pending
-                            </option>
-                            <option value="CONFIRMED">
-                                Confirmed
-                            </option>
-                            <option value="COMPLETED">
-                                Completed
-                            </option>
-                            <option value="CANCELLED">
-                                Cancelled
-                            </option>
+                            <option value="all">All Orders</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="CONFIRMED">Confirmed</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="CANCELLED">Cancelled</option>
                         </select>
 
                         <select
                             value={paymentStatus}
                             onChange={(e) =>
-                                setPaymentStatus(
-                                    e.target.value
-                                )
+                                setPaymentStatus(e.target.value)
                             }
-                            className="
-                                px-3
-                                py-2
-                                rounded-lg
-                                bg-admin-input
-                                border
-                                border-admin-input-border
-                                text-admin-text
-                                outline-none
-                                focus:border-admin-primary
-                            "
+                            className="px-3 py-2 rounded-lg bg-admin-input border border-admin-input-border text-admin-text outline-none focus:border-admin-primary"
                         >
-                            <option value="all">
-                                All Payments
-                            </option>
-                            <option value="PENDING">
-                                Pending
-                            </option>
-                            <option value="PAID">
-                                Paid
-                            </option>
-                            <option value="REFUNDED">
-                                Refunded
-                            </option>
+                            <option value="all">All Payments</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="PAID">Paid</option>
+                            <option value="REFUNDED">Refunded</option>
                         </select>
 
                         {hasFilters && (
                             <button
                                 type="button"
                                 onClick={resetFilters}
-                                className="
-                                    flex
-                                    items-center
-                                    gap-1
-                                    px-4
-                                    py-2
-                                    bg-admin-input
-                                    rounded-lg
-                                    border
-                                    border-admin-border
-                                    text-admin-muted
-                                    hover:text-admin-text
-                                    hover:border-admin-border-hover
-                                    duration-300
-                                    transition-colors
-                                    cursor-pointer
-                                "
+                                className="flex items-center gap-1 px-4 py-2 bg-admin-input rounded-lg border border-admin-border text-admin-muted hover:text-admin-text hover:border-admin-border-hover duration-300 transition-colors cursor-pointer"
                             >
                                 <X className="h-4 w-4" />
                                 Reset
@@ -902,293 +629,126 @@ export function OrderList() {
                     </div>
                 </div>
 
-                <div
-                    className="
-                        flex
-                        justify-center
-                        border-b
-                        border-admin-border
-                        pb-4
-                        mb-4
-                        px-6
-                        gap-5
-                        items-center
-                    "
-                >
-                    <h3
-                        className="
-                            text-admin-muted
-                            font-bold
-                        "
-                    >
+                {/* TOTAL */}
+                <div className="flex justify-center border-b border-admin-border pb-4 mb-4 px-6 gap-5 items-center">
+                    <h3 className="text-admin-muted font-bold">
                         Total Orders
                     </h3>
-
-                    <p className="text-lg font-bold">
-                        {totalOrders}
-                    </p>
+                    <p className="text-lg font-bold">{totalOrders}</p>
                 </div>
 
-                <div
-                    className="
-                        overflow-hidden
-                        border
-                        border-admin-border
-                        bg-admin-surface
-                        rounded-2xl
-                    "
-                >
-                    <table
-                        className="
-                            w-full
-                            text-left
-                            border-collapse
-                        "
-                    >
-                        <thead
-                            className="
-                                border-b
-                                border-admin-border
-                                bg-admin-input
-                            "
-                        >
-                            {table
-                                .getHeaderGroups()
-                                .map(
-                                    (headerGroup) => (
-                                        <tr
-                                            key={
-                                                headerGroup.id
-                                            }
+                {/* TABLE */}
+                <div className="overflow-hidden border border-admin-border bg-admin-surface rounded-2xl">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="border-b border-admin-border bg-admin-input">
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <tr key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <th
+                                            key={header.id}
+                                            className="px-6 py-4 text-sm font-semibold text-admin-muted text-left whitespace-nowrap"
                                         >
-                                            {headerGroup.headers.map(
-                                                (
-                                                    header
-                                                ) => (
-                                                    <th
-                                                        key={
-                                                            header.id
-                                                        }
-                                                        className="
-                                                            px-6
-                                                            py-4
-                                                            text-sm
-                                                            font-semibold
-                                                            text-admin-muted
-                                                            text-left
-                                                            whitespace-nowrap
-                                                        "
-                                                    >
-                                                        {header
-                                                            .isPlaceholder
-                                                            ? null
-                                                            : flexRender(
-                                                                  header
-                                                                      .column
-                                                                      .columnDef
-                                                                      .header,
-                                                                  header.getContext()
-                                                              )}
-                                                    </th>
-                                                )
-                                            )}
-                                        </tr>
-                                    )
-                                )}
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                      header.column.columnDef
+                                                          .header,
+                                                      header.getContext()
+                                                  )}
+                                        </th>
+                                    ))}
+                                </tr>
+                            ))}
                         </thead>
 
                         <tbody>
-                            {table.getRowModel()
-                                .rows.length > 0 ? (
-                                table
-                                    .getRowModel()
-                                    .rows.map((row) => {
-                                        const orderId =
-                                            row.original.id;
+                            {table.getRowModel().rows.length > 0 ? (
+                                table.getRowModel().rows.map((row) => {
+                                    const order = row.original;
+                                    const orderId = order.id;
 
-                                        return (
-                                            <Fragment
-                                                key={
-                                                    orderId
-                                                }
+                                    return (
+                                        <Fragment key={orderId}>
+                                            <tr
+                                                onClick={(e) => {
+                                                    if (
+                                                        e.target.closest(
+                                                            "select, input, button, a"
+                                                        )
+                                                    ) {
+                                                        return;
+                                                    }
+                                                    navigate(
+                                                        `/admin/orders/${orderId}`
+                                                    );
+                                                }}
+                                                className={`border-b border-admin-border transition-colors hover:bg-admin-surface-hover cursor-pointer ${
+                                                    row.getIsSelected()
+                                                        ? "bg-admin-surface-hover"
+                                                        : ""
+                                                }`}
                                             >
-                                                <tr
-                                                    onClick={(
-                                                        e
-                                                    ) => {
-                                                        if (
-                                                            e.target.closest(
-                                                                "select, input, button, a"
-                                                            )
-                                                        ) {
-                                                            return;
-                                                        }
-
-                                                        navigate(
-                                                            `/admin/orders/${orderId}`
-                                                        );
-                                                    }}
-                                                    className={`
-                                                        border-b
-                                                        border-admin-border
-                                                        transition-colors
-                                                        hover:bg-admin-surface-hover
-                                                        cursor-pointer
-                                                        ${
-                                                            row.getIsSelected()
-                                                                ? "bg-admin-surface-hover"
-                                                                : ""
-                                                        }
-                                                    `}
-                                                >
-                                                    {row
-                                                        .getVisibleCells()
-                                                        .map(
-                                                            (
-                                                                cell
-                                                            ) => (
-                                                                <td
-                                                                    key={
-                                                                        cell.id
-                                                                    }
-                                                                    className="
-                                                                        px-6
-                                                                        py-5
-                                                                        text-sm
-                                                                    "
-                                                                >
-                                                                    {flexRender(
-                                                                        cell
-                                                                            .column
-                                                                            .columnDef
-                                                                            .cell,
-                                                                        cell.getContext()
-                                                                    )}
-                                                                </td>
-                                                            )
-                                                        )}
-                                                </tr>
-
-                                                {expandedRows[
-                                                    orderId
-                                                ] && (
-                                                    <tr
-                                                        className="
-                                                            border-b
-                                                            border-admin-border
-                                                            bg-admin-input/40
-                                                        "
-                                                    >
+                                                {row
+                                                    .getVisibleCells()
+                                                    .map((cell) => (
                                                         <td
-                                                            colSpan={
-                                                                columns.length
-                                                            }
-                                                            className="
-                                                                px-6
-                                                                py-5
-                                                            "
+                                                            key={cell.id}
+                                                            className="px-6 py-5 text-sm"
                                                         >
-                                                            <div
-                                                                className="
-                                                                    flex
-                                                                    flex-wrap
-                                                                    items-end
-                                                                    gap-6
-                                                                "
-                                                            >
-                                                                <StatusEditor
-                                                                    label="Shipping Status"
-                                                                    value={
-                                                                        row
-                                                                            .original
-                                                                            .shipping_status
-                                                                    }
-                                                                    options={
-                                                                        shippingStatusOptions
-                                                                    }
-                                                                    disabled={
-                                                                        updatingOrderId ===
-                                                                        orderId
-                                                                    }
-                                                                    onChange={(
-                                                                        value
-                                                                    ) =>
-                                                                        updateOrderStatus(
-                                                                            orderId,
-                                                                            "shipping_status",
-                                                                            value
-                                                                        )
-                                                                    }
-                                                                />
+                                                            {flexRender(
+                                                                cell.column
+                                                                    .columnDef
+                                                                    .cell,
+                                                                cell.getContext()
+                                                            )}
+                                                        </td>
+                                                    ))}
+                                            </tr>
 
-                                                                <StatusEditor
-                                                                    label="Order Status"
-                                                                    value={
-                                                                        row
-                                                                            .original
-                                                                            .order_status
-                                                                    }
-                                                                    options={
-                                                                        orderStatusOptions
-                                                                    }
-                                                                    disabled={
-                                                                        updatingOrderId ===
-                                                                        orderId
-                                                                    }
-                                                                    onChange={(
-                                                                        value
-                                                                    ) =>
-                                                                        updateOrderStatus(
-                                                                            orderId,
-                                                                            "order_status",
-                                                                            value
-                                                                        )
-                                                                    }
-                                                                />
-
-                                                                <StatusEditor
-                                                                    label="Payment Status"
-                                                                    value={
-                                                                        row
-                                                                            .original
-                                                                            .payment_status
-                                                                    }
-                                                                    options={
-                                                                        paymentStatusOptions
+                                            {expandedRows[orderId] && (
+                                                <tr className="border-b border-admin-border bg-admin-input/40">
+                                                    <td
+                                                        colSpan={
+                                                            columns.length
+                                                        }
+                                                        className="px-6 py-5"
+                                                    >
+                                                        <div className="flex flex-wrap items-end gap-6">
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="text-xs font-semibold text-admin-muted uppercase tracking-wide">
+                                                                    Lifecycle
+                                                                    Action
+                                                                </span>
+                                                                <LifecycleActionSelect
+                                                                    order={
+                                                                        order
                                                                     }
                                                                     disabled={
                                                                         updatingOrderId ===
                                                                         orderId
                                                                     }
-                                                                    onChange={(
-                                                                        value
+                                                                    onSelect={(
+                                                                        status
                                                                     ) =>
-                                                                        updateOrderStatus(
-                                                                            orderId,
-                                                                            "payment_status",
-                                                                            value
+                                                                        updateOrderLifecycle(
+                                                                            order,
+                                                                            status
                                                                         )
                                                                     }
                                                                 />
                                                             </div>
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </Fragment>
-                                        );
-                                    })
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </Fragment>
+                                    );
+                                })
                             ) : (
                                 <tr>
                                     <td
-                                        colSpan={
-                                            columns.length
-                                        }
-                                        className="
-                                            px-6
-                                            py-12
-                                            text-center
-                                            text-admin-muted
-                                        "
+                                        colSpan={columns.length}
+                                        className="px-6 py-12 text-center text-admin-muted"
                                     >
                                         No Orders found.
                                     </td>

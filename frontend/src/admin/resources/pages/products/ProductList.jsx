@@ -53,7 +53,7 @@ const columns = [
 
         cell: (info) => (
             <p>
-                ${Number(info.getValue() || 0).toFixed(2)}
+                {Number(info.getValue() || 0).toFixed(2)} DH
             </p>
         ),
     },
@@ -103,7 +103,7 @@ const columns = [
 
         cell: (info) => (
             <p>
-                ${Number(info.getValue() || 0).toFixed(2)}
+                {Number(info.getValue() || 0).toFixed(2)} DH
             </p>
         ),
     },
@@ -166,7 +166,7 @@ const columns = [
             <p className="flex items-center gap-1 text-admin-reviews hover:text-admin-reviews-hover duration-300 ease-in-out">
                 <FaStar className="h-3 w-3" />
 
-                {Number(info.getValue() || 0).toFixed(1)}
+                {Number(info.getValue()).toFixed(1)}
             </p>
         ),
     },
@@ -710,7 +710,7 @@ export function ProductList() {
                         </h3>
 
                         <p className="text-lg font-bold">
-                            ${totalRevenue.toFixed(2)}
+                            {totalRevenue.toFixed(2)} DH
                         </p>
                     </div>
 
