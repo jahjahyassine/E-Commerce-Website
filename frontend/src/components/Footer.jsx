@@ -73,11 +73,17 @@ function Footer() {
 
         {
             title: "Categories",
-            links: activeCategories.map((category) => ({
-                label: category.name,
-                action: () =>
-                    navigate(`/products?category_id=${category.id}`),
-            })),
+            links: [
+                ...activeCategories.map((category) => ({
+                    label: category.name,
+                    action: () =>
+                        navigate(`/products?category_id=${category.id}`),
+                })),
+                {
+                    label: "All Categories",
+                    action: () => navigate("/products"),
+                },
+            ]
         },
 
         {

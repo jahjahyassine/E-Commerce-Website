@@ -14,7 +14,6 @@ function Navbar() {
     const [showCategories, setShowCategories] = useState(false);
     const [showBrands, setShowBrands] = useState(false);
 
-    
     useEffect(() => {
         if (showCategories) {
             setShowBrands(false);
@@ -82,6 +81,44 @@ function Navbar() {
         queryFn: getBrands,
         staleTime: 5 * 60 * 1000,
     });
+
+
+    const getCart = async () => {
+        const response = await fetch(
+            `${BASE_URL}/cart`,
+            {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        )
+
+        const data = await response.json()
+
+        if (!response.ok) throw new Error("Failed too Retrive Cart")
+
+        return data
+    }
+
+
+    const {
+        data: cart,
+        isLoading: isLoadingCart,
+        isError: isErrorCart,
+        error: cartError,
+    } = useQuery({
+        queryKey: ["cart"],
+        queryFn: getCart,
+        enabled: !!localStorage.getItem("access_token"),
+    });
+
+    const cartItems = cart?.items ?? [];
+
+    const totalCartItems = cartItems.length;
+
+
 
     const handleCategoryClick = (categoryId) => {
         setShowCategories(false);
@@ -171,10 +208,9 @@ function Navbar() {
                                     w-4
                                     h-4
                                     duration-200
-                                    ${
-                                        showCategories
-                                            ? "rotate-180"
-                                            : ""
+                                    ${showCategories
+                                        ? "rotate-180"
+                                        : ""
                                     }
                                 `}
                                 viewBox="0 0 24 24"
@@ -318,10 +354,9 @@ function Navbar() {
                                     w-4
                                     h-4
                                     duration-200
-                                    ${
-                                        showBrands
-                                            ? "rotate-180"
-                                            : ""
+                                    ${showBrands
+                                        ? "rotate-180"
+                                        : ""
                                     }
                                 `}
                                 viewBox="0 0 24 24"
@@ -454,16 +489,18 @@ function Navbar() {
                     <Link
                         to="/cart"
                         className="
-                            bg-background-secondary
-                            p-2
-                            rounded-full
-                            border
-                            border-border-soft
-                            hover:border-border
-                            hover:bg-foreground/5
-                            duration-300
-                        "
-                        aria-label="Shopping cart"
+        relative
+        bg-background-secondary
+        p-2
+        rounded-full
+        border
+        border-border-soft
+        hover:border-border
+        hover:bg-foreground/5
+        transition-colors
+        duration-300
+    "
+                        aria-label={`Shopping cart${totalCartItems > 0 ? `, ${totalCartItems} items` : ""}`}
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -479,6 +516,32 @@ function Navbar() {
                                 d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974a1.125 1.125 0 0 1 1.119 1.007Z"
                             />
                         </svg>
+
+                        {totalCartItems > 0 && (
+                            <span
+                                className="
+                                    absolute
+                                    -top-2
+                                    -right-2
+                                    min-w-5
+                                    h-5
+                                    px-1
+                                    flex
+                                    items-center
+                                    justify-center
+                                    rounded-full
+                                    bg-primary
+                                    text-white
+                                    text-[11px]
+                                    font-semibold
+                                    leading-none
+                                    border-2
+                                    border-background
+                                "
+                            >
+                                {totalCartItems > 99 ? "99+" : totalCartItems}
+                            </span>
+                        )}
                     </Link>
 
                     {currentUser ? (

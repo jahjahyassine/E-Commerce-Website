@@ -22,6 +22,7 @@ import DataModelDiagram from './pages/DataModelDiagram';
 import SequenceDiagram from './pages/SequenceDiagram';
 import ArchitectureDiagram from './pages/ArchitectureDiagram';
 import AdminRoute from './admin/AdminRoute';
+import Chatbot from './pages/Chatbot';
 
 function App() {
   return (
@@ -57,6 +58,8 @@ function App() {
           <AdminApp />
         </AdminRoute>
       } />
+
+      <Route path='chatbot' element={<Chatbot />} />
 
 
     </Routes>
