@@ -1,8 +1,8 @@
-"""initial schema
+"""Fresh start
 
-Revision ID: 855abc972cd2
+Revision ID: 6d31918f938b
 Revises: 
-Create Date: 2026-09-08 07:41:58.066696
+Create Date: 2026-09-22 13:04:55.979561
 
 """
 from typing import Sequence, Union
@@ -10,9 +10,10 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+import pgvector.sqlalchemy
 
 # revision identifiers, used by Alembic.
-revision: str = '855abc972cd2'
+revision: str = '6d31918f938b'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -122,6 +123,7 @@ def upgrade() -> None:
     sa.Column('category_id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('embedding', pgvector.sqlalchemy.vector.VECTOR(dim=1024), nullable=True),
     sa.CheckConstraint('average_rating >= 0 AND average_rating <= 5', name='ck_product_average_rating_range'),
     sa.CheckConstraint('count_reviews >= 0', name='ck_product_count_reviews_non_negative'),
     sa.CheckConstraint('min_price >= 0', name='ck_product_min_price_non_negative'),

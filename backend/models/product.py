@@ -18,6 +18,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
 from decimal import Decimal
 
+from pgvector.sqlalchemy import VECTOR
+
     
 
 class Product (Base):
@@ -43,6 +45,11 @@ class Product (Base):
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    embedding: Mapped[list[float] | None] = mapped_column(
+        VECTOR(1024),
+        nullable=True,
+    )
     
 
     brand: Mapped["Brand"] = relationship("Brand", back_populates="products")

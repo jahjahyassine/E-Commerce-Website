@@ -61,6 +61,7 @@ export function ProductShow() {
         sku: "",
         price: "",
         discount_percentage: "",
+        supplier_id: "",
         quantity: "",
         attributes: [],
         is_active: true,
@@ -195,6 +196,27 @@ export function ProductShow() {
         },
     });
 
+    const {
+        query: {
+            data: suppliersResponse,
+            isLoading: isLoadingSuppliers,
+        },
+    } = useList({
+        resource: "suppliers",
+        pagination: {
+            mode: "off",
+        },
+        filters: [
+            {
+                field: "is_active",
+                operator: "eq",
+                value: true,
+            },
+        ],
+    });
+
+    const suppliers = suppliersResponse?.data ?? [];
+
     const categories = categoriesResponse?.data ?? [];
     const brands = brandsResponse?.data ?? [];
 
@@ -288,6 +310,7 @@ export function ProductShow() {
             price: "",
             discount_percentage: "",
             quantity: "",
+            supplier_id: "",
             attributes: [],
             is_active: true,
         });
@@ -496,6 +519,14 @@ export function ProductShow() {
         }
 
         if (
+            Number(variantForm.quantity) > 0 &&
+            !variantForm.supplier_id
+        ) {
+            alert("Please select a supplier when adding initial stock.");
+            return false;
+        }
+
+        if (
             variantForm.quantity === "" ||
             Number(variantForm.quantity) < 0 ||
             !Number.isInteger(
@@ -541,6 +572,10 @@ export function ProductShow() {
                     quantity: Number(
                         variantForm.quantity
                     ),
+
+                    supplier_id: variantForm.supplier_id
+                        ? Number(variantForm.supplier_id)
+                        : null,
 
                     attributes,
 
@@ -1810,6 +1845,28 @@ export function ProductShow() {
 
                                     </FormField>
 
+
+                                    <FormField label="Supplier">
+                                        <select
+                                            name="supplier_id"
+                                            value={variantForm.supplier_id}
+                                            onChange={handleVariantChange}
+                                            disabled={isLoadingSuppliers}
+                                            className={inputClass}
+                                        >
+                                            <option value="">
+                                                {isLoadingSuppliers
+                                                    ? "Loading suppliers..."
+                                                    : "Select supplier"}
+                                            </option>
+
+                                            {suppliers.map((supplier) => (
+                                                <option key={supplier.id} value={supplier.id}>
+                                                    {supplier.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </FormField>
 
                                     {/* Attributes */}
 

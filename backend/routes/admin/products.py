@@ -15,6 +15,7 @@ from fastapi import (
 from sqlalchemy import exists, func, or_
 from sqlalchemy.orm import Session
 
+from rag.embedding import indexing_product
 from services.auth import require_admin
 from core.cloudinary import cloudinary
 from core.database import get_db
@@ -47,7 +48,7 @@ from schemas.product import (
     TagCreate,
 )
 
-from models.inventory import Inventory
+from models.inventory import Inventory, Supplier
 
 
 router = APIRouter(
@@ -129,9 +130,16 @@ async def add_product(
 
         db.add(new_image)
 
+    new_product = (
+        db.query(Product)
+        .filter(Product.id == new_product.id)
+        .first()
+    )
+
+    new_product.embedding = indexing_product(new_product)
+
     db.commit()
     db.refresh(new_product)
-
     return new_product
 
 
@@ -270,6 +278,8 @@ def update_product(
             value,
         )
 
+    product.embedding = indexing_product(product)
+
     db.commit()
     db.refresh(product)
 
@@ -330,6 +340,10 @@ async def add_product_variant(
 ):
     require_admin(db, user_infos)
 
+    # --------------------------------------------------------
+    # Find product
+    # --------------------------------------------------------
+
     product = (
         db.query(Product)
         .filter(Product.id == product_id)
@@ -342,10 +356,13 @@ async def add_product_variant(
             detail="Product not found",
         )
 
+    # --------------------------------------------------------
+    # Parse variant data
+    # --------------------------------------------------------
+
     try:
-        variant_data = (
-            ProductVariantCreateRequest
-            .model_validate(json.loads(variant))
+        variant_data = ProductVariantCreateRequest.model_validate(
+            json.loads(variant)
         )
     except Exception as e:
         raise HTTPException(
@@ -353,11 +370,13 @@ async def add_product_variant(
             detail=f"Invalid variant data: {e}",
         )
 
+    # --------------------------------------------------------
+    # Check SKU
+    # --------------------------------------------------------
+
     existing_variant = (
         db.query(ProductVariant)
-        .filter(
-            ProductVariant.sku == variant_data.sku
-        )
+        .filter(ProductVariant.sku == variant_data.sku)
         .first()
     )
 
@@ -366,6 +385,29 @@ async def add_product_variant(
             status_code=status.HTTP_409_CONFLICT,
             detail="SKU already exists",
         )
+
+    # --------------------------------------------------------
+    # Find supplier
+    # --------------------------------------------------------
+
+    supplier = (
+        db.query(Supplier)
+        .filter(
+            Supplier.id == int(variant_data.supplier_id),
+            Supplier.is_active == True,
+        )
+        .first()
+    )
+
+    if not supplier:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Supplier not found or inactive",
+        )
+
+    # --------------------------------------------------------
+    # Create variant
+    # --------------------------------------------------------
 
     new_variant = ProductVariant(
         product_id=product_id,
@@ -379,12 +421,33 @@ async def add_product_variant(
     db.add(new_variant)
     db.flush()
 
-    new_inventory = Inventory (
+    # --------------------------------------------------------
+    # Create inventory
+    # --------------------------------------------------------
+
+    new_inventory = Inventory(
         product_variant_id=new_variant.id,
-        quantity=variant_data.quantity
+        quantity=variant_data.quantity,
     )
 
     db.add(new_inventory)
+
+    # --------------------------------------------------------
+    # Create initial stock change
+    # --------------------------------------------------------
+
+    stock_change = StockChange(
+        product_variant_id=new_variant.id,
+        change_type=StockChangeType.IN,
+        quantity=variant_data.quantity,
+        supplier_id=supplier.id,
+    )
+
+    db.add(stock_change)
+
+    # --------------------------------------------------------
+    # Upload media
+    # --------------------------------------------------------
 
     for image in media:
         if not image.filename:
@@ -402,6 +465,10 @@ async def add_product_variant(
 
         db.add(new_image)
 
+    # --------------------------------------------------------
+    # Update product minimum price
+    # --------------------------------------------------------
+
     min_price = (
         db.query(func.min(ProductVariant.price))
         .filter(
@@ -413,11 +480,38 @@ async def add_product_variant(
 
     product.min_price = min_price or 0
 
-    db.commit()
-    db.refresh(new_variant)
+    # --------------------------------------------------------
+    # Generate embedding
+    # --------------------------------------------------------
 
-    return new_variant
+    product.embedding = indexing_product(product)
 
+    # --------------------------------------------------------
+    # Commit everything
+    # --------------------------------------------------------
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    # --------------------------------------------------------
+    # Reload variant
+    # --------------------------------------------------------
+
+    variant = (
+        db.query(ProductVariant)
+        .options(
+            joinedload(ProductVariant.product),
+            joinedload(ProductVariant.inventory),
+            joinedload(ProductVariant.media),
+        )
+        .filter(ProductVariant.id == new_variant.id)
+        .first()
+    )
+
+    return variant
 
 @router.patch(
     "/products/{product_id}/variants/{variant_id}",
@@ -506,6 +600,14 @@ def update_variant(
     )
 
     product.min_price = min_price or 0
+
+    product = (
+        db.query(Product)
+        .filter(Product.id == product.id)
+        .first()
+    )
+    
+    product.embedding = indexing_product(product)
 
     db.commit()
     db.refresh(product_variant)

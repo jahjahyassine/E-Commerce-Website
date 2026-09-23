@@ -26,6 +26,7 @@ from models.product import (
 )
 
 from schemas.product import (
+    ProductRagResponse,
     ProductResponse,
     ProductVariantResponse,
 )
@@ -163,6 +164,19 @@ def get_products(
 
     return query.all()
 
+
+
+@router.get(
+    "/test_rag",
+    response_model=list[ProductRagResponse],
+)
+def get_products(
+    db: Annotated[Session, Depends(get_db)],
+):
+    query = db.query(Product)
+
+
+    return query.all()
 
 # ============================================================
 # SINGLE PRODUCT

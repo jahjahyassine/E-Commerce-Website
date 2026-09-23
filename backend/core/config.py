@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     SMTP_USER: str
     SMTP_PASSWORD: str
 
+    GROQ_API_KEY: str
+
     class Config:
         env_file = ".env"
 

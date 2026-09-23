@@ -254,3 +254,36 @@ class ProductResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+
+class ProductRagResponse(BaseModel):
+    id: int
+    name: str
+    description: str | None
+
+    min_price: Decimal
+
+    average_rating: Decimal
+    count_reviews: int
+
+    specifications: dict[str, Any] | None
+
+    brand_id: int
+    category_id: int
+
+    embedding: list[float] | None
+
+    brand: BrandResponse
+    category: CategoryResponse
+
+    media: list[MediaResponse] = Field(
+        default_factory=list
+    )
+
+    product_variants: list[ProductVariantResponse] = Field(
+        default_factory=list
+    )
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
