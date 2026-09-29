@@ -1,147 +1,347 @@
 @import 'tailwindcss';
 
+/*
+=========================================================
+BYTESTORE CUSTOMER THEME
+Bold / Mature / Premium Electronics
+
+Neutral foundation:
+  Cool White / Soft Gray
+
+Primary:
+  Deep Navy / Navy
+
+Strong accents:
+  Cobalt / Teal / Violet
+  Gold / Amber
+  Coral / Orange
+  Emerald / Red
+
+The colors are intentionally saturated.
+Soft variants are only used for backgrounds and subtle UI.
+=========================================================
+*/
+
 @theme {
 
-    /* Background */
-    /* Background */
-    --color-background: #FFFFFF;
-    --color-background-dark: #2F4156;
-    --color-background-black: #243447;
+    /* =====================================================
+       CUSTOMER / STOREFRONT
+       ===================================================== */
 
-    /* Text */
-    --color-foreground: #2F4156;
-    --color-muted: #607586;
+    /* ---------- Main ---------- */
+
+    --color-background: #F3F4F8;
+    --color-background-dark: #233A66;
+    --color-background-black: #172554;
+
+    --color-foreground: #172554;
     --color-inverse: #FFFFFF;
 
-    /* Brand */
-    --color-primary: #567C8D;
-    --color-primary-hover: #476B7A;
+    /* ---------- Primary ---------- */
 
-    /* Secondary */
-    --color-secondary: #C8D9E6;
-    --color-secondary-hover: #B5CBD9;
+    --color-primary: #233A66;
+    --color-primary-hover: #172554;
 
-    /* Premium / Warm Accent */
-    --color-premium: #F5F0EB;
-    --color-premium-hover: #EAE1D9;
+    --color-secondary: #3155D4;
+    --color-secondary-hover: #2747BD;
 
-    /* Accent */
-    --color-yellow: #D4A72C;
-    --color-yellow-hover: #B99122;
-    --color-yellow-soft: #F7EFD5;
+    /* ---------- Main commercial accent ---------- */
 
-    /* Cards */
+    --color-accent: #F05D6C;
+    --color-accent-hover: #D94A59;
+    --color-accent-soft: #FDE5E8;
+    --color-on-accent: #FFFFFF;
+
+    /* ---------- Cobalt ---------- */
+
+    --color-cobalt: #3155D4;
+    --color-cobalt-hover: #2747BD;
+    --color-cobalt-soft: #E7EBFF;
+
+    /* ---------- Teal / Technology ---------- */
+
+    --color-teal: #0F8B8D;
+    --color-teal-hover: #0A7072;
+    --color-teal-soft: #DDF4F3;
+
+    /* ---------- Emerald / Positive ---------- */
+
+    --color-emerald: #16845B;
+    --color-emerald-hover: #116B49;
+    --color-emerald-soft: #DFF3EA;
+
+    /* ---------- Gold / Premium ---------- */
+
+    --color-gold: #D7A23A;
+    --color-gold-hover: #B98727;
+    --color-gold-soft: #F9ECCA;
+
+    /* ---------- Amber / Promotions ---------- */
+
+    --color-amber: #E59A18;
+    --color-amber-hover: #C77F0C;
+    --color-amber-soft: #FFF0CE;
+
+    /* ---------- Coral / Commerce ---------- */
+
+    --color-coral: #F05D6C;
+    --color-coral-hover: #D94A59;
+    --color-coral-soft: #FDE5E8;
+
+    /* ---------- Orange ---------- */
+
+    --color-orange: #E86F2D;
+    --color-orange-hover: #C9571D;
+    --color-orange-soft: #FCE8DB;
+
+    /* ---------- Violet / Premium + AI ---------- */
+
+    --color-violet: #7C3AED;
+    --color-violet-hover: #6829D0;
+    --color-violet-soft: #EEE7FF;
+
+    /* ---------- Indigo ---------- */
+
+    --color-indigo: #5146B8;
+    --color-indigo-hover: #42389D;
+    --color-indigo-soft: #EAE8FA;
+
+    /* ---------- Red / Danger ---------- */
+
+    --color-red: #C9364A;
+    --color-red-hover: #A92B3C;
+    --color-red-soft: #F9E0E4;
+
+    /* ---------- Text ---------- */
+
+    --color-muted: #596A8D;
+    --color-subtle: #8290AA;
+
+    /* ---------- Surfaces ---------- */
+
     --color-card: #FFFFFF;
-    --color-chip: #EEF3F6;
 
-    /* Borders */
-    --color-border: #D9E2E8;
-    --color-border-soft: #EDF1F3;
+    --color-card-soft: #F7F8FB;
 
-    /* Status */
-    --color-success: #4D8068;
-    --color-warning: #B88A3B;
-    --color-danger: #B85C5C;
-    --color-danger-hover: #AA5555;
+    --color-card-dark: #233A66;
 
-    /* Shadows */
-    --shadow-product: 0 25px 60px rgba(27, 36, 42, 0.15);
-    --shadow-inner: inset 0 1px 4px rgba(0, 0, 0, 0.12);
-    --font-cormorant: "Cormorant"
+    --color-surface-blue: #E8ECF8;
+    --color-surface-cobalt: #E7EBFF;
+    --color-surface-teal: #E4F3F3;
+    --color-surface-purple: #EEEAF8;
+    --color-surface-gold: #F8EDD5;
+    --color-surface-warm: #FFF0E5;
+    --color-surface-coral: #FDE8EA;
+    --color-surface-green: #E6F3ED;
+
+    /* ---------- Chips ---------- */
+
+    --color-chip: #E8EBF2;
+    --color-chip-dark: #596A8D;
+
+    --color-chip-accent: #F05D6C;
+    --color-chip-teal: #DDF4F3;
+    --color-chip-cobalt: #E7EBFF;
+    --color-chip-gold: #F9ECCA;
+    --color-chip-violet: #EEE7FF;
+    --color-chip-orange: #FCE8DB;
+    --color-chip-green: #DFF3EA;
+
+    /* ---------- Premium ---------- */
+
+    --color-premium: #D7A23A;
+    --color-premium-hover: #B98727;
+
+    /* ---------- Borders ---------- */
+
+    --color-border: #D9DEE9;
+    --color-border-soft: #E8EBF1;
+    --color-border-dark: #68799B;
+
+    --color-border-cobalt: #B8C4F3;
+    --color-border-teal: #A9D9D8;
+    --color-border-gold: #E5C87F;
+    --color-border-violet: #C7B8EE;
+    --color-border-coral: #F2B5BD;
+    --color-border-orange: #EFC1A3;
+    --color-border-green: #A9D8C1;
+
+    /* ---------- Status ---------- */
+
+    --color-success: #16845B;
+    --color-success-soft: #DFF3EA;
+
+    --color-warning: #E59A18;
+    --color-warning-soft: #FFF0CE;
+
+    --color-danger: #C9364A;
+    --color-danger-soft: #F9E0E4;
+
+    /* ---------- Compact ---------- */
+
+    --color-minimal-red: #C9364A;
+    --color-minimal-green: #16845B;
+    --color-minimal-yellow: #D7A23A;
+    --color-minimal-blue: #3155D4;
+
+    /* ---------- Decorative ---------- */
+
+    --color-decoration: #3155D4;
+    --color-decoration-soft: #E7EBFF;
+
+    --color-decoration-accent: #F05D6C;
+    --color-decoration-teal: #0F8B8D;
+    --color-decoration-yellow: #D7A23A;
+    --color-decoration-violet: #7C3AED;
+    --color-decoration-orange: #E86F2D;
+
+    /* ---------- Animation ---------- */
+
+    --color-animation-overlay: #172554;
+    --color-animation-text: #FFFFFF;
+    --color-animation-accent: #4FB3BF;
+
+    /* ---------- Shadows ---------- */
+
+    --shadow-card:
+        0 8px 25px rgba(23, 37, 84, 0.08);
+
+    --shadow-product:
+        0 20px 50px rgba(23, 37, 84, 0.13);
+
+    --shadow-hover:
+        0 18px 45px rgba(23, 37, 84, 0.18);
+
+    --shadow-dark:
+        0 20px 50px rgba(15, 23, 42, 0.30);
+
+    --shadow-inner:
+        inset 0 1px 4px rgba(23, 37, 84, 0.08);
+
+    --shadow-cobalt:
+        0 10px 30px rgba(49, 85, 212, 0.20);
+
+    --shadow-teal:
+        0 10px 30px rgba(15, 139, 141, 0.18);
+
+    --shadow-violet:
+        0 10px 30px rgba(124, 58, 237, 0.18);
+
+    --shadow-gold:
+        0 10px 30px rgba(215, 162, 58, 0.22);
+
+    --shadow-coral:
+        0 10px 30px rgba(240, 93, 108, 0.20);
+
+    /* ---------- Typography ---------- */
+
+    --font-sans:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    /* Keep display typography available,
+       but don't force it globally. */
+
+    --font-display:
+        "Barlow",
+        var(--font-sans);
+
+    /* ---------- Shape ---------- */
+
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
+    --radius-3xl: 2rem;
 
 
+    /* =====================================================
+       ADMIN DASHBOARD
+       DO NOT MODIFY
+       ===================================================== */
 
-        /* ========================================
-     ADMIN DASHBOARD — DARK SLATE
-     ======================================== */
-
-        --color-admin-background: #0F172A;
-    /* Main dashboard background */
+    --color-admin-background: #0F172A;
     --color-admin-surface: #1E293B;
-    /* Cards and table surface */
     --color-admin-surface-hover: #334155;
-    /* Hovered rows/components */
-
     --color-admin-border: #334155;
-    /* Borders */
     --color-admin-border-hover: #475569;
     --color-admin-text: #F8FAFC;
-    /* Main text */
     --color-admin-muted: #94A3B8;
-    /* Secondary text */
-
     --color-admin-primary: #3B82F6;
-    /* Buttons, selected states */
     --color-admin-primary-border: #60A5FA;
     --color-admin-primary-hover: #2563EB;
     --color-admin-success: #22C55E;
-    /* Active/success */
     --color-admin-success-hover: #16A34A;
     --color-admin-warning: #F59E0B;
-    /* Warnings */
     --color-admin-warning-hover: #D97706;
     --color-admin-danger: #EF4444;
-    /* Errors/delete */
     --color-admin-danger-hover: #DC2626;
-
     --color-admin-input: #263449;
     --color-admin-input-hover: #2D3B50;
     --color-admin-input-border: #3B4A60;
     --color-admin-active: #4ADE80;
     --color-admin-active-hover: #22C55E;
-
     --color-admin-inactive: #F87171;
     --color-admin-inactive-hover: #EF4444;
-
     --color-admin-reviews: #FACC15;
     --color-admin-reviews-hover: #EAB308;
 
+    --font-cormorant: "Cormorant";
 }
 
-body {
-    font-family: var(--font-sans);
-    font-weight: 500;
-    -webkit-font-smoothing: antialiased;
-}
 
-@keyframes infiniteScroll {
-    from {
-        transform: translateX(0);
+/* =========================================================
+   BASE
+   ========================================================= */
+
+@layer base {
+
+    :root {
+        color-scheme: light;
     }
 
-    to {
-        transform: translateX(-50%);
+    html {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-secondary) transparent;
     }
-}
 
-.IconsGroup {
-    animation: infiniteScroll 15s linear infinite;
-}
+    body {
+        font-family: var(--font-sans);
+        font-weight: 500;
+        color: var(--color-foreground);
+        background: var(--color-background);
 
-.hero-transition {
-    transition: opacity 500ms ease, transform 500ms ease;
-}
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
 
-.fade-out {
-    opacity: 0;
-    transform: translateY(10px);
-}
+    /*
+    Headings stay clean and modern.
+    Don't force a decorative display font across
+    every heading.
+    */
 
-.fade-in {
-    opacity: 1;
-    transform: translateY(0);
-}
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family: var(--font-sans);
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        line-height: 1.05;
+        text-wrap: balance;
+    }
 
-/* Remove number input arrows */
+    ::selection {
+        background: var(--color-cobalt);
+        color: #FFFFFF;
+    }
 
-/* Chrome, Safari, Edge, Opera */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-/* Firefox */
-input[type="number"] {
-    -moz-appearance: textfield;
+    :focus-visible {
+        outline: 2px solid var(--color-cobalt);
+        outline-offset: 3px;
+    }
 }

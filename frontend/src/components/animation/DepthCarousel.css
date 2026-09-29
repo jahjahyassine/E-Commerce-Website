@@ -34,7 +34,7 @@
 
 .depth-carousel:focus-visible {
     outline: 2px solid
-        rgba(86, 124, 141, 0.35);
+        rgba(103, 111, 157, 0.35);
 
     outline-offset: 4px;
 
@@ -70,16 +70,16 @@
 
     overflow: hidden;
 
-    background: #ffffff;
+    background: var(--color-card);
 
     border: 1px solid
-        rgba(86, 124, 141, 0.14);
+        rgba(103, 111, 157, 0.14);
 
     box-shadow:
         0 30px 70px -25px
-            rgba(20, 35, 45, 0.35),
+            rgba(45, 50, 80, 0.35),
         0 10px 30px -15px
-            rgba(20, 35, 45, 0.2);
+            rgba(45, 50, 80, 0.2);
 
     will-change:
         transform,
@@ -95,13 +95,13 @@
 
 .depth-carousel__card:hover {
     border-color:
-        rgba(86, 124, 141, 0.28);
+        rgba(103, 111, 157, 0.28);
 
     box-shadow:
         0 35px 80px -25px
-            rgba(20, 35, 45, 0.4),
+            rgba(45, 50, 80, 0.4),
         0 12px 35px -15px
-            rgba(20, 35, 45, 0.25);
+            rgba(45, 50, 80, 0.25);
 }
 
 /* ---------------------------------------------------------
@@ -119,7 +119,7 @@
 
     overflow: hidden;
 
-    background: #f5f7f8;
+    background: var(--color-surface-blue);
 }
 
 .depth-carousel__img {
@@ -178,7 +178,7 @@
 
     border-radius: 999px;
 
-    background: #567c8d;
+    background: var(--color-accent);
 
     color: white;
 
@@ -214,7 +214,7 @@
         0.82
     );
 
-    color: #30444f;
+    color: var(--color-foreground);
 
     font-size: 10px;
 
@@ -240,7 +240,7 @@
 
     padding: 17px 18px 18px;
 
-    background: white;
+    background: var(--color-card);
 }
 
 /* ---------------------------------------------------------
@@ -250,7 +250,7 @@
 .depth-carousel__brand {
     margin-bottom: 4px;
 
-    color: #567c8d;
+    color: var(--color-muted);
 
     font-size: 10px;
 
@@ -268,7 +268,7 @@
 .depth-carousel__name {
     margin: 0;
 
-    color: #17242b;
+    color: var(--color-foreground);
 
     font-size: 18px;
 

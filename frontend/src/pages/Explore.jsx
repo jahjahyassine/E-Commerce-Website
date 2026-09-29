@@ -251,7 +251,7 @@ function Explore() {
     };
 
     return (
-        <main className="relative min-h-screen">
+        <main className="relative min-h-screen bg-background">
 
             {/* ==========================================
             Navbar

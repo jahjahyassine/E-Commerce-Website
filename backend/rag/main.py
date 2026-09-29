@@ -72,10 +72,49 @@ Use exactly this structure:
     "limit": 5
 }}
 
+CORE PRINCIPLE — read this before filling any field:
+
+There are two completely different kinds of information in a user's
+request:
+
+(a) WHICH PRODUCT they are talking about — its name, model name,
+    product line, or the product itself (e.g. "Galaxy S25", "iPhone
+    15 Pro", "LOQ 15IRX9", "the Sony headphones", "a gaming laptop").
+    This is IDENTITY. It goes ONLY in semantic_query. It NEVER goes
+    into specifications or variant_attributes.
+
+(b) HOW THAT PRODUCT SHOULD BE CONFIGURED — a specific spec or
+    variant option the user wants (RAM size, GPU model, storage,
+    color, screen size, connectivity, etc). This is CONFIGURATION.
+    This is the ONLY thing that goes into specifications or
+    variant_attributes.
+
+Rule of thumb: if removing the phrase from the user's message would
+change WHAT PRODUCT they're asking about, it's identity -> semantic_query.
+If removing it would still leave the same product but a different
+configuration of it, it's a spec/attribute filter.
+
+Do NOT extract a filter just because a word looks like a key you
+could invent (e.g. "model", "name", "version", "edition", "series").
+If you are not confident a real product actually stores that exact
+key in its data, leave it out of specifications/variant_attributes
+entirely and trust semantic_query + category/brand to find it
+instead. An empty specifications/variant_attributes object is
+CORRECT and PREFERRED over a guessed key that might not exist in the
+data — a wrong filter key silently excludes every product, while
+semantic_query alone can still find the right one.
+
 RULES:
 
 1. semantic_query
-   - Same as before: general product intent, no hard filters.
+   - Contains the full product identity and general intent: product
+     name, model, product line, category, and any descriptive
+     language. Keep it natural and complete — do not strip out the
+     product name to "clean it up".
+   - Example: "tell me about the Samsung Galaxy S25" ->
+     semantic_query: "Samsung Galaxy S25"
+   - Example: "gaming laptop with RTX 3050 and 16GB RAM under 9000 DH" ->
+     semantic_query: "gaming laptop"
 
 2. category / brand
    - "category" and "brand", when present, must be a LIST of plausible
@@ -85,22 +124,32 @@ RULES:
    - Example: user says "gaming laptops" -> category: ["laptop", "laptops"]
    - Example: user says "rtx gpu" -> brand: null (brand != GPU model,
      don't confuse them)
+   - Only extract brand/category if the user's own words map to an
+     actual manufacturer or product type. Never extract a brand from
+     a model name (e.g. "Galaxy S25" implies brand Samsung ONLY if
+     the user also said "Samsung" or you are certain of the mapping;
+     when unsure, leave brand null and let semantic_query carry it).
    - If not mentioned, use null (not an empty list).
 
 3. Price / rating / discount
    - Unchanged — these stay single numbers, not lists.
 
-4. specifications / variant_attributes
+4. specifications / variant_attributes — CONFIGURATION ONLY
+   - Only extract a key here if the user is asking for a specific
+     hardware/variant configuration: RAM, storage, GPU, CPU, color,
+     screen size, connectivity, battery, and similarly concrete specs.
+   - NEVER extract: product name, model name, product line, "model"
+     as a key, edition/version identifiers, or anything that
+     identifies WHICH product rather than HOW it's configured.
    - Each key maps to a LIST of plausible value variants instead of
-     one string.
-   - Include: the value as the user wrote it, the value with internal
-     spaces removed, the value with spaces normalized, and — for
-     recognizable product line prefixes (RTX, GTX, RX, Core i, Ryzen,
-     etc.) — both WITH and WITHOUT the prefix.
+     one string. Include: the value as the user wrote it, the value
+     with internal spaces removed, the value with spaces normalized,
+     and — for recognizable product line prefixes (RTX, GTX, RX,
+     Core i, Ryzen, etc.) — both WITH and WITHOUT the prefix.
    - Do not invent unrelated specs. Do not add values the user did not
      imply.
 
-   Example:
+   Correct examples:
 
    "RTX 3050 GPU" ->
    variant_attributes.gpu = ["RTX 3050", "RTX3050", "3050"]
@@ -110,6 +159,15 @@ RULES:
 
    "black headphones" ->
    variant_attributes.color = ["black"]
+
+   Incorrect — do NOT do this:
+
+   "tell me about the Samsung Galaxy S25" ->
+   variant_attributes.model = ["Galaxy S25"]   <- WRONG. "Galaxy S25"
+   is product identity, not a configuration. It belongs only in
+   semantic_query ("Samsung Galaxy S25"), with brand: ["Samsung"] if
+   the user said the brand. specifications/variant_attributes should
+   stay empty for this query.
 
 5. in_stock / limit
    - Unchanged.

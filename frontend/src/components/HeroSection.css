@@ -11,8 +11,8 @@
     min-height: 100vh;
     width: 100%;
     overflow: hidden;
-    background: #ffffff;
-    color: #17242b;
+    background: var(--color-card);
+    color: var(--color-foreground);
 }
 
 
@@ -41,7 +41,7 @@
     left: -280px;
     top: 20%;
 
-    background: rgba(245, 228, 200, 0.18);
+    background: rgba(249, 177, 122, 0.15);
 }
 
 .hero-glow-right {
@@ -51,7 +51,7 @@
     right: -300px;
     bottom: -220px;
 
-    background: rgba(86, 124, 141, 0.09);
+    background: rgba(79, 179, 191, 0.08);
 }
 
 
@@ -67,12 +67,12 @@
 
     background-image:
         linear-gradient(
-            rgba(86, 124, 141, 0.035) 1px,
+            rgba(103, 111, 157, 0.035) 1px,
             transparent 1px
         ),
         linear-gradient(
             90deg,
-            rgba(86, 124, 141, 0.035) 1px,
+            rgba(103, 111, 157, 0.035) 1px,
             transparent 1px
         );
 
@@ -145,7 +145,7 @@
     text-transform: uppercase;
     letter-spacing: 0.25em;
 
-    color: #567c8d;
+    color: var(--color-muted);
 }
 
 .hero-eyebrow-dot {
@@ -154,10 +154,10 @@
 
     border-radius: 999px;
 
-    background: #567c8d;
+    background: var(--color-muted);
 
     box-shadow:
-        0 0 0 5px rgba(86, 124, 141, 0.08);
+        0 0 0 5px rgba(103, 111, 157, 0.08);
 }
 
 
@@ -184,15 +184,15 @@
 
     letter-spacing: -0.045em;
 
-    color: #17242b;
+    color: var(--color-foreground);
 }
 
 .hero-title-muted {
-    color: #89979e;
+    color: var(--color-subtle);
 }
 
 .hero-title-accent {
-    color: #567c8d;
+    color: var(--color-muted);
 }
 
 
@@ -209,7 +209,7 @@
 
     line-height: 1.9;
 
-    color: #68777e;
+    color: var(--color-muted);
 }
 
 
@@ -241,15 +241,15 @@
     border: 0;
     border-radius: 12px;
 
-    background: #567c8d;
+    background: var(--color-accent);
 
-    color: #ffffff;
+    color: var(--color-inverse);
 
     font-size: 13px;
     font-weight: 600;
 
     box-shadow:
-        0 12px 30px rgba(86, 124, 141, 0.18);
+        0 12px 30px var(--shadow-accent);
 
     transition:
         transform 300ms ease,
@@ -260,19 +260,19 @@
 .hero-primary-button:hover {
     transform: translateY(-2px);
 
-    background: #496d7e;
+    background: var(--color-accent-hover);
 
     box-shadow:
-        0 16px 36px rgba(86, 124, 141, 0.24);
+        0 16px 36px rgba(249, 177, 122, 0.24);
 }
 
 .hero-secondary-button {
     padding: 5px 0;
 
     border-bottom:
-        1px solid rgba(86, 124, 141, 0.35);
+        1px solid rgba(103, 111, 157, 0.35);
 
-    color: #68777e;
+    color: var(--color-muted);
 
     font-size: 13px;
     font-weight: 500;
@@ -283,10 +283,10 @@
 }
 
 .hero-secondary-button:hover {
-    color: #17242b;
+    color: var(--color-foreground);
 
     border-color:
-        rgba(86, 124, 141, 0.8);
+        rgba(103, 111, 157, 0.8);
 }
 
 
@@ -320,7 +320,7 @@
 
     flex-shrink: 0;
 
-    background: #567c8d;
+    background: var(--color-muted);
 }
 
 .hero-value div {
@@ -334,13 +334,13 @@
     font-size: 11px;
     font-weight: 600;
 
-    color: #17242b;
+    color: var(--color-foreground);
 }
 
 .hero-value span:not(.hero-value-line) {
     font-size: 10px;
 
-    color: #89979e;
+    color: var(--color-subtle);
 }
 
 

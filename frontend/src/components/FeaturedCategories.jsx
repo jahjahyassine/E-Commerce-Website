@@ -22,7 +22,7 @@ function FeaturedCategories() {
 
         const data = await response.json();
 
-        return Array.isArray(data) ? data : [];
+        return data;
     };
 
     // -----------------------------------------
@@ -41,7 +41,7 @@ function FeaturedCategories() {
     };
 
     const {
-        data: categories = [],
+        data: categories,
         isLoading: categoriesLoading,
         isError: categoriesError,
     } = useQuery({
@@ -100,8 +100,7 @@ function FeaturedCategories() {
     // -----------------------------------------
     // Create AccordionGallery items
     // -----------------------------------------
-    const items = categories
-        .filter((category) => category?.is_active !== false)
+    const items = categories?.filter((category) => category?.is_active !== false)
         .map((category) => {
             const categoryProducts = products.filter(
                 (product) =>

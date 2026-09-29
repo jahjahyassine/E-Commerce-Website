@@ -91,18 +91,18 @@ function BestSellers() {
         <div className="mx-auto w-full max-w-[1600px]">
           <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="space-y-3">
-              <div className="h-4 w-24 animate-pulse rounded bg-[#17242B]/10" />
-              <div className="h-12 w-72 animate-pulse rounded bg-[#17242B]/10" />
-              <div className="h-4 w-96 max-w-full animate-pulse rounded bg-[#17242B]/10" />
+              <div className="h-4 w-24 animate-pulse rounded bg-foreground/10" />
+              <div className="h-12 w-72 animate-pulse rounded bg-foreground/10" />
+              <div className="h-4 w-96 max-w-full animate-pulse rounded bg-foreground/10" />
             </div>
             <div className="h-10 w-36 animate-pulse rounded-xl bg-[#17242B]/10" />
           </div>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div className="flex justify-center">
-              <div className="h-[410px] w-[300px] animate-pulse rounded-3xl bg-[#17242B]/10" />
+              <div className="h-[410px] w-[300px] animate-pulse rounded-3xl bg-foreground/10" />
             </div>
             <div className="hidden justify-center lg:flex">
-              <div className="h-[410px] w-[300px] animate-pulse rounded-3xl bg-[#17242B]/10" />
+              <div className="h-[410px] w-[300px] animate-pulse rounded-3xl bg-foreground/10" />
             </div>
           </div>
         </div>
@@ -113,12 +113,12 @@ function BestSellers() {
   if (isError) {
     return (
       <StateWrapper>
-        <div className="rounded-3xl border border-[#17242B]/10 bg-[#F8FAFB] px-8 py-16">
-          <p className="text-sm font-medium text-[#68777E]">Failed to load best sellers.</p>
+        <div className="rounded-3xl border border-foreground/10 bg-surface-blue px-8 py-16">
+          <p className="text-sm font-medium text-muted">Failed to load best sellers.</p>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-5 text-sm font-semibold text-[#567C8D] transition hover:text-[#496D7E]"
+            className="mt-5 text-sm font-semibold text-secondary transition hover:text-secondary-hover"
           >
             Try again →
           </button>
@@ -130,14 +130,14 @@ function BestSellers() {
   if (carouselItems.length === 0) {
     return (
       <StateWrapper>
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#567C8D]">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
           Our selection
         </p>
-        <h2 className="mt-3 font-cormorant text-5xl font-semibold text-[#17242B]">
+        <h2 className="mt-3 font-cormorant text-5xl font-semibold text-foreground">
           Best Sellers
         </h2>
-        <p className="mt-3 text-sm text-[#68777E]">Our highest-rated products</p>
-        <p className="mt-12 text-sm text-[#89979E]">No products available.</p>
+        <p className="mt-3 text-sm text-muted">Our highest-rated products</p>
+        <p className="mt-12 text-sm text-subtle">No products available.</p>
       </StateWrapper>
     );
   }
@@ -150,36 +150,36 @@ function BestSellers() {
     >
       {/* Background glows */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/2 h-[750px] w-[750px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#567C8D]/[0.045] blur-3xl" />
-        <div className="absolute -right-40 top-20 h-[400px] w-[400px] rounded-full bg-[#F5E4C8]/20 blur-3xl" />
-        <div className="absolute -left-40 bottom-0 h-[350px] w-[350px] rounded-full bg-[#567C8D]/[0.025] blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 h-[750px] w-[750px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-secondary/[0.045] blur-3xl" />
+        <div className="absolute -right-40 top-20 h-[400px] w-[400px] rounded-full bg-surface-warm/20 blur-3xl" />
+        <div className="absolute -left-40 bottom-0 h-[350px] w-[350px] rounded-full bg-secondary/[0.025] blur-3xl" />
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[1600px]">
         {/* Header */}
-        <div className="mb-8 flex flex-col gap-8 border-b border-[#17242B]/10 pb-8 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-8 flex flex-col gap-8 border-b border-foreground/10 pb-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl lg:w-1/2">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[#567C8D]">
+              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
                 Our selection
               </span>
-              <span className="h-px w-10 bg-[#567C8D]/30" />
+              <span className="h-px w-10 bg-secondary/30" />
             </div>
-            <h2 className="mt-3 font-cormorant text-5xl font-semibold leading-none tracking-tight text-[#17242B] sm:text-6xl lg:text-7xl">
+            <h2 className="mt-3 font-cormorant text-5xl font-semibold leading-none tracking-tight text-foreground sm:text-6xl lg:text-7xl">
               Best Sellers
             </h2>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-[#68777E] md:text-base">
+            <p className="mt-4 max-w-xl text-sm leading-6 text-muted md:text-base">
               Discover the products customers are choosing most. Highly rated, carefully
               selected, and ready for your next upgrade.
             </p>
 
             <div className="mt-6 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#567C8D]/10">
-                <TrendingUp size={17} className="text-[#567C8D]" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/10">
+                <TrendingUp size={17} className="text-secondary" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#17242B]">Customer favorites</p>
-                <p className="mt-0.5 text-xs text-[#89979E]">Based on ratings & reviews</p>
+                <p className="text-sm font-semibold text-foreground">Customer favorites</p>
+                <p className="mt-0.5 text-xs text-subtle">Based on ratings & reviews</p>
               </div>
             </div>
           </div>
@@ -188,15 +188,15 @@ function BestSellers() {
         </div>
 
         {/* Intro text + carousel */}
-        <div className="grid min-h-[600px] w-full grid-cols-1 overflow-hidden rounded-[2rem] border border-[#17242B]/[0.07] bg-white/30 backdrop-blur-[2px] lg:grid-cols-2">
-          <div className="flex min-h-[600px] flex-col justify-center border-b border-[#17242B]/[0.07] px-8 py-12 md:px-12 lg:border-b-0 lg:border-r lg:px-16 xl:px-20">
-            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[#567C8D]">
+        <div className="grid min-h-[600px] w-full grid-cols-1 overflow-hidden rounded-[2rem] border border-foreground/[0.07] bg-card/30 backdrop-blur-[2px] lg:grid-cols-2">
+          <div className="flex min-h-[600px] flex-col justify-center border-b border-foreground/[0.07] px-8 py-12 md:px-12 lg:border-b-0 lg:border-r lg:px-16 xl:px-20">
+            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
               Handpicked for you
             </span>
-            <h3 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-[#17242B] md:text-5xl">
+            <h3 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl">
               See our best sellers
             </h3>
-            <p className="mt-5 max-w-md text-md leading-7 text-[#68777E]">
+            <p className="mt-5 max-w-md text-md leading-7 text-muted">
               Swipe through the products our customers keep coming back for.
             </p>
           </div>
@@ -227,26 +227,26 @@ function BestSellers() {
         </div>
 
         {/* Bottom info bar */}
-        <div className="mt-8 flex flex-col gap-6 border-t border-[#17242B]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col gap-6 border-t border-foreground/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
             <div className="flex items-center gap-2">
-              <Star size={15} fill="currentColor" className="text-[#F5B942]" />
-              <span className="text-xs font-medium text-[#68777E]">Highly rated</span>
+              <Star size={15} fill="currentColor" className="text-yellow" />
+              <span className="text-xs font-medium text-muted">Highly rated</span>
             </div>
             <div className="flex items-center gap-2">
-              <ShoppingBag size={15} className="text-[#567C8D]" />
-              <span className="text-xs font-medium text-[#68777E]">Trusted products</span>
+              <ShoppingBag size={15} className="text-secondary" />
+              <span className="text-xs font-medium text-muted">Trusted products</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="flex h-1.5 w-1.5 rounded-full bg-[#567C8D]" />
-              <span className="text-xs font-medium text-[#68777E]">Cash on delivery</span>
+              <span className="flex h-1.5 w-1.5 rounded-full bg-secondary" />
+              <span className="text-xs font-medium text-muted">Cash on delivery</span>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => navigate("/products")}
-            className="group flex w-fit items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#567C8D]"
+            className="group flex w-fit items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-secondary"
           >
             Explore the collection
             <ArrowRight
