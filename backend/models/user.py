@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from models.review import Review
     from models.order import Order
     from models.cart import Cart
+    from models.chatbot import ChatMessage
 
 from sqlalchemy import Boolean, Integer, String, Enum, Text, DateTime, text
 from sqlalchemy.orm import mapped_column, Mapped, relationship
@@ -55,6 +56,13 @@ class User (Base):
     orders: Mapped[list["Order"]] = relationship("Order", back_populates="user")
 
     cart: Mapped["Cart"] = relationship("Cart", back_populates="user", uselist=False)
+
+    chat_messages: Mapped[list["ChatMessage"]] = relationship(
+        "ChatMessage",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="ChatMessage.created_at"
+    )
 
     @property
     def profile_pic_path(self) -> str:

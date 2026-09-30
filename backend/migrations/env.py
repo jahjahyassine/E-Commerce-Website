@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from core.database import Base
 from core.config import settings
-from models import user, product, order, inventory, review, cart
+from models import user, product, order, inventory, review, cart, chatbot
 
 from alembic import context
 

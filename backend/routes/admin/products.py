@@ -1,5 +1,4 @@
 import json
-
 from typing import Annotated
 
 from fastapi import (
@@ -11,16 +10,14 @@ from fastapi import (
     UploadFile,
     status,
 )
+from sqlalchemy import exists, func
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, joinedload
 
-from sqlalchemy import exists, func, or_
-from sqlalchemy.orm import Session
-
-from rag.embedding import indexing_product
-from services.auth import require_admin
 from core.cloudinary import cloudinary
 from core.database import get_db
 from core.security import decode_access_token
-
+from models.inventory import Inventory, StockChange, StockChangeType, Supplier
 from models.product import (
     Brand,
     Category,
@@ -29,9 +26,9 @@ from models.product import (
     ProductVariant,
     Tag,
 )
-
-from models.user import User, UserRole
-
+from rag.cache.brand_cache import invalidate_brands
+from rag.cache.category_cache import invalidate_categories
+from rag.embedding import indexing_product
 from schemas.product import (
     BrandCreate,
     BrandPatchRequest,
@@ -47,9 +44,7 @@ from schemas.product import (
     ProductVariantUpdate,
     TagCreate,
 )
-
-from models.inventory import Inventory, Supplier
-
+from services.auth import require_admin
 
 router = APIRouter(
     prefix="/admin",
@@ -57,25 +52,18 @@ router = APIRouter(
 )
 
 
-
-
 @router.post("/products")
 async def add_product(
     product: str = Form(...),
     media: list[UploadFile] = File(default=[]),
     db: Annotated[Session, Depends(get_db)] = None,
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ] = None,
+    user_infos: Annotated[dict, Depends(decode_access_token)] = None,
 ):
     require_admin(db, user_infos)
 
     try:
         product_data = ProductCreateRequest.model_validate(
-            {
-                "product": json.loads(product)
-            }
+            {"product": json.loads(product)}
         )
     except Exception as e:
         raise HTTPException(
@@ -101,11 +89,7 @@ async def add_product(
             if not tag_name:
                 continue
 
-            tag = (
-                db.query(Tag)
-                .filter(Tag.name == tag_name)
-                .first()
-            )
+            tag = db.query(Tag).filter(Tag.name == tag_name).first()
 
             if not tag:
                 tag = Tag(name=tag_name)
@@ -118,35 +102,26 @@ async def add_product(
         if not image.filename:
             continue
 
-        upload = cloudinary.uploader.upload(
-            await image.read()
+        upload = cloudinary.uploader.upload(await image.read())
+
+        db.add(
+            Media(
+                media_url=upload["secure_url"],
+                public_id=upload["public_id"],
+                product_id=new_product.id,
+            )
         )
 
-        new_image = Media(
-            media_url=upload["secure_url"],
-            public_id=upload["public_id"],
-            product_id=new_product.id,
-        )
-
-        db.add(new_image)
-
-    new_product = (
-        db.query(Product)
-        .filter(Product.id == new_product.id)
-        .first()
-    )
-
+    new_product = db.query(Product).filter(Product.id == new_product.id).first()
     new_product.embedding = indexing_product(new_product)
 
     db.commit()
     db.refresh(new_product)
+
     return new_product
 
 
-@router.get(
-    "/products",
-    response_model=list[ProductResponse],
-)
+@router.get("/products", response_model=list[ProductResponse])
 def get_products(
     db: Annotated[Session, Depends(get_db)],
     category_id: int | None = None,
@@ -160,21 +135,13 @@ def get_products(
     query = db.query(Product)
 
     if search and search.strip():
-        search_pattern = f"%{search.strip()}%"
-
-        query = query.filter(
-            Product.name.ilike(search_pattern)
-        )
+        query = query.filter(Product.name.ilike(f"%{search.strip()}%"))
 
     if category_id is not None:
-        query = query.filter(
-            Product.category_id == category_id
-        )
+        query = query.filter(Product.category_id == category_id)
 
     if brand_id is not None:
-        query = query.filter(
-            Product.brand_id == brand_id
-        )
+        query = query.filter(Product.brand_id == brand_id)
 
     if min_price is not None:
         query = query.filter(
@@ -193,40 +160,23 @@ def get_products(
         )
 
     if min_rating is not None:
-        query = query.filter(
-            Product.average_rating >= min_rating
-        )
+        query = query.filter(Product.average_rating >= min_rating)
 
     if is_active is not None:
-        query = query.filter(
-            Product.is_active == is_active
-        )
+        query = query.filter(Product.is_active == is_active)
 
     return query.all()
 
 
-@router.get(
-    "/products/{product_id}",
-    response_model=ProductResponse,
-)
+@router.get("/products/{product_id}", response_model=ProductResponse)
 def get_product(
     product_id: int,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
 ):
     require_admin(db, user_infos)
 
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product = db.query(Product).filter(Product.id == product_id).first()
 
     if not product:
         raise HTTPException(
@@ -237,29 +187,16 @@ def get_product(
     return product
 
 
-@router.patch(
-    "/products/{product_id}",
-    response_model=ProductResponse,
-)
+@router.patch("/products/{product_id}", response_model=ProductResponse)
 def update_product(
     product_id: int,
     product_data: ProductUpdate,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
 ):
     require_admin(db, user_infos)
 
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product = db.query(Product).filter(Product.id == product_id).first()
 
     if not product:
         raise HTTPException(
@@ -267,16 +204,8 @@ def update_product(
             detail="Product not found",
         )
 
-    update_data = product_data.model_dump(
-        exclude_unset=True
-    )
-
-    for field, value in update_data.items():
-        setattr(
-            product,
-            field,
-            value,
-        )
+    for field, value in product_data.model_dump(exclude_unset=True).items():
+        setattr(product, field, value)
 
     product.embedding = indexing_product(product)
 
@@ -289,22 +218,12 @@ def update_product(
 @router.delete("/products/{product_id}")
 def delete_product(
     product_id: int,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
 ):
     require_admin(db, user_infos)
 
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product = db.query(Product).filter(Product.id == product_id).first()
 
     if not product:
         raise HTTPException(
@@ -315,10 +234,7 @@ def delete_product(
     db.delete(product)
     db.commit()
 
-    return {
-        "message": "Product deleted successfully"
-    }
-
+    return {"message": "Product deleted successfully"}
 
 
 @router.post(
@@ -329,36 +245,18 @@ async def add_product_variant(
     product_id: int,
     variant: str = Form(...),
     media: list[UploadFile] = File(default=[]),
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ] = None,
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ] = None,
+    db: Annotated[Session, Depends(get_db)] = None,
+    user_infos: Annotated[dict, Depends(decode_access_token)] = None,
 ):
     require_admin(db, user_infos)
 
-    # --------------------------------------------------------
-    # Find product
-    # --------------------------------------------------------
-
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product = db.query(Product).filter(Product.id == product_id).first()
 
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Product not found",
         )
-
-    # --------------------------------------------------------
-    # Parse variant data
-    # --------------------------------------------------------
 
     try:
         variant_data = ProductVariantCreateRequest.model_validate(
@@ -369,10 +267,6 @@ async def add_product_variant(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Invalid variant data: {e}",
         )
-
-    # --------------------------------------------------------
-    # Check SKU
-    # --------------------------------------------------------
 
     existing_variant = (
         db.query(ProductVariant)
@@ -385,10 +279,6 @@ async def add_product_variant(
             status_code=status.HTTP_409_CONFLICT,
             detail="SKU already exists",
         )
-
-    # --------------------------------------------------------
-    # Find supplier
-    # --------------------------------------------------------
 
     supplier = (
         db.query(Supplier)
@@ -405,10 +295,6 @@ async def add_product_variant(
             detail="Supplier not found or inactive",
         )
 
-    # --------------------------------------------------------
-    # Create variant
-    # --------------------------------------------------------
-
     new_variant = ProductVariant(
         product_id=product_id,
         sku=variant_data.sku,
@@ -421,53 +307,35 @@ async def add_product_variant(
     db.add(new_variant)
     db.flush()
 
-    # --------------------------------------------------------
-    # Create inventory
-    # --------------------------------------------------------
-
-    new_inventory = Inventory(
-        product_variant_id=new_variant.id,
-        quantity=variant_data.quantity,
+    db.add(
+        Inventory(
+            product_variant_id=new_variant.id,
+            quantity=variant_data.quantity,
+        )
     )
 
-    db.add(new_inventory)
-
-    # --------------------------------------------------------
-    # Create initial stock change
-    # --------------------------------------------------------
-
-    stock_change = StockChange(
-        product_variant_id=new_variant.id,
-        change_type=StockChangeType.IN,
-        quantity=variant_data.quantity,
-        supplier_id=supplier.id,
+    db.add(
+        StockChange(
+            product_variant_id=new_variant.id,
+            change_type=StockChangeType.IN,
+            quantity=variant_data.quantity,
+            supplier_id=supplier.id,
+        )
     )
-
-    db.add(stock_change)
-
-    # --------------------------------------------------------
-    # Upload media
-    # --------------------------------------------------------
 
     for image in media:
         if not image.filename:
             continue
 
-        upload = cloudinary.uploader.upload(
-            await image.read()
+        upload = cloudinary.uploader.upload(await image.read())
+
+        db.add(
+            Media(
+                media_url=upload["secure_url"],
+                public_id=upload["public_id"],
+                variant_id=new_variant.id,
+            )
         )
-
-        new_image = Media(
-            media_url=upload["secure_url"],
-            public_id=upload["public_id"],
-            variant_id=new_variant.id,
-        )
-
-        db.add(new_image)
-
-    # --------------------------------------------------------
-    # Update product minimum price
-    # --------------------------------------------------------
 
     min_price = (
         db.query(func.min(ProductVariant.price))
@@ -479,16 +347,7 @@ async def add_product_variant(
     )
 
     product.min_price = min_price or 0
-
-    # --------------------------------------------------------
-    # Generate embedding
-    # --------------------------------------------------------
-
     product.embedding = indexing_product(product)
-
-    # --------------------------------------------------------
-    # Commit everything
-    # --------------------------------------------------------
 
     try:
         db.commit()
@@ -496,11 +355,7 @@ async def add_product_variant(
         db.rollback()
         raise
 
-    # --------------------------------------------------------
-    # Reload variant
-    # --------------------------------------------------------
-
-    variant = (
+    return (
         db.query(ProductVariant)
         .options(
             joinedload(ProductVariant.product),
@@ -511,7 +366,6 @@ async def add_product_variant(
         .first()
     )
 
-    return variant
 
 @router.patch(
     "/products/{product_id}/variants/{variant_id}",
@@ -521,22 +375,12 @@ def update_variant(
     product_id: int,
     variant_id: int,
     variant_data: ProductVariantUpdate,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
 ):
     require_admin(db, user_infos)
 
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product = db.query(Product).filter(Product.id == product_id).first()
 
     if not product:
         raise HTTPException(
@@ -559,36 +403,28 @@ def update_variant(
             detail="Variant not found for this product",
         )
 
-    update_data = variant_data.model_dump(
-        exclude_unset=True
-    )
-
+    update_data = variant_data.model_dump(exclude_unset=True)
     quantity = update_data.pop("quantity", None)
 
     for field, value in update_data.items():
-        setattr(
-            product_variant,
-            field,
-            value,
-        )
+        setattr(product_variant, field, value)
 
     if quantity is not None:
         inventory = (
             db.query(Inventory)
-            .filter(
-                Inventory.product_variant_id == variant_id
-            )
+            .filter(Inventory.product_variant_id == variant_id)
             .first()
         )
 
         if inventory:
             inventory.quantity = quantity
         else:
-            inventory = Inventory(
-                product_variant_id=variant_id,
-                quantity=quantity,
+            db.add(
+                Inventory(
+                    product_variant_id=variant_id,
+                    quantity=quantity,
+                )
             )
-            db.add(inventory)
 
     min_price = (
         db.query(func.min(ProductVariant.price))
@@ -600,13 +436,6 @@ def update_variant(
     )
 
     product.min_price = min_price or 0
-
-    product = (
-        db.query(Product)
-        .filter(Product.id == product.id)
-        .first()
-    )
-    
     product.embedding = indexing_product(product)
 
     db.commit()
@@ -615,20 +444,12 @@ def update_variant(
     return product_variant
 
 
-@router.delete(
-    "/products/{product_id}/variants/{variant_id}"
-)
+@router.delete("/products/{product_id}/variants/{variant_id}")
 def delete_variant(
     product_id: int,
     variant_id: int,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
 ):
     require_admin(db, user_infos)
 
@@ -649,11 +470,7 @@ def delete_variant(
 
     db.delete(variant)
 
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product = db.query(Product).filter(Product.id == product_id).first()
 
     if product:
         db.flush()
@@ -671,378 +488,19 @@ def delete_variant(
 
     db.commit()
 
-    return {
-        "message": "Variant deleted successfully"
-    }
-
-
-@router.post(
-    "/categories",
-    response_model=CategoryResponse,
-)
-def add_category(
-    category: CategoryCreate,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
-):
-    require_admin(db, user_infos)
-
-    existing = (
-        db.query(Category)
-        .filter(
-            func.lower(Category.name)
-            == category.name.strip().lower()
-        )
-        .first()
-    )
-
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Category already exists",
-        )
-
-    new_category = Category(
-        name=category.name.strip()
-    )
-
-    db.add(new_category)
-    db.commit()
-    db.refresh(new_category)
-
-    return new_category
-
-
-@router.get(
-    "/categories",
-    response_model=list[CategoryResponse],
-)
-def get_categories(
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    name: str | None = None,
-    is_active: bool | None = None,
-):
-    query = db.query(Category)
-
-    if name is not None:
-        query = query.filter(
-            Category.name.ilike(
-                f"%{name}%"
-            )
-        )
-
-    if is_active is not None:
-        query = query.filter(
-            Category.is_active == is_active
-        )
-
-    return query.all()
-
-
-@router.get(
-    "/categories/{category_id}",
-    response_model=CategoryResponse,
-)
-def get_category(
-    category_id: int,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-):
-    category = (
-        db.query(Category)
-        .filter(Category.id == category_id)
-        .first()
-    )
-
-    if not category:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found",
-        )
-
-    return category
-
-
-@router.patch(
-    "/categories/{category_id}",
-    response_model=CategoryResponse,
-)
-def patch_category(
-    category_id: int,
-    category_data: CategoryPatchRequest,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
-):
-    require_admin(db, user_infos)
-
-    category = (
-        db.query(Category)
-        .filter(Category.id == category_id)
-        .first()
-    )
-
-    if not category:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found",
-        )
-
-    update_data = category_data.model_dump(
-        exclude_unset=True
-    )
-
-    for field, value in update_data.items():
-        setattr(
-            category,
-            field,
-            value,
-        )
-
-    db.commit()
-    db.refresh(category)
-
-    return category
-
-
-@router.post(
-    "/brands",
-    response_model=BrandResponse,
-)
-def add_brand(
-    brand: BrandCreate,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
-):
-    require_admin(db, user_infos)
-
-    existing = (
-        db.query(Brand)
-        .filter(
-            func.lower(Brand.name)
-            == brand.name.strip().lower()
-        )
-        .first()
-    )
-
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Brand already exists",
-        )
-
-    new_brand = Brand(
-        name=brand.name.strip()
-    )
-
-    db.add(new_brand)
-    db.commit()
-    db.refresh(new_brand)
-
-    return new_brand
-
-
-@router.get(
-    "/brands",
-    response_model=list[BrandResponse],
-)
-def get_brands(
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    name: str | None = None,
-    is_active: bool | None = None,
-):
-    query = db.query(Brand)
-
-    if name is not None:
-        query = query.filter(
-            Brand.name.ilike(
-                f"%{name}%"
-            )
-        )
-
-    if is_active is not None:
-        query = query.filter(
-            Brand.is_active == is_active
-        )
-
-    return query.all()
-
-
-@router.get(
-    "/brands/{brand_id}",
-    response_model=BrandResponse,
-)
-def get_brand(
-    brand_id: int,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-):
-    brand = (
-        db.query(Brand)
-        .filter(Brand.id == brand_id)
-        .first()
-    )
-
-    if not brand:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Brand not found",
-        )
-
-    return brand
-
-
-@router.patch(
-    "/brands/{brand_id}",
-    response_model=BrandResponse,
-)
-def patch_brand(
-    brand_id: int,
-    brand_data: BrandPatchRequest,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
-):
-    require_admin(db, user_infos)
-
-    brand = (
-        db.query(Brand)
-        .filter(Brand.id == brand_id)
-        .first()
-    )
-
-    if not brand:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Brand not found",
-        )
-
-    update_data = brand_data.model_dump(
-        exclude_unset=True
-    )
-
-    for field, value in update_data.items():
-        setattr(
-            brand,
-            field,
-            value,
-        )
-
-    db.commit()
-    db.refresh(brand)
-
-    return brand
-
-
-@router.post("/tags")
-def add_tag(
-    tag: TagCreate,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
-):
-    require_admin(db, user_infos)
-
-    existing = (
-        db.query(Tag)
-        .filter(
-            func.lower(Tag.name)
-            == tag.name.strip().lower()
-        )
-        .first()
-    )
-
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Tag already exists",
-        )
-
-    new_tag = Tag(
-        name=tag.name.strip()
-    )
-
-    db.add(new_tag)
-    db.commit()
-    db.refresh(new_tag)
-
-    return new_tag
-
-
-@router.get("/tags")
-def get_tags(
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-):
-    return db.query(Tag).all()
-
-
-
-
-
-
-
+    return {"message": "Variant deleted successfully"}
 
 
 @router.post("/products/{product_id}/media")
 async def add_product_media(
     product_id: int,
     media: list[UploadFile] = File(default=[]),
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ] = None,
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ] = None,
+    db: Annotated[Session, Depends(get_db)] = None,
+    user_infos: Annotated[dict, Depends(decode_access_token)] = None,
 ):
     require_admin(db, user_infos)
 
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product = db.query(Product).filter(Product.id == product_id).first()
 
     if not product:
         raise HTTPException(
@@ -1054,13 +512,10 @@ async def add_product_media(
 
     try:
         for image in media:
-
             if not image.filename:
                 continue
 
-            upload = cloudinary.uploader.upload(
-                await image.read()
-            )
+            upload = cloudinary.uploader.upload(await image.read())
 
             new_image = Media(
                 media_url=upload["secure_url"],
@@ -1084,27 +539,54 @@ async def add_product_media(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to upload product images",
         )
-    
 
 
+@router.delete("/products/{product_id}/media/{media_id}")
+def delete_product_media(
+    product_id: int,
+    media_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    require_admin(db, user_infos)
+
+    media = (
+        db.query(Media)
+        .filter(
+            Media.id == media_id,
+            Media.product_id == product_id,
+        )
+        .first()
+    )
+
+    if not media:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product image not found",
+        )
+
+    try:
+        cloudinary.uploader.destroy(media.public_id)
+        db.delete(media)
+        db.commit()
+
+        return {"message": "Product image deleted successfully"}
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete product image",
+        )
 
 
-
-@router.post(
-    "/products/{product_id}/variants/{variant_id}/media"
-)
+@router.post("/products/{product_id}/variants/{variant_id}/media")
 async def add_variant_media(
     product_id: int,
     variant_id: int,
     media: list[UploadFile] = File(default=[]),
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ] = None,
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ] = None,
+    db: Annotated[Session, Depends(get_db)] = None,
+    user_infos: Annotated[dict, Depends(decode_access_token)] = None,
 ):
     require_admin(db, user_infos)
 
@@ -1127,13 +609,10 @@ async def add_variant_media(
 
     try:
         for image in media:
-
             if not image.filename:
                 continue
 
-            upload = cloudinary.uploader.upload(
-                await image.read()
-            )
+            upload = cloudinary.uploader.upload(await image.read())
 
             new_image = Media(
                 media_url=upload["secure_url"],
@@ -1157,80 +636,15 @@ async def add_variant_media(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to upload variant images",
         )
-    
 
 
-@router.delete(
-    "/products/{product_id}/media/{media_id}"
-)
-def delete_product_media(
-    product_id: int,
-    media_id: int,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
-):
-    require_admin(db, user_infos)
-
-    media = (
-        db.query(Media)
-        .filter(
-            Media.id == media_id,
-            Media.product_id == product_id,
-        )
-        .first()
-    )
-
-    if not media:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product image not found",
-        )
-
-    try:
-        # Delete from Cloudinary
-        cloudinary.uploader.destroy(
-            media.public_id
-        )
-
-        # Delete from database
-        db.delete(media)
-        db.commit()
-
-        return {
-            "message": "Product image deleted successfully"
-        }
-
-    except Exception:
-        db.rollback()
-
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete product image",
-        )
-    
-
-
-@router.delete(
-    "/products/{product_id}/variants/{variant_id}/media/{media_id}"
-)
+@router.delete("/products/{product_id}/variants/{variant_id}/media/{media_id}")
 def delete_variant_media(
     product_id: int,
     variant_id: int,
     media_id: int,
-    db: Annotated[
-        Session,
-        Depends(get_db),
-    ],
-    user_infos: Annotated[
-        dict,
-        Depends(decode_access_token),
-    ],
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
 ):
     require_admin(db, user_infos)
 
@@ -1265,21 +679,385 @@ def delete_variant_media(
         )
 
     try:
-        cloudinary.uploader.destroy(
-            media.public_id
-        )
-
+        cloudinary.uploader.destroy(media.public_id)
         db.delete(media)
         db.commit()
 
-        return {
-            "message": "Variant image deleted successfully"
-        }
+        return {"message": "Variant image deleted successfully"}
 
     except Exception:
         db.rollback()
-
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete variant image",
         )
+
+
+@router.post("/categories", response_model=CategoryResponse)
+def add_category(
+    category: CategoryCreate,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    require_admin(db, user_infos)
+
+    existing = (
+        db.query(Category)
+        .filter(func.lower(Category.name) == category.name.strip().lower())
+        .first()
+    )
+
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Category already exists",
+        )
+
+    new_category = Category(name=category.name.strip())
+    db.add(new_category)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Category already exists",
+        )
+    except Exception:
+        db.rollback()
+        raise
+
+    invalidate_categories()
+    db.refresh(new_category)
+
+    return new_category
+
+
+@router.get("/categories", response_model=list[CategoryResponse])
+def get_categories(
+    db: Annotated[Session, Depends(get_db)],
+    name: str | None = None,
+    is_active: bool | None = None,
+):
+    query = db.query(Category)
+
+    if name is not None:
+        query = query.filter(Category.name.ilike(f"%{name}%"))
+
+    if is_active is not None:
+        query = query.filter(Category.is_active == is_active)
+
+    return query.all()
+
+
+@router.get("/categories/{category_id}", response_model=CategoryResponse)
+def get_category(
+    category_id: int,
+    db: Annotated[Session, Depends(get_db)],
+):
+    category = db.query(Category).filter(Category.id == category_id).first()
+
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found",
+        )
+
+    return category
+
+
+@router.patch("/categories/{category_id}", response_model=CategoryResponse)
+def patch_category(
+    category_id: int,
+    category_data: CategoryPatchRequest,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    require_admin(db, user_infos)
+
+    category = db.query(Category).filter(Category.id == category_id).first()
+
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found",
+        )
+
+    update_data = category_data.model_dump(exclude_unset=True)
+
+    if update_data.get("name") is not None:
+        update_data["name"] = update_data["name"].strip()
+
+        duplicate = (
+            db.query(Category)
+            .filter(
+                func.lower(Category.name) == update_data["name"].lower(),
+                Category.id != category_id,
+            )
+            .first()
+        )
+
+        if duplicate:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Category already exists",
+            )
+
+    for field, value in update_data.items():
+        setattr(category, field, value)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Category already exists",
+        )
+    except Exception:
+        db.rollback()
+        raise
+
+    invalidate_categories()
+    db.refresh(category)
+
+    return category
+
+
+@router.delete("/categories/{category_id}")
+def delete_category(
+    category_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    require_admin(db, user_infos)
+
+    category = db.query(Category).filter(Category.id == category_id).first()
+
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found",
+        )
+
+    db.delete(category)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Category is used by products; deactivate it instead",
+        )
+    except Exception:
+        db.rollback()
+        raise
+
+    invalidate_categories()
+
+    return {"message": "Category deleted successfully"}
+
+
+@router.post("/brands", response_model=BrandResponse)
+def add_brand(
+    brand: BrandCreate,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    require_admin(db, user_infos)
+
+    existing = (
+        db.query(Brand)
+        .filter(func.lower(Brand.name) == brand.name.strip().lower())
+        .first()
+    )
+
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Brand already exists",
+        )
+
+    new_brand = Brand(name=brand.name.strip())
+    db.add(new_brand)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Brand already exists",
+        )
+    except Exception:
+        db.rollback()
+        raise
+
+    invalidate_brands()
+    db.refresh(new_brand)
+
+    return new_brand
+
+
+@router.get("/brands", response_model=list[BrandResponse])
+def get_brands(
+    db: Annotated[Session, Depends(get_db)],
+    name: str | None = None,
+    is_active: bool | None = None,
+):
+    query = db.query(Brand)
+
+    if name is not None:
+        query = query.filter(Brand.name.ilike(f"%{name}%"))
+
+    if is_active is not None:
+        query = query.filter(Brand.is_active == is_active)
+
+    return query.all()
+
+
+@router.get("/brands/{brand_id}", response_model=BrandResponse)
+def get_brand(
+    brand_id: int,
+    db: Annotated[Session, Depends(get_db)],
+):
+    brand = db.query(Brand).filter(Brand.id == brand_id).first()
+
+    if not brand:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Brand not found",
+        )
+
+    return brand
+
+
+@router.patch("/brands/{brand_id}", response_model=BrandResponse)
+def patch_brand(
+    brand_id: int,
+    brand_data: BrandPatchRequest,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    require_admin(db, user_infos)
+
+    brand = db.query(Brand).filter(Brand.id == brand_id).first()
+
+    if not brand:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Brand not found",
+        )
+
+    update_data = brand_data.model_dump(exclude_unset=True)
+
+    if update_data.get("name") is not None:
+        update_data["name"] = update_data["name"].strip()
+
+        duplicate = (
+            db.query(Brand)
+            .filter(
+                func.lower(Brand.name) == update_data["name"].lower(),
+                Brand.id != brand_id,
+            )
+            .first()
+        )
+
+        if duplicate:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Brand already exists",
+            )
+
+    for field, value in update_data.items():
+        setattr(brand, field, value)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Brand already exists",
+        )
+    except Exception:
+        db.rollback()
+        raise
+
+    invalidate_brands()
+    db.refresh(brand)
+
+    return brand
+
+
+@router.delete("/brands/{brand_id}")
+def delete_brand(
+    brand_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    require_admin(db, user_infos)
+
+    brand = db.query(Brand).filter(Brand.id == brand_id).first()
+
+    if not brand:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Brand not found",
+        )
+
+    db.delete(brand)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Brand is used by products; deactivate it instead",
+        )
+    except Exception:
+        db.rollback()
+        raise
+
+    invalidate_brands()
+
+    return {"message": "Brand deleted successfully"}
+
+
+@router.post("/tags")
+def add_tag(
+    tag: TagCreate,
+    db: Annotated[Session, Depends(get_db)],
+    user_infos: Annotated[dict, Depends(decode_access_token)],
+):
+    require_admin(db, user_infos)
+
+    existing = (
+        db.query(Tag)
+        .filter(func.lower(Tag.name) == tag.name.strip().lower())
+        .first()
+    )
+
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Tag already exists",
+        )
+
+    new_tag = Tag(name=tag.name.strip())
+
+    db.add(new_tag)
+    db.commit()
+    db.refresh(new_tag)
+
+    return new_tag
+
+
+@router.get("/tags")
+def get_tags(
+    db: Annotated[Session, Depends(get_db)],
+):
+    return db.query(Tag).all()

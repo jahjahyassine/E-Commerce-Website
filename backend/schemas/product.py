@@ -173,6 +173,8 @@ class ProductVariantCreateRequest(BaseModel):
         ge=0,
     )
 
+    supplier_id: int
+
 
 class ProductVariantUpdate(BaseModel):
     sku: str | None = None

@@ -18,6 +18,8 @@ class Settings(BaseSettings):
 
     GROQ_API_KEY: str
 
+    CHAT_HISTORY_LIMIT: int = 10
+
     class Config:
         env_file = ".env"
 

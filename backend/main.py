@@ -4,7 +4,7 @@ import uvicorn
 
 from routes import product, inventory, auth, cart, user, order, review
 from routes.admin import products as admin_product, inventory as admin_inventory, order as admin_order, customer, supplier, stock_changes, review as admin_review, dashboard
-from rag import main as rag_router
+from rag import rag_router
 import models
 
 app = FastAPI()

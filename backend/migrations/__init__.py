@@ -14,7 +14,6 @@ from models.review import Review
 from models.order import Order, OrderItem
 from models.cart import Cart, CartItem
 from models.inventory import Inventory, Supplier, StockChange
-from models.wishlist import Wishlist, WishlistProduct
+from models.chatbot import ChatMessage
 
-# Force SQLAlchemy to configure all mappers immediately on startup
 configure_mappers()

@@ -4,6 +4,7 @@ from .review import Review
 from .order import Order, OrderItem
 from .cart import Cart, CartItem
 from .inventory import Inventory, Supplier, StockChange
+from .chatbot import ChatMessage
 
 __all__ = [
     "User",
@@ -22,5 +23,6 @@ __all__ = [
     "Supplier",
     "StockChange",
     "Wishlist",
-    "WishlistProduct"
+    "WishlistProduct",
+    "ChatMessage"
 ]

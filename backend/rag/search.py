@@ -1,16 +1,13 @@
 import math
-from typing import Annotated
 
-from fastapi import Depends
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
-from models.product import Brand, Category, Product, ProductVariant
-from rag.schemas import ProductSearchQuery
+from models.inventory import Inventory
+from models.product import Product, ProductVariant
 from rag.embedding import model
+from rag.schemas import ProductSearchQuery
 from rag.tfidf import calculate_filter_scores
-from core.database import get_db
-
 
 
 def cosine_similarity(a: list[float], b: list[float]) -> float:
@@ -23,9 +20,10 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
 
     return dot / (norm_a * norm_b)
 
+
 def search_products(
     product_search: ProductSearchQuery,
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
 ):
     # ---------------------------------------------------------
     # 1. Semantic embedding
@@ -39,32 +37,28 @@ def search_products(
     filters = product_search.filters
 
     # ---------------------------------------------------------
-    # 2. HARD FILTERS
+    # 2. HARD FILTERS (values are validated canonical names)
     # ---------------------------------------------------------
+    from models.product import Brand, Category
 
-    # Category
     if filters.category:
         stmt = stmt.where(
             Product.category.has(
-                or_(*[
-                    Category.name.ilike(f"%{value}%")
-                    for value in filters.category
-                ])
+                func.lower(Category.name).in_(
+                    [v.lower() for v in filters.category]
+                )
             )
         )
 
-    # Brand
     if filters.brand:
         stmt = stmt.where(
             Product.brand.has(
-                or_(*[
-                    Brand.name.ilike(f"%{value}%")
-                    for value in filters.brand
-                ])
+                func.lower(Brand.name).in_(
+                    [v.lower() for v in filters.brand]
+                )
             )
         )
 
-    # Price
     if filters.max_price is not None:
         stmt = stmt.where(
             Product.product_variants.any(
@@ -79,13 +73,11 @@ def search_products(
             )
         )
 
-    # Rating
     if filters.min_rating is not None:
         stmt = stmt.where(
             Product.average_rating >= filters.min_rating
         )
 
-    # Discount
     if filters.min_discount_percentage is not None:
         stmt = stmt.where(
             Product.product_variants.any(
@@ -97,7 +89,6 @@ def search_products(
     # ---------------------------------------------------------
     # 3. Specifications
     # ---------------------------------------------------------
-
     if filters.specifications:
         spec_conditions = []
 
@@ -120,7 +111,6 @@ def search_products(
     # ---------------------------------------------------------
     # 4. Variant attributes
     # ---------------------------------------------------------
-
     if filters.variant_attributes:
         for key, values in filters.variant_attributes.items():
             if not values:
@@ -151,20 +141,21 @@ def search_products(
             )
 
     # ---------------------------------------------------------
-    # 5. Stock
+    # 5. Stock: an active variant with quantity > 0
     # ---------------------------------------------------------
-
     if filters.in_stock:
         stmt = stmt.where(
             Product.product_variants.any(
-                ProductVariant.is_active == True
+                and_(
+                    ProductVariant.is_active == True,
+                    ProductVariant.inventory.has(Inventory.quantity > 0),
+                )
             )
         )
 
     # ---------------------------------------------------------
     # 6. Get candidates
     # ---------------------------------------------------------
-
     products = db.scalars(stmt).all()
 
     if not products:
@@ -173,64 +164,46 @@ def search_products(
     # ---------------------------------------------------------
     # 7. TF-IDF score
     # ---------------------------------------------------------
-
     filter_scores = calculate_filter_scores(
         products=products,
         filters=filters,
     )
 
     # ---------------------------------------------------------
-    # 8. Semantic cosine score
+    # 8. Semantic cosine similarity (higher = more similar)
     # ---------------------------------------------------------
-
     semantic_scores = []
 
     for product in products:
-        if not product.embedding:
+        if product.embedding is None or len(product.embedding) == 0:
             semantic_scores.append(0.0)
             continue
 
-        similarity = cosine_similarity(
-            product.embedding,
-            query_embedding
+        semantic_scores.append(
+            cosine_similarity(product.embedding, query_embedding)
         )
-
-        semantic_scores.append(similarity)
 
     # ---------------------------------------------------------
     # 9. Combine scores
     # ---------------------------------------------------------
-
     ranked = []
 
-    for product, distance in zip(products, semantic_scores):
-
-        semantic_score = 1.0 - distance
-
-        filter_score = filter_scores.get(
-            product.id,
-            0.0
-        )
+    for product, semantic_score in zip(products, semantic_scores):
+        filter_score = filter_scores.get(product.id, 0.0)
 
         final_score = (
             0.6 * semantic_score
             + 0.4 * filter_score
         )
 
-        ranked.append(
-            (product, final_score)
-        )
+        ranked.append((product, final_score))
 
     # ---------------------------------------------------------
     # 10. Final ranking
     # ---------------------------------------------------------
-
-    ranked.sort(
-        key=lambda x: x[1],
-        reverse=True,
-    )
+    ranked.sort(key=lambda x: x[1], reverse=True)
 
     return [
         product
-        for product, score in ranked[:product_search.limit]
+        for product, _ in ranked[:product_search.limit]
     ]
