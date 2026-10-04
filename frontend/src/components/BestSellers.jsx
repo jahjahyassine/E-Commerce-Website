@@ -163,7 +163,7 @@ function BestSellers() {
 
       <div className="relative z-10 mx-auto w-full max-w-[1600px]">
         {/* Header */}
-        <div className="mb-8 flex flex-col gap-8 border-b border-foreground/10 pb-8 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-8 flex flex-col gap-8 border-b border-border-soft pb-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl lg:w-1/2">
             <div className="flex items-center gap-3">
               <span className="text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
@@ -185,7 +185,7 @@ function BestSellers() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">Customer favorites</p>
-                <p className="mt-0.5 text-xs text-subtle">Based on ratings & reviews</p>
+                <p className="mt-0.5 text-sm text-muted">Based on ratings & reviews</p>
               </div>
             </div>
           </div>
@@ -194,15 +194,15 @@ function BestSellers() {
         </div>
 
         {/* Intro text + carousel */}
-        <div className="grid min-h-[600px] w-full grid-cols-1 overflow-hidden rounded-[2rem] border border-foreground/[0.07] bg-card/30 backdrop-blur-[2px] lg:grid-cols-2">
-          <div className="flex min-h-[600px] flex-col justify-center border-b border-foreground/[0.07] px-8 py-12 md:px-12 lg:border-b-0 lg:border-r lg:px-16 xl:px-20">
+        <div className="grid min-h-[600px] w-full grid-cols-1 overflow-hidden rounded-[2rem] border border-border-soft bg-card/60 backdrop-blur-[2px] lg:grid-cols-2">
+          <div className="flex min-h-[600px] flex-col justify-center border-b border-border-soft px-8 py-12 md:px-12 lg:border-b-0 lg:border-r lg:px-16 xl:px-20">
             <span className="text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
               Handpicked for you
             </span>
             <h3 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl">
               See our best sellers
             </h3>
-            <p className="mt-5 max-w-md text-md leading-7 text-muted">
+            <p className="mt-5 max-w-md text-base leading-7 text-muted">
               Swipe through the products our customers keep coming back for.
             </p>
           </div>
@@ -233,26 +233,26 @@ function BestSellers() {
         </div>
 
         {/* Bottom info bar */}
-        <div className="mt-8 flex flex-col gap-6 border-t border-foreground/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col gap-6 border-t border-border-soft pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
             <div className="flex items-center gap-2">
               <Star size={15} fill="currentColor" className="text-highlight" />
-              <span className="text-xs font-medium text-muted">Highly rated</span>
+              <span className="text-sm font-medium text-muted">Highly rated</span>
             </div>
             <div className="flex items-center gap-2">
               <ShoppingBag size={15} className="text-secondary" />
-              <span className="text-xs font-medium text-muted">Trusted products</span>
+              <span className="text-sm font-medium text-muted">Trusted products</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="flex h-1.5 w-1.5 rounded-full bg-secondary" />
-              <span className="text-xs font-medium text-muted">Cash on delivery</span>
+              <span className="text-sm font-medium text-muted">Cash on delivery</span>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => navigate("/products")}
-            className="group flex w-fit items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-secondary"
+            className="group flex w-fit items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-accent hover:text-accent-hover"
           >
             Explore the collection
             <ArrowRight

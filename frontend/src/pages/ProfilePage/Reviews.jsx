@@ -309,7 +309,7 @@ function Reviews() {
                                                     </h3>
 
                                                     {date && (
-                                                        <p className="text-xs text-muted mt-1">
+                                    <p className="text-sm text-muted mt-1">
                                                             {new Date(
                                                                 date
                                                             ).toLocaleDateString()}
@@ -368,7 +368,7 @@ function Reviews() {
                                                         mt-2
                                                         text-sm
                                                         leading-6
-                                                        text-muted
+                                                        text-foreground/85
                                                         pt-1
                                                         border-t border-border-soft
                                                     "

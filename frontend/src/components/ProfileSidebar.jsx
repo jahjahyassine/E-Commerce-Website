@@ -76,7 +76,7 @@ function ProfileSidebar({ user }) {
         gap-3
         rounded-xl
         px-2.5
-        py-2
+        py-2.5
         transition-all
         duration-200
         cursor-pointer
@@ -136,7 +136,12 @@ function ProfileSidebar({ user }) {
                         className="
                             cursor-pointer
                             rounded-lg
-                            p-1
+                            p-2.5
+                            min-h-10
+                            min-w-10
+                            flex
+                            items-center
+                            justify-center
                             text-muted
                             hover:bg-card-hover
                             hover:text-foreground
@@ -197,9 +202,9 @@ function ProfileSidebar({ user }) {
                 <div className="mt-5 w-full">
                     <p
                         className={`
-                            text-subtle
+                            text-muted
                             font-semibold
-                            text-xs
+                            text-sm
                             uppercase
                             tracking-wider
                             mb-2

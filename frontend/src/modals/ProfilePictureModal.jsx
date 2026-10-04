@@ -182,32 +182,32 @@ function ProfilePictureModal({
 
             close: `
                 text-foreground
-                hover:bg-chip
+                hover:bg-surface-hover
             `,
 
             preview: `
                 border-border-soft
-                bg-chip
+                bg-surface
             `,
 
             choose: `
                 border-border-soft
-                bg-chip
+                bg-surface
                 text-foreground
-                hover:bg-foreground/5
+                hover:bg-surface-hover
             `,
 
             cancel: `
                 border-border-soft
                 bg-card
                 text-foreground
-                hover:bg-chip
+                hover:bg-surface-hover
             `,
 
             upload: `
-                bg-primary
+                bg-accent
                 text-inverse
-                hover:bg-primary-hover
+                hover:bg-accent-hover
             `,
         };
 
@@ -357,7 +357,7 @@ function ProfilePictureModal({
                 {/* Hint */}
                 <p
                     className={`
-                        text-xs
+                        text-sm
                         text-center
                         mt-3
                         ${theme.muted}
@@ -372,7 +372,7 @@ function ProfilePictureModal({
                     <p
                         className="
                             text-sm
-                            text-minimal-red
+                            text-danger
                             font-semibold
                             text-center
                             mt-3

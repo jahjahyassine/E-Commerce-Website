@@ -467,15 +467,29 @@ function ProfileCart() {
                                 mt-10
                                 flex-1
                                 flex
+                                flex-col
                                 items-center
                                 justify-center
+                                gap-3
                                 rounded-3xl
                                 bg-surface
+                                px-6
+                                py-16
                             "
                         >
-                            <p className="text-muted">
-                                Your cart is empty.
+                            <p className="text-lg font-semibold text-foreground">
+                                Your cart is empty
                             </p>
+                            <p className="text-sm text-muted text-center">
+                                Browse the store and add items to get started.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => navigate("/products")}
+                                className="mt-2 bg-accent text-inverse px-5 py-2.5 rounded-lg font-semibold hover:bg-accent-hover duration-300"
+                            >
+                                Continue Shopping
+                            </button>
                         </section>
                     ) : (
                         <section

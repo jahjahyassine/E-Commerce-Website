@@ -231,39 +231,160 @@ function CartPage() {
             </div>
 
             {/* Main Content */}
-            <section className="relative z-10 pt-20 px-6 flex flex-col w-[80vw] mx-auto gap-10">
+            <section className="relative z-10 pt-20 px-4 sm:px-6 flex flex-col w-full max-w-6xl mx-auto gap-10">
                 {/* Header */}
                 <section className="w-full flex flex-col items-center">
-                    <h2 className="text-4xl font-bold tracking-wider mb-5">
+                    <h2
+                        className="
+            text-3xl
+            sm:text-4xl
+            font-bold
+            tracking-wider
+            mb-6
+            text-center
+            text-foreground
+        "
+                    >
                         Your Shopping Cart
                     </h2>
 
-                    <div className="flex gap-15 mb-10">
-                        <div className="flex items-center gap-2 border-b border-foreground pb-4 md:w-[25vw] lg:w-[15vw] cursor-pointer">
-                            <p className="bg-background-dark text-inverse px-4 rounded-xl py-1">
+                    <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-10">
+                        {/* STEP 1 — ACTIVE */}
+                        <div
+                            className="
+                group
+                flex
+                items-center
+                gap-2
+                min-w-[140px]
+                sm:min-w-[180px]
+                pb-4
+                border-b-2
+                border-accent
+                cursor-pointer
+                text-foreground
+                transition-all
+                duration-300
+            "
+                        >
+                            <p
+                                className="
+                    flex
+                    h-7
+                    min-w-7
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-accent
+                    px-2
+                    text-sm
+                    font-bold
+                    text-inverse
+                    shadow-[0_0_12px_rgba(79,179,191,0.25)]
+                "
+                            >
                                 1
                             </p>
-                            Shopping Cart
+
+                            <span className="font-semibold">
+                                Shopping Cart
+                            </span>
                         </div>
 
-                        <div className="flex items-center gap-2 border-b border-foreground pb-4 md:w-[25vw] lg:w-[15vw] opacity-40 cursor-pointer">
-                            <p className="bg-background-dark text-inverse px-4 rounded-xl py-1">
+                        {/* STEP 2 */}
+                        <div
+                            className="
+                flex
+                items-center
+                gap-2
+                min-w-[140px]
+                sm:min-w-[180px]
+                pb-4
+                border-b
+                border-border
+                cursor-pointer
+                text-muted
+                transition-all
+                duration-300
+                hover:text-foreground
+                hover:border-accent/40
+            "
+                        >
+                            <p
+                                className="
+                    flex
+                    h-7
+                    min-w-7
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    border-border
+                    bg-surface
+                    px-2
+                    text-sm
+                    font-semibold
+                    text-muted
+                    transition-colors
+                    duration-300
+                "
+                            >
                                 2
                             </p>
-                            Checkout details
+
+                            <span className="font-medium">
+                                Checkout Details
+                            </span>
                         </div>
 
-                        <div className="flex items-center gap-2 border-b border-foreground pb-4 md:w-[25vw] lg:w-[15vw] opacity-40 cursor-pointer">
-                            <p className="bg-background-dark text-inverse px-4 rounded-xl py-1">
+                        {/* STEP 3 */}
+                        <div
+                            className="
+                flex
+                items-center
+                gap-2
+                min-w-[140px]
+                sm:min-w-[180px]
+                pb-4
+                border-b
+                border-border
+                cursor-pointer
+                text-muted
+                transition-all
+                duration-300
+                hover:text-foreground
+                hover:border-accent/40
+            "
+                        >
+                            <p
+                                className="
+                    flex
+                    h-7
+                    min-w-7
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    border-border
+                    bg-surface
+                    px-2
+                    text-sm
+                    font-semibold
+                    text-muted
+                "
+                            >
                                 3
                             </p>
-                            Order complete
+
+                            <span className="font-medium">
+                                Order Complete
+                            </span>
                         </div>
                     </div>
                 </section>
 
                 {/* Cart + Summary */}
-                <section className="flex gap-5 w-full items-start">
+                <section className="flex flex-col lg:flex-row gap-5 w-full items-start">
                     {/* Cart Section */}
                     <section className="flex-1 min-w-0 flex flex-col gap-2">
                         {/* Select All */}
@@ -286,7 +407,7 @@ function CartPage() {
                                 </label>
 
                                 <button
-                                    className="bg-danger-solid text-inverse px-5 py-2 rounded-lg ml-auto hover:bg-danger-solid-hover cursor-pointer duration-300 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="bg-danger-solid text-inverse px-5 py-2 rounded-lg ml-auto hover:bg-danger cursor-pointer duration-300 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed"
                                     disabled={
                                         !hasSelectedItems ||
                                         isClearingCart
@@ -341,7 +462,7 @@ function CartPage() {
                                     const discount =
                                         Number(
                                             variant.discount_percentage ??
-                                                0
+                                            0
                                         );
 
                                     const discountedPrice =
@@ -356,11 +477,10 @@ function CartPage() {
                                     return (
                                         <div
                                             key={variantId}
-                                            className={`w-full min-h-[150px] shrink-0 flex rounded-2xl overflow-hidden p-4 gap-4 ${
-                                                isSelected
+                                            className={`w-full min-h-[150px] shrink-0 flex rounded-2xl overflow-hidden p-4 gap-4 ${isSelected
                                                     ? "bg-card-dark"
                                                     : "bg-card"
-                                            }`}
+                                                }`}
                                         >
                                             {/* Checkbox */}
                                             <div className="flex items-center">
@@ -409,7 +529,7 @@ function CartPage() {
                                                 <div>
                                                     {Object.entries(
                                                         variant.attributes ||
-                                                            {}
+                                                        {}
                                                     ).map(
                                                         ([
                                                             key,
@@ -457,11 +577,10 @@ function CartPage() {
                                                             variantId
                                                         )
                                                     }
-                                                    aria-label={`Remove ${
-                                                        variant.product
+                                                    aria-label={`Remove ${variant.product
                                                             ?.name ||
                                                         "item"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
@@ -478,16 +597,16 @@ function CartPage() {
                                                     {discount > 0 && (
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-sm text-muted line-through">
-                                                                $
                                                                 {(
                                                                     originalPrice *
                                                                     cartItem.quantity
                                                                 ).toFixed(
                                                                     2
-                                                                )}
+                                                                )}{" "}
+                                                                DH
                                                             </span>
 
-                                                            <span className="text-xs font-bold text-danger">
+                                                            <span className="text-sm font-bold text-danger">
                                                                 -
                                                                 {
                                                                     discount
@@ -497,11 +616,11 @@ function CartPage() {
                                                         </div>
                                                     )}
 
-                                                    <p className="text-highlight font-bold text-xl">
-                                                        $
+                                                    <p className="text-success font-bold text-xl">
                                                         {itemTotal.toFixed(
                                                             2
-                                                        )}
+                                                        )}{" "}
+                                                        DH
                                                     </p>
                                                 </div>
                                             </div>
@@ -513,7 +632,7 @@ function CartPage() {
                     </section>
 
                     {/* Summary */}
-                    <section className="w-[320px] lg:w-[360px] shrink-0 bg-card-dark p-2 h-fit rounded-3xl">
+                    <section className="w-full lg:w-80 xl:w-[360px] shrink-0 bg-card-dark p-2 h-fit rounded-3xl">
                         <div className="bg-card p-4 flex gap-7 flex-col rounded-2xl">
                             <h3 className="text-xl font-bold">
                                 Cart Summary
@@ -526,10 +645,10 @@ function CartPage() {
                                     </p>
 
                                     <p className="font-bold">
-                                        ${" "}
                                         {subtotalAmount.toFixed(
                                             2
-                                        )}
+                                        )}{" "}
+                                        DH
                                     </p>
                                 </div>
 
@@ -539,10 +658,10 @@ function CartPage() {
                                     </p>
 
                                     <p className="font-bold">
-                                        ${" "}
                                         {deliveryFee.toFixed(
                                             2
-                                        )}
+                                        )}{" "}
+                                        DH
                                     </p>
                                 </div>
                             </div>
@@ -558,7 +677,7 @@ function CartPage() {
                             </div>
 
                             <button
-                                className="flex bg-accent text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-accent-hover duration-300 ease-in-out cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="flex bg-accent text-inverse py-3 px-4 justify-center rounded-lg items-center gap-2 text-base font-bold hover:bg-accent-hover duration-300 ease-in-out cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                 disabled={!hasItems}
                                 onClick={() => {
                                     if (!hasItems) return;

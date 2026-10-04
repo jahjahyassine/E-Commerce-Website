@@ -465,39 +465,150 @@ function CheckoutPage() {
                 />
             </div>
 
-            <section className="relative z-10 pt-20 px-6 flex flex-col w-[70vw] mx-auto max-h-screen gap-10">
+            <section className="relative z-10 pt-20 px-4 sm:px-6 flex flex-col w-full max-w-6xl mx-auto gap-10 pb-10">
                 <section className="w-full flex flex-col items-center">
-                    <h2 className="text-4xl font-bold tracking-wider mb-5">
-                        Checkout Details
-                    </h2>
+    <h2
+        className="
+            text-3xl
+            sm:text-4xl
+            font-bold
+            tracking-wider
+            mb-6
+            text-center
+            text-foreground
+        "
+    >
+        Checkout Details
+    </h2>
 
-                    <div className="flex gap-15 mb-10">
-                        <div className="flex items-center gap-2 border-b border-foreground pb-4 md:w-[25vw] lg:w-[15vw] cursor-pointer opacity-40">
-                            <p className="bg-background-dark text-inverse px-4 rounded-xl py-1">
-                                1
-                            </p>
-                            Shopping Cart
-                        </div>
+    <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-10">
+        {/* STEP 1 — COMPLETED */}
+        <div
+            className="
+                flex
+                items-center
+                gap-2
+                min-w-[140px]
+                sm:min-w-[180px]
+                pb-4
+                border-b
+                border-accent/40
+                cursor-pointer
+                text-muted
+                transition-all
+                duration-300
+                hover:text-foreground
+            "
+        >
+            <p
+                className="
+                    flex
+                    h-7
+                    min-w-7
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    border-accent
+                    bg-accent/10
+                    px-2
+                    text-sm
+                    font-bold
+                    text-accent
+                "
+            >
+                ✓
+            </p>
 
-                        <div className="flex items-center gap-2 border-b border-foreground pb-4 md:w-[25vw] lg:w-[15vw] cursor-pointer">
-                            <p className="bg-background-dark text-inverse px-4 rounded-xl py-1">
-                                2
-                            </p>
-                            Checkout details
-                        </div>
+            <span className="font-medium">
+                Shopping Cart
+            </span>
+        </div>
 
-                        <div className="flex items-center gap-2 border-b border-foreground pb-4 md:w-[25vw] lg:w-[15vw] opacity-40 cursor-pointer">
-                            <p className="bg-background-dark text-inverse px-4 rounded-xl py-1">
-                                3
-                            </p>
-                            Order complete
-                        </div>
-                    </div>
-                </section>
+        {/* STEP 2 — ACTIVE */}
+        <div
+            className="
+                flex
+                items-center
+                gap-2
+                min-w-[140px]
+                sm:min-w-[180px]
+                pb-4
+                border-b-2
+                border-accent
+                cursor-pointer
+                text-foreground
+            "
+        >
+            <p
+                className="
+                    flex
+                    h-8
+                    min-w-8
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-accent
+                    px-2
+                    text-sm
+                    font-bold
+                    text-inverse
+                    shadow-[0_0_16px_rgba(79,179,191,0.35)]
+                "
+            >
+                2
+            </p>
 
-                <section className="flex gap-5">
+            <span className="font-bold text-accent">
+                Checkout Details
+            </span>
+        </div>
+
+        {/* STEP 3 — UPCOMING */}
+        <div
+            className="
+                flex
+                items-center
+                gap-2
+                min-w-[140px]
+                sm:min-w-[180px]
+                pb-4
+                border-b
+                border-border
+                cursor-pointer
+                text-muted
+            "
+        >
+            <p
+                className="
+                    flex
+                    h-7
+                    min-w-7
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    border-border
+                    bg-surface
+                    px-2
+                    text-sm
+                    font-semibold
+                    text-muted
+                "
+            >
+                3
+            </p>
+
+            <span className="font-medium">
+                Order Complete
+            </span>
+        </div>
+    </div>
+</section>
+
+                <section className="flex flex-col lg:flex-row gap-5">
                     <section className="h-full flex flex-col gap-2 flex-1 bg-card-dark rounded-3xl p-3">
-                        <section className="m-auto border-b border-border w-1/2">
+                        <section className="m-auto border-b border-border w-full max-w-md">
                             <h3 className="text-xl text-center font-bold tracking-wide pb-2">
                                 Delivery Information
                             </h3>
@@ -530,7 +641,7 @@ function CheckoutPage() {
                                                     e.target.value
                                                 )
                                             }
-                                            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                            className="border border-border-soft rounded-xl bg-card text-base text-foreground font-semibold px-4 py-3 hover:border-border focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all duration-300 ease-in-out placeholder:text-subtle disabled:opacity-60 disabled:cursor-not-allowed"
                                         />
                                     </div>
 
@@ -554,7 +665,7 @@ function CheckoutPage() {
                                                     e.target.value
                                                 )
                                             }
-                                            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                            className="border border-border-soft rounded-xl bg-card text-base text-foreground font-semibold px-4 py-3 hover:border-border focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all duration-300 ease-in-out placeholder:text-subtle disabled:opacity-60 disabled:cursor-not-allowed"
                                         />
                                     </div>
                                 </div>
@@ -580,7 +691,7 @@ function CheckoutPage() {
                                                 e.target.value
                                             )
                                         }
-                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                        className="border border-border-soft rounded-xl bg-card text-base text-foreground font-semibold px-4 py-3 hover:border-border focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all duration-300 ease-in-out placeholder:text-subtle disabled:opacity-60 disabled:cursor-not-allowed"
                                     />
 
                                     <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
@@ -629,7 +740,7 @@ function CheckoutPage() {
                                                     e.target.value
                                                 )
                                             }
-                                            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                            className="border border-border-soft rounded-xl bg-card text-base text-foreground font-semibold px-4 py-3 hover:border-border focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all duration-300 ease-in-out placeholder:text-subtle disabled:opacity-60 disabled:cursor-not-allowed"
                                         />
 
                                         <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
@@ -677,7 +788,7 @@ function CheckoutPage() {
                                                     e.target.value
                                                 )
                                             }
-                                            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                            className="border border-border-soft rounded-xl bg-card text-base text-foreground font-semibold px-4 py-3 hover:border-border focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all duration-300 ease-in-out placeholder:text-subtle disabled:opacity-60 disabled:cursor-not-allowed"
                                         />
 
                                         <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
@@ -725,7 +836,7 @@ function CheckoutPage() {
                                                     e.target.value
                                                 )
                                             }
-                                            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                            className="border border-border-soft rounded-xl bg-card text-base text-foreground font-semibold px-4 py-3 hover:border-border focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all duration-300 ease-in-out placeholder:text-subtle disabled:opacity-60 disabled:cursor-not-allowed"
                                         />
 
                                         <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
@@ -787,7 +898,7 @@ function CheckoutPage() {
                                             </div>
                                         </div>
 
-                                        <span className="text-xs font-semibold text-muted bg-card-dark px-2 py-1 rounded-lg">
+                                        <span className="text-sm font-semibold text-foreground bg-surface px-2.5 py-1 rounded-lg">
                                             COD
                                         </span>
                                     </div>
@@ -831,7 +942,7 @@ function CheckoutPage() {
                     </section>
 
                     {/* Order Summary */}
-                    <section className="bg-card-dark p-2 h-fit w-[20vw] rounded-3xl">
+                    <section className="bg-card-dark p-2 h-fit w-full lg:w-80 xl:w-[360px] shrink-0 rounded-3xl">
                         <div className="bg-card p-4 flex gap-7 flex-col rounded-2xl">
                             <h3 className="text-xl font-bold">
                                 Order Summary
@@ -903,7 +1014,7 @@ function CheckoutPage() {
                             )}
 
                             <button
-                                className="flex bg-accent text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-accent-hover duration-300 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex bg-accent text-inverse py-3 px-4 justify-center rounded-lg items-center gap-2 text-base font-bold hover:bg-accent-hover duration-300 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled={
                                     !infoSet ||
                                     isPlacingOrder ||

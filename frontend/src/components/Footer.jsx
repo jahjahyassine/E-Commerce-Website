@@ -177,7 +177,7 @@ function Footer() {
                                 />
 
                                 <div>
-                                    <p className="text-xs text-subtle mb-0.5">
+                                    <p className="text-sm text-muted mb-0.5">
                                         Phone
                                     </p>
 
@@ -198,7 +198,7 @@ function Footer() {
                                 />
 
                                 <div>
-                                    <p className="text-xs text-subtle mb-0.5">
+                                    <p className="text-sm text-muted mb-0.5">
                                         Email
                                     </p>
 
@@ -216,7 +216,7 @@ function Footer() {
                                 />
 
                                 <div>
-                                    <p className="text-xs text-subtle mb-0.5">
+                                    <p className="text-sm text-muted mb-0.5">
                                         Address
                                     </p>
 
@@ -228,7 +228,7 @@ function Footer() {
 
                             {/* Social */}
                             <div className="pt-2">
-                                <p className="text-xs text-subtle mb-3">
+                                <p className="text-sm text-muted mb-3">
                                     Follow us
                                 </p>
 

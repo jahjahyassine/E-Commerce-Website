@@ -259,7 +259,7 @@ function OrdersHistory() {
 
                                                 <p>
                                                     {order.created_at && (
-                                                        <span className="text-xs text-muted">
+                                                        <span className="text-sm text-muted">
                                                             {new Date(
                                                                 order.created_at
                                                             ).toLocaleDateString()}
@@ -273,7 +273,7 @@ function OrdersHistory() {
                                                 <p
                                                     className={`
                                                         px-3
-                                                        py-1
+                                                        py-1.5
                                                         rounded-full
                                                         text-sm
                                                         font-semibold
@@ -295,7 +295,7 @@ function OrdersHistory() {
                                                     type="button"
                                                     className="
                                                         px-3
-                                                        py-1
+                                                        py-1.5
                                                         rounded-full
                                                         cursor-pointer
                                                         text-sm
@@ -412,7 +412,7 @@ function OrdersHistory() {
 
                                                     {/* Product Information */}
                                                     <div className="flex flex-col min-w-0">
-                                                        <h3 className="text-sm font-bold truncate text-foreground">
+                                                        <h3 className="text-base font-bold truncate text-foreground">
                                                             {
                                                                 item.product_name
                                                             }
@@ -420,11 +420,11 @@ function OrdersHistory() {
 
                                                         {variant?.sku && (
                                                             <div className="flex items-center gap-1">
-                                                                <p className="text-xs text-muted font-semibold">
+                                                                <p className="text-sm text-muted font-semibold">
                                                                     SKU:
                                                                 </p>
 
-                                                                <p className="text-xs font-semibold text-foreground">
+                                                                <p className="text-sm font-semibold text-foreground">
                                                                     {
                                                                         variant.sku
                                                                     }
@@ -447,7 +447,7 @@ function OrdersHistory() {
                                                                             key
                                                                         }
                                                                         className="
-                                                                            text-xs
+                                                                            text-sm
                                                                             flex
                                                                             gap-1
                                                                             items-center
@@ -473,7 +473,7 @@ function OrdersHistory() {
                                                         {/* Quantity */}
                                                         <div
                                                             className="
-                                                                text-xs
+                                                                text-sm
                                                                 text-muted
                                                                 font-semibold
                                                                 mt-1
@@ -496,7 +496,7 @@ function OrdersHistory() {
                                                     {/* Item Total */}
                                                     <div className="ml-auto shrink-0 flex flex-col items-end gap-0.5">
                                                         {hasDiscount && (
-                                                            <p className="text-xs text-muted line-through">
+                                                            <p className="text-sm text-muted line-through">
                                                                 {(
                                                                     originalItemPrice *
                                                                     item.quantity

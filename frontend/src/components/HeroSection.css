@@ -141,7 +141,7 @@
 
     margin-bottom: 28px;
 
-    font-size: 11px;
+    font-size: 0.75rem;
     font-weight: 600;
 
     text-transform: uppercase;
@@ -194,7 +194,7 @@
 }
 
 .hero-title-accent {
-    color: var(--color-muted);
+    color: var(--color-accent);
 }
 
 
@@ -247,7 +247,7 @@
 
     color: var(--color-inverse);
 
-    font-size: 13px;
+    font-size: 0.9375rem;
     font-weight: 600;
 
     box-shadow:
@@ -276,7 +276,7 @@
 
     color: var(--color-muted);
 
-    font-size: 13px;
+    font-size: 0.875rem;
     font-weight: 500;
 
     transition:
@@ -333,16 +333,16 @@
 }
 
 .hero-value strong {
-    font-size: 11px;
+    font-size: 0.75rem;
     font-weight: 600;
 
     color: var(--color-foreground);
 }
 
 .hero-value span:not(.hero-value-line) {
-    font-size: 10px;
+    font-size: 0.75rem;
 
-    color: var(--color-subtle);
+    color: var(--color-muted);
 }
 
 
@@ -360,7 +360,7 @@
 
     color: var(--color-muted);
 
-    font-size: 11px;
+    font-size: 0.8125rem;
     letter-spacing: 0.02em;
 }
 

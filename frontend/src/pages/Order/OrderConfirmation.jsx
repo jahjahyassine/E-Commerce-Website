@@ -107,7 +107,7 @@ const OrderConfirmation = () => {
         {/* Progress */}
         <div className="flex items-center justify-center gap-4 mb-12">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-inverse">
+            <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-inverse text-sm font-semibold">
               <Check size={16} />
             </div>
 
@@ -119,7 +119,7 @@ const OrderConfirmation = () => {
           <div className="w-12 h-px bg-border-soft" />
 
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-inverse">
+            <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-inverse text-sm font-semibold">
               <Check size={16} />
             </div>
 
@@ -131,7 +131,7 @@ const OrderConfirmation = () => {
           <div className="w-12 h-px bg-border-soft" />
 
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-background-dark flex items-center justify-center text-foreground">
+            <div className="w-10 h-10 rounded-full bg-background-dark flex items-center justify-center text-foreground text-sm font-semibold">
               3
             </div>
 

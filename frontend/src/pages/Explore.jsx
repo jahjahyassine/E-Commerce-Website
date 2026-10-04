@@ -14,7 +14,7 @@ import Footer from "../components/Footer";
 
 // Inputs, selects, promotion toggle
 const FIELD_SHAPE =
-    "rounded-xl border px-3 py-2 text-sm outline-none transition-colors";
+    "rounded-xl border px-3 py-2.5 text-base outline-none transition-colors";
 const FIELD_IDLE =
     "border-border bg-surface/80 text-foreground placeholder:text-subtle hover:border-accent/40 focus:border-accent";
 const FIELD = `${FIELD_SHAPE} ${FIELD_IDLE}`;
@@ -748,7 +748,7 @@ function Explore() {
                     {/* Result count */}
 
                     {!productsLoading && !productsError && (
-                        <p className="mb-5 text-sm text-subtle">
+                        <p className="mb-5 text-sm text-muted">
                             {total}{" "}
                             {total === 1 ? "product" : "products"}
                             {totalPages > 1 &&

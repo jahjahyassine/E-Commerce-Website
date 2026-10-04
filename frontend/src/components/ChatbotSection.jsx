@@ -20,14 +20,14 @@ function hatbotSection() {
 
             <div className="mb-8 flex gap-5">
                 <div className="lg:flex lg:gap-5">
-                    <div className="flex gap-2 mt-5 text-muted hover:text-foreground duration-300 ease-in-out font-playfair tracking-wide text-2xl cursor-pointer items-center">
+                    <div className="flex gap-2 mt-5 text-muted font-sans tracking-wide text-lg sm:text-xl items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-8">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                         </svg>
                         <p>Tailored to your exact workflow</p>
                     </div>
 
-                    <div className="flex gap-2 mt-5 text-muted hover:text-foreground duration-300 ease-in-out font-playfair tracking-wide text-2xl cursor-pointer items-center">
+                    <div className="flex gap-2 mt-5 text-muted font-sans tracking-wide text-lg sm:text-xl items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-8">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                         </svg>
@@ -36,14 +36,14 @@ function hatbotSection() {
                 </div>
 
                 <div className="lg:flex lg:gap-5">
-                    <div className="flex gap-2 mt-5 text-muted hover:text-foreground duration-300 ease-in-out font-playfair tracking-wide text-2xl cursor-pointer items-center">
+                    <div className="flex gap-2 mt-5 text-muted font-sans tracking-wide text-lg sm:text-xl items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-8">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                         </svg>
                         <p>Clear technical breakdowns</p>
                     </div>
 
-                    <div className="flex gap-2 mt-5 text-muted hover:text-foreground duration-300 ease-in-out font-playfair tracking-wide text-2xl cursor-pointer items-center">
+                    <div className="flex gap-2 mt-5 text-muted font-sans tracking-wide text-lg sm:text-xl items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-8">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                         </svg>
@@ -52,9 +52,12 @@ function hatbotSection() {
                 </div>
             </div>
 
-            <div className="bg-primary-hover text-inverse text-xl font-bold px-10 py-2 rounded-full shadow-elevated hover:scale-[1.02] duration-300 linear cursor-pointer">
+            <button
+                type="button"
+                className="bg-accent text-inverse text-xl font-bold px-10 py-3 rounded-full shadow-elevated hover:bg-accent-hover hover:scale-[1.02] duration-300 cursor-pointer"
+            >
                 Consult Your AI
-            </div>
+            </button>
 
             <div className="flex mt-10 gap-8">
                 <div className="lg:w-[25vw] md:w-[30vw] border border-border-soft rounded-2xl overflow-hidden shadow-elevated hover:scale-[1.02] duration-300 linear">

@@ -33,8 +33,7 @@
 }
 
 .depth-carousel:focus-visible {
-    outline: 2px solid
-        rgba(103, 111, 157, 0.35);
+    outline: 2px solid var(--color-accent);
 
     outline-offset: 4px;
 
@@ -180,9 +179,9 @@
 
     background: var(--color-accent);
 
-    color: white;
+    color: var(--color-inverse);
 
-    font-size: 11px;
+    font-size: 0.75rem;
 
     font-weight: 800;
 
@@ -207,24 +206,18 @@
 
     border-radius: 999px;
 
-    background: rgba(
-        255,
-        255,
-        255,
-        0.82
-    );
+    background: color-mix(in srgb, var(--color-card) 88%, transparent);
 
     color: var(--color-foreground);
 
-    font-size: 10px;
+    font-size: 0.75rem;
 
     font-weight: 700;
 
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 
-    border: 1px solid
-        rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--color-border-soft);
 }
 
 /* ---------------------------------------------------------
@@ -252,7 +245,7 @@
 
     color: var(--color-muted);
 
-    font-size: 10px;
+    font-size: 0.75rem;
 
     font-weight: 800;
 
@@ -370,17 +363,11 @@
     display: grid;
     place-items: center;
 
-    border: 1px solid
-        rgba(111, 167, 163, 0.18);
+    border: 1px solid var(--color-border);
 
     border-radius: 999px;
 
-    background: rgba(
-        255,
-        255,
-        255,
-        0.82
-    );
+    background: color-mix(in srgb, var(--color-card) 90%, transparent);
 
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -401,10 +388,9 @@
 }
 
 .depth-carousel__arrow:hover {
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--color-card-hover);
 
-    border-color:
-        rgba(111, 167, 163, 0.35);
+    border-color: var(--color-accent);
 
     box-shadow:
         0 10px 30px
@@ -450,15 +436,9 @@
 
     border-radius: 999px;
 
-    background: rgba(
-        255,
-        255,
-        255,
-        0.78
-    );
+    background: color-mix(in srgb, var(--color-card) 88%, transparent);
 
-    border: 1px solid
-        rgba(86, 124, 141, 0.12);
+    border: 1px solid var(--color-border-soft);
 
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);

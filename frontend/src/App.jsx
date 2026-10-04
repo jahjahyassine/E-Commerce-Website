@@ -23,9 +23,11 @@ import SequenceDiagram from './pages/SequenceDiagram';
 import ArchitectureDiagram from './pages/ArchitectureDiagram';
 import AdminRoute from './admin/AdminRoute';
 import Chatbot from './pages/Chatbot';
+import ChatbotButton from './components/chat/ChatbotButton';
 
 function App() {
   return (
+    <>
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/products" element={<Explore />} />
@@ -63,6 +65,9 @@ function App() {
 
 
     </Routes>
+
+    <ChatbotButton />
+    </>
   )
 }
 

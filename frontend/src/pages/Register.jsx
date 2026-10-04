@@ -199,6 +199,7 @@ function Register() {
                             <input
                                 type="text"
                                 className="w-full rounded-2xl border border-border bg-surface/80 px-5 py-3.5 text-base font-medium text-foreground shadow-inner outline-none backdrop-blur-xl placeholder:text-subtle transition-colors hover:border-accent/40 focus:border-accent focus:ring-2 focus:ring-accent/30"
+                                aria-label="First name"
                                 placeholder="First name"
                                 value={firstName}
                                 onChange={(e) =>
@@ -213,6 +214,7 @@ function Register() {
                             <input
                                 type="text"
                                 className="w-full rounded-2xl border border-border bg-surface/80 px-5 py-3.5 text-base font-medium text-foreground shadow-inner outline-none backdrop-blur-xl placeholder:text-subtle transition-colors hover:border-accent/40 focus:border-accent focus:ring-2 focus:ring-accent/30"
+                                aria-label="Last name"
                                 placeholder="Last name"
                                 value={lastName}
                                 onChange={(e) =>
@@ -229,6 +231,7 @@ function Register() {
                         <input
                             type="text"
                             className="w-full rounded-2xl border border-border bg-surface/80 px-5 py-3.5 text-base font-medium text-foreground shadow-inner outline-none backdrop-blur-xl placeholder:text-subtle transition-colors hover:border-accent/40 focus:border-accent focus:ring-2 focus:ring-accent/30"
+                            aria-label="Username"
                             placeholder="Username"
                             value={username}
                             onChange={(e) =>
@@ -244,6 +247,7 @@ function Register() {
                         <input
                             type="email"
                             className="w-full rounded-2xl border border-border bg-surface/80 px-5 py-3.5 text-base font-medium text-foreground shadow-inner outline-none backdrop-blur-xl placeholder:text-subtle transition-colors hover:border-accent/40 focus:border-accent focus:ring-2 focus:ring-accent/30"
+                            aria-label="Email address"
                             placeholder="Email address"
                             value={email}
                             onChange={(e) =>
@@ -258,6 +262,7 @@ function Register() {
                         <input
                             type="password"
                             className="w-full rounded-2xl border border-border bg-surface/80 px-5 py-3.5 text-base font-medium text-foreground shadow-inner outline-none backdrop-blur-xl placeholder:text-subtle transition-colors hover:border-accent/40 focus:border-accent focus:ring-2 focus:ring-accent/30"
+                            aria-label="Password"
                             placeholder="Password"
                             value={password}
                             onChange={(e) =>
@@ -273,6 +278,7 @@ function Register() {
                         <input
                             type="password"
                             className="w-full rounded-2xl border border-border bg-surface/80 px-5 py-3.5 text-base font-medium text-foreground shadow-inner outline-none backdrop-blur-xl placeholder:text-subtle transition-colors hover:border-accent/40 focus:border-accent focus:ring-2 focus:ring-accent/30"
+                            aria-label="Confirm password"
                             placeholder="Confirm password"
                             value={confirmPassword}
                             onChange={(e) =>
@@ -288,6 +294,7 @@ function Register() {
                         <div className="flex w-full items-start gap-3 pt-1 text-sm leading-5 text-muted">
                             <input
                                 type="checkbox"
+                                id="accept-terms"
                                 checked={checked}
                                 onChange={(e) =>
                                     setChecked(e.target.checked)
@@ -296,7 +303,7 @@ function Register() {
                                 required
                             />
 
-                            <label className="cursor-pointer">
+                            <label htmlFor="accept-terms" className="cursor-pointer">
                                 I agree to the Terms of Service and
                                 Privacy Policy
                             </label>

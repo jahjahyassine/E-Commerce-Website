@@ -396,7 +396,7 @@ function FeaturedCategories() {
                     justify-between
                     gap-8
                     border-t
-                    border-black/10
+                    border-border-soft
                     pt-10
                 "
                 >

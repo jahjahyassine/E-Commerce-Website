@@ -151,6 +151,8 @@ function Login() {
                     >
                         <input
                             type="text"
+                            id="login-identifier"
+                            aria-label="Username or email address"
                             className="w-full rounded-2xl border border-border bg-surface/80 px-5 py-3.5 text-base font-medium text-foreground shadow-inner outline-none backdrop-blur-xl placeholder:text-subtle transition-colors hover:border-accent/40 focus:border-accent focus:ring-2 focus:ring-accent/30"
                             placeholder="Username or email address"
                             value={identifier}
@@ -165,6 +167,8 @@ function Login() {
 
                         <input
                             type="password"
+                            id="login-password"
+                            aria-label="Password"
                             className="w-full rounded-2xl border border-border bg-surface/80 px-5 py-3.5 text-base font-medium text-foreground shadow-inner outline-none backdrop-blur-xl placeholder:text-subtle transition-colors hover:border-accent/40 focus:border-accent focus:ring-2 focus:ring-accent/30"
                             placeholder="Password"
                             value={password}
@@ -180,6 +184,7 @@ function Login() {
                         <div className="flex w-full items-center justify-end gap-2 pt-1 text-sm text-muted">
                             <input
                                 type="checkbox"
+                                id="remember-me"
                                 checked={rememberOption}
                                 onChange={(e) =>
                                     setRememberOption(
@@ -189,7 +194,7 @@ function Login() {
                                 className="mt-0.5 h-4 w-4 accent-accent"
                             />
 
-                            <label className="cursor-pointer">
+                            <label htmlFor="remember-me" className="cursor-pointer">
                                 Remember me
                             </label>
                         </div>

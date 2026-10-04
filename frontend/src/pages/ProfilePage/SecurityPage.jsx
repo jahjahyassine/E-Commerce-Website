@@ -395,7 +395,7 @@ function SecurityPage() {
                                         "
                                     />
 
-                                    <p className="text-xs text-muted">
+                                    <p className="text-sm text-muted">
                                         Minimum 8 characters
                                     </p>
                                 </div>

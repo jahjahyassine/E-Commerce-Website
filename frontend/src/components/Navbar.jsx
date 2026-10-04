@@ -176,6 +176,7 @@ function Navbar() {
                         lg:flex
                         items-center
                         gap-8
+                        text-base
                         text-muted
                     "
                 >
@@ -491,7 +492,12 @@ function Navbar() {
                         className="
         relative
         bg-card
-        p-2
+        flex
+        items-center
+        justify-center
+        min-h-11
+        min-w-11
+        p-2.5
         rounded-full
         border
         border-border-soft
@@ -521,19 +527,19 @@ function Navbar() {
                             <span
                                 className="
                                     absolute
-                                    -top-2
-                                    -right-2
-                                    min-w-5
-                                    h-5
+                                    -top-1.5
+                                    -right-1.5
+                                    min-w-6
+                                    h-6
                                     px-1
                                     flex
                                     items-center
                                     justify-center
                                     rounded-full
-                                    bg-primary
-                                    text-white
-                                    text-[11px]
-                                    font-semibold
+                                    bg-accent
+                                    text-inverse
+                                    text-xs
+                                    font-bold
                                     leading-none
                                     border-2
                                     border-background

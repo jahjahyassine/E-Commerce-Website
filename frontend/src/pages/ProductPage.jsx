@@ -151,8 +151,8 @@ function ProductPage() {
             {
                 headers: token
                     ? {
-                          Authorization: `Bearer ${token}`,
-                      }
+                        Authorization: `Bearer ${token}`,
+                    }
                     : {},
             }
         );
@@ -365,10 +365,21 @@ function ProductPage() {
        PRODUCT DATA
     ========================================================= */
 
+    /*
+     * Media priority:
+     * 1. Selected variant media
+     * 2. Product media
+     * 3. First variant containing media
+     * 4. Empty
+     */
     const media =
         selectedVariant?.media?.length
             ? selectedVariant.media
-            : product?.media ?? [];
+            : product?.media?.length
+                ? product.media
+                : productVariantsData?.find(
+                    (variant) => variant.media?.length
+                )?.media ?? [];
 
     const isInStock =
         Number(
@@ -406,7 +417,7 @@ function ProductPage() {
     const discountedPrice =
         discountPercentage > 0
             ? originalPrice *
-              (1 - discountPercentage / 100)
+            (1 - discountPercentage / 100)
             : originalPrice;
 
     /* =========================================================
@@ -488,7 +499,7 @@ function ProductPage() {
         onError: (error) => {
             window.alert(
                 error?.message ||
-                    "Something went wrong while submitting your review."
+                "Something went wrong while submitting your review."
             );
         },
     });
@@ -563,7 +574,7 @@ function ProductPage() {
         onError: (error) => {
             window.alert(
                 error?.message ||
-                    "Failed to update review."
+                "Failed to update review."
             );
         },
     });
@@ -634,7 +645,7 @@ function ProductPage() {
         onError: (error) => {
             window.alert(
                 error?.message ||
-                    "Failed to delete review."
+                "Failed to delete review."
             );
         },
     });
@@ -699,6 +710,7 @@ function ProductPage() {
             <main className="min-h-screen w-full flex items-center justify-center bg-background">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-10 h-10 rounded-full border-2 border-border border-t-accent animate-spin" />
+
                     <p className="text-muted text-sm font-medium">
                         Loading product...
                     </p>
@@ -754,13 +766,17 @@ function ProductPage() {
 
     return (
         <main className="min-h-screen w-full bg-background font-sans">
-            {/* NAVBAR */}
+            {/* =====================================================
+                NAVBAR
+            ===================================================== */}
 
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
 
-            {/* BACKGROUND */}
+            {/* =====================================================
+                BACKGROUND
+            ===================================================== */}
 
             <div
                 className="
@@ -790,6 +806,7 @@ function ProductPage() {
             </div>
 
             <section className="relative z-10 w-full pt-24">
+
                 {/* =====================================================
                     PRODUCT HERO
                 ===================================================== */}
@@ -809,11 +826,14 @@ function ProductPage() {
                         items-start
                     "
                 >
-                    {/* PRODUCT MEDIA */}
+
+                    {/* =================================================
+                        PRODUCT MEDIA
+                    ================================================= */}
 
                     <div className="w-full min-w-0 lg:sticky lg:top-24">
                         <div
-                            className="
+                            className={`
                                 relative
                                 w-full
                                 aspect-square
@@ -821,28 +841,45 @@ function ProductPage() {
                                 flex
                                 snap-x
                                 snap-mandatory
-                                border
-                                border-border
-                                bg-surface-dark/70
                                 rounded-[2rem]
-                                backdrop-blur-xl
+                                border
                                 scrollbar-none
                                 scroll-smooth
                                 shadow-product
-                            "
+                                ${
+                                    media.length > 0
+                                        ? "bg-white border-black/10"
+                                        : "bg-surface-dark/70 border-border"
+                                }
+                            `}
                         >
                             {/* subtle inner frame */}
 
-                            <div className="absolute inset-3 rounded-[1.6rem] border border-border-soft pointer-events-none z-10" />
+                            <div
+                                className={`
+                                    absolute
+                                    inset-3
+                                    rounded-[1.6rem]
+                                    border
+                                    pointer-events-none
+                                    z-10
+                                    ${
+                                        media.length > 0
+                                            ? "border-black/5"
+                                            : "border-border-soft"
+                                    }
+                                `}
+                            />
 
                             {media.length > 0 ? (
                                 media.map(
-                                    (
-                                        image,
-                                        index
-                                    ) => (
+                                    (image, index) => (
                                         <div
-                                            key={index}
+                                            key={
+                                                image.id ??
+                                                image.media_url ??
+                                                index
+                                            }
                                             className="
                                                 relative
                                                 min-w-full
@@ -859,9 +896,7 @@ function ProductPage() {
                                                 src={
                                                     image.media_url
                                                 }
-                                                alt={`${product?.name} image ${
-                                                    index + 1
-                                                }`}
+                                                alt={`${product?.name} image ${index + 1}`}
                                                 className="
                                                     relative
                                                     z-0
@@ -869,32 +904,51 @@ function ProductPage() {
                                                     h-full
                                                     object-contain
                                                     select-none
-                                                    drop-shadow-[0_20px_35px_rgba(13,17,32,0.35)]
+                                                    mix-blend-multiply
                                                 "
                                             />
+
+                                            {/* IMAGE COUNTER */}
+
+                                            {media.length > 1 && (
+                                                <div
+                                                    className="
+                                                        absolute
+                                                        top-6
+                                                        left-6
+                                                        px-3
+                                                        py-1.5
+                                                        rounded-full
+                                                        bg-black/[0.04]
+                                                        border
+                                                        border-black/10
+                                                        text-xs
+                                                        text-black/60
+                                                        font-bold
+                                                        tracking-wide
+                                                        z-20
+                                                    "
+                                                >
+                                                    {index + 1} /{" "}
+                                                    {media.length}
+                                                </div>
+                                            )}
+
+                                            {/* CORAL ACCENT */}
 
                                             <div
                                                 className="
                                                     absolute
-                                                    top-6
-                                                    left-6
-                                                    px-3
-                                                    py-1.5
+                                                    bottom-6
+                                                    right-6
+                                                    w-2
+                                                    h-2
                                                     rounded-full
-                                                    bg-background/70
-                                                    border
-                                                    border-border-soft
-                                                    backdrop-blur-xl
-                                                    text-xs
-                                                    text-muted
-                                                    font-semibold
+                                                    bg-coral
+                                                    shadow-[0_0_14px_rgba(255,110,128,0.55)]
                                                     z-20
                                                 "
-                                            >
-                                                {index + 1}
-                                                {" / "}
-                                                {media.length}
-                                            </div>
+                                            />
                                         </div>
                                     )
                                 )
@@ -902,6 +956,7 @@ function ProductPage() {
                                 <div className="w-full h-full flex items-center justify-center">
                                     <div className="text-center">
                                         <Package className="w-10 h-10 mx-auto text-muted mb-3" />
+
                                         <p className="text-muted">
                                             No image available
                                         </p>
@@ -910,48 +965,57 @@ function ProductPage() {
                             )}
                         </div>
 
-                        {/* MEDIA META */}
-
                         <div className="flex items-center justify-between mt-4 px-1">
-                            <span className="text-xs text-subtle">
+                            <span className="text-xs font-medium text-subtle">
                                 Product preview
                             </span>
 
-                            <span className="text-xs text-subtle">
-                                Swipe to explore
-                            </span>
+                            {media.length > 1 && (
+                                <span className="text-xs font-medium text-subtle">
+                                    Swipe to explore
+                                </span>
+                            )}
                         </div>
                     </div>
 
-                    {/* PRODUCT INFORMATION */}
+                    {/* =================================================
+                        PRODUCT INFORMATION
+                    ================================================= */}
 
                     <div className="w-full min-w-0 flex flex-col">
+
                         {/* BRAND */}
 
                         <div className="flex items-center gap-3">
-    <span className="h-px w-8 bg-coral" />
+                            <span className="h-px w-10 bg-coral" />
 
-    <p className="text-coral font-semibold tracking-[0.2em] uppercase text-xs">
-        {product?.brand?.name}
-    </p>
-</div>
+                            <p className="text-coral font-bold tracking-[0.22em] uppercase text-xs">
+                                {product?.brand?.name}
+                            </p>
+
+                            <span className="w-1.5 h-1.5 rounded-full bg-coral/60" />
+                        </div>
 
                         {/* NAME */}
 
-                        <h1
-                            className="
-                                mt-3
-                                text-4xl
-                                md:text-5xl
-                                xl:text-6xl
-                                font-bold
-                                text-foreground
-                                leading-[1.02]
-                                tracking-tight
-                            "
-                        >
-                            {product?.name}
-                        </h1>
+                        <div className="relative inline-block">
+                            <h1
+                                className="
+                                    mt-3
+                                    text-4xl
+                                    md:text-5xl
+                                    xl:text-6xl
+                                    font-bold
+                                    text-foreground
+                                    leading-[1.02]
+                                    tracking-tight
+                                "
+                            >
+                                {product?.name}
+                            </h1>
+
+                            <div className="mt-4 h-1 w-16 rounded-full bg-coral" />
+                        </div>
 
                         {/* RATING */}
 
@@ -983,9 +1047,7 @@ function ProductPage() {
                                     }).map(
                                         (_, index) => (
                                             <FaStar
-                                                key={
-                                                    index
-                                                }
+                                                key={index}
                                                 className={`
                                                     text-sm
                                                     ${
@@ -1003,9 +1065,7 @@ function ProductPage() {
                                 </div>
 
                                 <span className="text-sm font-bold text-foreground">
-                                    {averageRating.toFixed(
-                                        1
-                                    )}
+                                    {averageRating.toFixed(1)}
                                 </span>
                             </div>
 
@@ -1025,6 +1085,8 @@ function ProductPage() {
                                 rounded-2xl
                                 border
                                 border-border-soft
+                                border-l-2
+                                border-l-coral
                                 bg-card/60
                                 backdrop-blur-xl
                                 p-5
@@ -1040,9 +1102,7 @@ function ProductPage() {
                                     "
                                 >
                                     {selectedVariant?.price != null
-                                        ? `${discountedPrice.toFixed(
-                                              2
-                                          )} DH`
+                                        ? `${discountedPrice.toFixed(2)} DH`
                                         : "Price unavailable"}
                                 </p>
 
@@ -1057,17 +1117,15 @@ function ProductPage() {
                                                 mb-1
                                             "
                                         >
-                                            {originalPrice.toFixed(
-                                                2
-                                            )} DH
+                                            {originalPrice.toFixed(2)} DH
                                         </p>
 
                                         <span
                                             className="
-                                                bg-danger/10
-                                                text-danger
+                                                bg-coral/10
+                                                text-coral
                                                 border
-                                                border-danger/30
+                                                border-coral/25
                                                 px-2.5
                                                 py-1
                                                 rounded-lg
@@ -1076,11 +1134,7 @@ function ProductPage() {
                                                 mb-1
                                             "
                                         >
-                                            -
-                                            {
-                                                discountPercentage
-                                            }
-                                            %
+                                            -{discountPercentage}%
                                         </span>
                                     </>
                                 )}
@@ -1112,8 +1166,7 @@ function ProductPage() {
                                         Available
                                         <span className="text-muted font-normal">
                                             {" "}
-                                            · {stockQuantity} in
-                                            stock
+                                            · {stockQuantity} in stock
                                         </span>
                                     </span>
                                 ) : (
@@ -1145,29 +1198,29 @@ function ProductPage() {
 
                         {/* ATTRIBUTES */}
 
-                        {Object.keys(attributeOptions)
-                            .length > 0 && (
+                        {Object.keys(attributeOptions).length > 0 && (
                             <div className="flex flex-col gap-6 mt-7">
                                 {Object.entries(
                                     attributeOptions
                                 ).map(
-                                    ([
-                                        key,
-                                        values,
-                                    ]) => (
+                                    ([key, values]) => (
                                         <div
                                             key={key}
                                             className="flex flex-col gap-3"
                                         >
                                             <div className="flex items-center justify-between">
-                                                <p className="text-xs font-bold text-muted tracking-[0.12em] uppercase">
-                                                    {key}
-                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-coral" />
+
+                                                    <p className="text-sm font-bold text-foreground tracking-[0.12em] uppercase">
+                                                        {key}
+                                                    </p>
+                                                </div>
 
                                                 {selectedAttributes[
                                                     key
                                                 ] && (
-                                                    <span className="text-xs text-accent font-semibold">
+                                                    <span className="text-sm text-accent font-semibold">
                                                         {
                                                             selectedAttributes[
                                                                 key
@@ -1179,9 +1232,7 @@ function ProductPage() {
 
                                             <div className="flex flex-wrap gap-2">
                                                 {values.map(
-                                                    (
-                                                        value
-                                                    ) => {
+                                                    (value) => {
                                                         const available =
                                                             isAttributeAvailable(
                                                                 key,
@@ -1191,8 +1242,7 @@ function ProductPage() {
                                                         const selected =
                                                             selectedAttributes[
                                                                 key
-                                                            ] ===
-                                                            value;
+                                                            ] === value;
 
                                                         return (
                                                             <button
@@ -1228,7 +1278,7 @@ function ProductPage() {
 
                                                                     ${
                                                                         !available
-                                                                            ? "opacity-25 cursor-not-allowed line-through"
+                                                                            ? "opacity-40 cursor-not-allowed line-through"
                                                                             : "cursor-pointer hover:-translate-y-0.5"
                                                                     }
                                                                 `}
@@ -1256,71 +1306,128 @@ function ProductPage() {
                                 mt-7
                             "
                         >
-                            {[
-                                {
-                                    icon: Truck,
-                                    title: "Delivery",
-                                    text: "Fast shipping",
-                                },
-                                {
-                                    icon: RotateCcw,
-                                    title: "Returns",
-                                    text: "30 days",
-                                },
-                                {
-                                    icon: ShieldCheck,
-                                    title: "Warranty",
-                                    text: "Official warranty",
-                                },
-                            ].map(
-                                ({
-                                    icon: Icon,
-                                    title,
-                                    text,
-                                }) => (
-                                    <div
-                                        key={title}
-                                        className="
-                                            group
-                                            bg-card/60
-                                            border
-                                            border-border-soft
-                                            hover:border-border
-                                            rounded-2xl
-                                            p-4
-                                            transition-all
-                                            duration-300
-                                        "
-                                    >
-                                        <div
-                                            className="
-                                                w-9
-                                                h-9
-                                                rounded-xl
-                                                bg-accent/10
-                                                border
-                                                border-accent/20
-                                                flex
-                                                items-center
-                                                justify-center
-                                                mb-3
-                                                transition
-                                                group-hover:bg-accent/15
-                                            "
-                                        >
-                                            <Icon className="w-4 h-4 text-accent" />
-                                        </div>
+                            {/* DELIVERY */}
 
-                                        <p className="font-semibold text-sm text-foreground">
-                                            {title}
-                                        </p>
+                            <div
+                                className="
+                                    group
+                                    bg-card/60
+                                    border
+                                    border-border-soft
+                                    hover:border-accent/30
+                                    rounded-2xl
+                                    p-4
+                                    transition-all
+                                    duration-300
+                                "
+                            >
+                                <div
+                                    className="
+                                        w-9
+                                        h-9
+                                        rounded-xl
+                                        bg-accent/10
+                                        border
+                                        border-accent/20
+                                        flex
+                                        items-center
+                                        justify-center
+                                        mb-3
+                                    "
+                                >
+                                    <Truck className="w-4 h-4 text-accent" />
+                                </div>
 
-                                        <p className="text-xs text-muted mt-1">
-                                            {text}
-                                        </p>
-                                    </div>
-                                )
-                            )}
+                                <p className="font-semibold text-sm text-foreground">
+                                    Delivery
+                                </p>
+
+                                <p className="text-sm text-muted mt-1">
+                                    Fast shipping
+                                </p>
+                            </div>
+
+                            {/* RETURNS */}
+
+                            <div
+                                className="
+                                    group
+                                    bg-card/60
+                                    border
+                                    border-border-soft
+                                    hover:border-coral/30
+                                    rounded-2xl
+                                    p-4
+                                    transition-all
+                                    duration-300
+                                "
+                            >
+                                <div
+                                    className="
+                                        w-9
+                                        h-9
+                                        rounded-xl
+                                        bg-coral/10
+                                        border
+                                        border-coral/20
+                                        flex
+                                        items-center
+                                        justify-center
+                                        mb-3
+                                    "
+                                >
+                                    <RotateCcw className="w-4 h-4 text-coral" />
+                                </div>
+
+                                <p className="font-semibold text-sm text-foreground">
+                                    Returns
+                                </p>
+
+                                <p className="text-sm text-muted mt-1">
+                                    30 days
+                                </p>
+                            </div>
+
+                            {/* WARRANTY */}
+
+                            <div
+                                className="
+                                    group
+                                    bg-card/60
+                                    border
+                                    border-border-soft
+                                    hover:border-highlight/30
+                                    rounded-2xl
+                                    p-4
+                                    transition-all
+                                    duration-300
+                                "
+                            >
+                                <div
+                                    className="
+                                        w-9
+                                        h-9
+                                        rounded-xl
+                                        bg-highlight/10
+                                        border
+                                        border-highlight/20
+                                        flex
+                                        items-center
+                                        justify-center
+                                        mb-3
+                                    "
+                                >
+                                    <ShieldCheck className="w-4 h-4 text-highlight" />
+                                </div>
+
+                                <p className="font-semibold text-sm text-foreground">
+                                    Warranty
+                                </p>
+
+                                <p className="text-sm text-muted mt-1">
+                                    Official warranty
+                                </p>
+                            </div>
                         </div>
 
                         {/* PURCHASE MODULE */}
@@ -1331,6 +1438,8 @@ function ProductPage() {
                                 rounded-2xl
                                 border
                                 border-border
+                                border-t-2
+                                border-t-coral
                                 bg-surface/70
                                 backdrop-blur-xl
                                 p-4
@@ -1338,7 +1447,7 @@ function ProductPage() {
                         >
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div>
-                                    <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+                                    <p className="text-sm font-semibold uppercase tracking-wider text-muted">
                                         Quantity
                                     </p>
 
@@ -1391,24 +1500,16 @@ function ProductPage() {
                                             type="number"
                                             id="quantity"
                                             min="1"
-                                            max={
-                                                stockQuantity
-                                            }
-                                            value={
-                                                quantity
-                                            }
+                                            max={stockQuantity}
+                                            value={quantity}
                                             disabled={
                                                 !isActive ||
                                                 !isInStock
                                             }
-                                            onChange={(
-                                                e
-                                            ) => {
+                                            onChange={(e) => {
                                                 const value =
                                                     Number(
-                                                        e
-                                                            .target
-                                                            .value
+                                                        e.target.value
                                                     );
 
                                                 if (
@@ -1455,8 +1556,7 @@ function ProductPage() {
                                                 setQuantity(
                                                     (prev) =>
                                                         Math.min(
-                                                            prev +
-                                                                1,
+                                                            prev + 1,
                                                             stockQuantity
                                                         )
                                                 )
@@ -1481,19 +1581,16 @@ function ProductPage() {
                                 </div>
 
                                 <div className="text-left sm:text-right">
-                                    <p className="text-xs text-muted">
+                                    <p className="text-sm text-muted">
                                         Total
                                     </p>
 
                                     <p className="text-2xl font-bold text-success mt-1">
-                                        {selectedVariant?.price !=
-                                        null
+                                        {selectedVariant?.price != null
                                             ? `${(
-                                                  discountedPrice *
-                                                  quantity
-                                              ).toFixed(
-                                                  2
-                                              )} DH`
+                                                discountedPrice *
+                                                quantity
+                                            ).toFixed(2)} DH`
                                             : "—"}
                                     </p>
                                 </div>
@@ -1539,16 +1636,14 @@ function ProductPage() {
                                 {isAddingToCart
                                     ? "Adding..."
                                     : isInCart
-                                    ? "Add Quantity"
-                                    : "Add to Cart"}
+                                        ? "Add Quantity"
+                                        : "Add to Cart"}
                             </button>
 
                             {isCartError && (
                                 <div className="mt-3 px-3 py-2.5 rounded-xl bg-danger/10 border border-danger/30">
                                     <p className="text-danger text-sm text-center">
-                                        {
-                                            cartError?.message
-                                        }
+                                        {cartError?.message}
                                     </p>
                                 </div>
                             )}
@@ -1572,11 +1667,13 @@ function ProductPage() {
                 >
                     <div className="mb-10">
                         <div className="flex items-center gap-3 mb-3">
-                            <span className="h-px w-8 bg-accent" />
+                            <span className="h-px w-10 bg-coral" />
 
-                            <p className="text-accent font-semibold tracking-[0.2em] text-xs">
+                            <p className="text-coral font-bold tracking-[0.2em] text-xs">
                                 TECHNICAL DETAILS
                             </p>
+
+                            <span className="w-1.5 h-1.5 rounded-full bg-coral/60" />
                         </div>
 
                         <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
@@ -1584,8 +1681,8 @@ function ProductPage() {
                         </h2>
 
                         <p className="text-muted mt-3">
-                            Everything you need to know
-                            about {product?.name}.
+                            Everything you need to know about{" "}
+                            {product?.name}.
                         </p>
                     </div>
 
@@ -1652,8 +1749,7 @@ function ProductPage() {
                         ) : (
                             <div className="col-span-full py-12 text-center rounded-2xl border border-border-soft bg-card/40">
                                 <p className="text-muted">
-                                    No specifications
-                                    available.
+                                    No specifications available.
                                 </p>
                             </div>
                         )}
@@ -1676,11 +1772,13 @@ function ProductPage() {
                 >
                     <div className="mb-10">
                         <div className="flex items-center gap-3 mb-3">
-                            <span className="h-px w-8 bg-highlight" />
+                            <span className="h-px w-10 bg-coral" />
 
-                            <p className="text-highlight font-semibold tracking-[0.2em] text-xs">
+                            <p className="text-coral font-bold tracking-[0.2em] text-xs">
                                 CUSTOMER FEEDBACK
                             </p>
+
+                            <span className="w-1.5 h-1.5 rounded-full bg-coral/60" />
                         </div>
 
                         <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
@@ -1688,8 +1786,8 @@ function ProductPage() {
                         </h2>
 
                         <p className="text-muted mt-3">
-                            See what customers think
-                            about {product?.name}.
+                            See what customers think about{" "}
+                            {product?.name}.
                         </p>
                     </div>
 
@@ -1714,9 +1812,7 @@ function ProductPage() {
 
                                 <div className="flex items-end gap-2 mt-4">
                                     <p className="text-5xl font-bold text-foreground">
-                                        {averageRating.toFixed(
-                                            1
-                                        )}
+                                        {averageRating.toFixed(1)}
                                     </p>
 
                                     <span className="text-muted text-sm mb-2">
@@ -1730,9 +1826,7 @@ function ProductPage() {
                                     }).map(
                                         (_, index) => (
                                             <FaStar
-                                                key={
-                                                    index
-                                                }
+                                                key={index}
                                                 className={`
                                                     text-lg
                                                     ${
@@ -1759,16 +1853,14 @@ function ProductPage() {
                                 </p>
 
                                 <p className="text-muted mt-1">
-                                    Customer ratings and
-                                    feedback
+                                    Customer ratings and feedback
                                 </p>
 
                                 <div className="flex items-center gap-2 mt-5">
                                     <div className="w-2 h-2 rounded-full bg-success" />
 
                                     <span className="text-xs text-muted">
-                                        Verified customer
-                                        feedback
+                                        Verified customer feedback
                                     </span>
                                 </div>
                             </div>
@@ -1834,8 +1926,8 @@ function ProductPage() {
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-lg bg-surface border border-border-soft flex items-center justify-center">
-                                                        <span className="text-xs font-bold text-accent">
+                                                    <div className="w-8 h-8 rounded-lg bg-coral/10 border border-coral/20 flex items-center justify-center">
+                                                        <span className="text-xs font-bold text-coral">
                                                             {(
                                                                 reviewItem
                                                                     .user
@@ -2012,7 +2104,7 @@ function ProductPage() {
                         {isEditing && (
                             <div className="flex items-center justify-between px-1 mb-4">
                                 <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-accent" />
+                                    <span className="w-2 h-2 rounded-full bg-coral" />
 
                                     <p className="text-sm font-semibold text-foreground">
                                         Editing your review
@@ -2067,13 +2159,9 @@ function ProductPage() {
                                     {Array.from({
                                         length: 5,
                                     }).map(
-                                        (
-                                            _,
-                                            index
-                                        ) => {
+                                        (_, index) => {
                                             const value =
-                                                index +
-                                                1;
+                                                index + 1;
 
                                             return (
                                                 <button
