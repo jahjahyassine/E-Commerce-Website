@@ -15,7 +15,6 @@ function Reviews() {
 
     const navigate = useNavigate();
 
-
     const {
         data: currentUser,
         isLoading: isLoadingUser,
@@ -25,7 +24,6 @@ function Reviews() {
         queryFn: getCurrentUser,
         enabled: !!token,
     });
-
 
     useEffect(() => {
         if (!token) {
@@ -38,8 +36,6 @@ function Reviews() {
             navigate("/login");
         }
     }, [isErrorUser, navigate]);
-
-
 
     const getUserReviews = async () => {
         const response = await fetch(`${BASE_URL}/user/reviews`, {
@@ -72,36 +68,30 @@ function Reviews() {
         enabled: !!token,
     });
 
-
     if (isLoadingReviews || isLoadingUser) {
         return (
-            <main className="min-h-screen flex items-center justify-center">
-                <p className="text-lg font-bold">
+            <main className="min-h-screen flex items-center justify-center bg-background">
+                <p className="text-lg font-bold text-foreground">
                     Loading reviews...
                 </p>
             </main>
         );
     }
 
-
     if (isErrorReviews) {
         return (
-            <main className="min-h-screen flex items-center justify-center">
-                <p className="text-minimal-red font-bold">
+            <main className="min-h-screen flex items-center justify-center bg-background">
+                <p className="text-danger font-bold">
                     {reviewError?.message || "Failed to load reviews"}
                 </p>
             </main>
         );
     }
 
-
-
     const reviewItems = reviews ?? [];
 
-
-
     return (
-        <main className="relative min-h-screen">
+        <main className="relative min-h-screen bg-background">
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
@@ -138,6 +128,7 @@ function Reviews() {
                     relative
                     z-10
                     bg-card/20
+                    border border-border-soft
                     backdrop-blur-xl
                     flex
                 "
@@ -145,7 +136,6 @@ function Reviews() {
                 <div className="h-screen">
                     <ProfileSidebar user={currentUser} />
                 </div>
-
 
                 <section
                     className="
@@ -171,7 +161,7 @@ function Reviews() {
                         "
                     >
                         <div>
-                            <h2 className="text-3xl font-semibold">
+                            <h2 className="text-3xl font-semibold text-foreground">
                                 Your Reviews
                             </h2>
                         </div>
@@ -182,9 +172,11 @@ function Reviews() {
                                     px-3
                                     py-1
                                     rounded-full
-                                    bg-chip
+                                    bg-surface
+                                    border border-border-soft
                                     text-sm
                                     font-semibold
+                                    text-foreground
                                 "
                             >
                                 {reviewItems.length}{" "}
@@ -194,7 +186,6 @@ function Reviews() {
                             </span>
                         )}
                     </div>
-
 
                     {reviewItems.length === 0 ? (
                         <section
@@ -207,7 +198,8 @@ function Reviews() {
                                 items-center
                                 justify-center
                                 rounded-3xl
-                                bg-chip
+                                bg-surface
+                                border border-border
                                 text-center
                                 px-6
                             "
@@ -218,6 +210,7 @@ function Reviews() {
                                     h-14
                                     rounded-2xl
                                     bg-card
+                                    border border-border-soft
                                     flex
                                     items-center
                                     justify-center
@@ -230,13 +223,14 @@ function Reviews() {
                                     height="25"
                                     fill="currentColor"
                                     viewBox="0 0 16 16"
+                                    className="text-muted"
                                 >
                                     <path d="M14 1a1 1 0 0 1 1 1v8.5a1 1 0 0 1-1 1H5.414L2 14.914V11.5H1a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM1 2v8.5h2v2.086L5.086 10.5H14V2z" />
                                     <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
                                 </svg>
                             </div>
 
-                            <h3 className="text-xl font-bold">
+                            <h3 className="text-xl font-bold text-foreground">
                                 No reviews yet
                             </h3>
 
@@ -252,27 +246,28 @@ function Reviews() {
                                 flex-1
                                 min-h-0
                                 rounded-3xl
-                                bg-chip
+                                bg-surface
+                                border border-border
                                 p-3
                                 overflow-y-auto
                                 scrollbar-none
                             "
                         >
                             <div className="flex flex-col gap-3">
-
                                 {reviewItems.map((review, index) => {
-                                    const rating =
-                                        Number(
-                                            review.rating ??
-                                            0
-                                        );
+                                    const rating = Number(
+                                        review.rating ?? 0
+                                    );
 
                                     const product = review.product;
-                                    const title = review.product.name ?? "Product";
+                                    const title =
+                                        review.product.name ?? "Product";
 
-                                    const comment = review.review ?? "";
+                                    const comment =
+                                        review.review ?? "";
 
-                                    const date = review.created_at;
+                                    const date =
+                                        review.created_at;
 
                                     return (
                                         <Link
@@ -283,10 +278,12 @@ function Reviews() {
                                             className="
                                                 rounded-2xl
                                                 bg-card
+                                                border border-border-soft
                                                 p-5
                                                 transition
                                                 duration-300
                                                 ease-in-out
+                                                hover:border-border
                                                 hover:shadow-sm
                                             "
                                             to={`/products/${product.id}`}
@@ -300,11 +297,11 @@ function Reviews() {
                                                 "
                                             >
                                                 <div className="min-w-0">
-
                                                     <h3
                                                         className="
                                                             font-bold
                                                             text-lg
+                                                            text-foreground
                                                             truncate
                                                         "
                                                     >
@@ -320,7 +317,6 @@ function Reviews() {
                                                     )}
                                                 </div>
 
-
                                                 {rating > 0 && (
                                                     <div
                                                         className="
@@ -331,20 +327,20 @@ function Reviews() {
                                                             px-3
                                                             py-1.5
                                                             rounded-full
-                                                            bg-chip
+                                                            bg-surface
+                                                            border border-border-soft
                                                         "
                                                     >
-                                                        <span className="text-amber-500">
+                                                        <span className="text-highlight">
                                                             ★
                                                         </span>
 
-                                                        <span className="text-sm font-bold">
+                                                        <span className="text-sm font-bold text-foreground">
                                                             {rating}
                                                         </span>
                                                     </div>
                                                 )}
                                             </div>
-
 
                                             {rating > 0 && (
                                                 <div className="flex gap-0.5 mt-2">
@@ -354,8 +350,8 @@ function Reviews() {
                                                                 key={star}
                                                                 className={
                                                                     star <=
-                                                                        rating
-                                                                        ? "text-amber-500"
+                                                                    rating
+                                                                        ? "text-highlight"
                                                                         : "text-muted opacity-30"
                                                                 }
                                                             >
@@ -365,7 +361,6 @@ function Reviews() {
                                                     )}
                                                 </div>
                                             )}
-
 
                                             {comment && (
                                                 <p
@@ -384,11 +379,9 @@ function Reviews() {
                                         </Link>
                                     );
                                 })}
-
                             </div>
                         </section>
                     )}
-
                 </section>
             </section>
         </main>
@@ -396,4 +389,3 @@ function Reviews() {
 }
 
 export default Reviews;
-

@@ -9,8 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useState, useEffect } from "react";
 
-import { X, Trash2 } from "lucide-react"
-
+import { X, Trash2 } from "lucide-react";
 
 function SecurityPage() {
     const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -18,8 +17,7 @@ function SecurityPage() {
 
     const navigate = useNavigate();
 
-    const queryClient = useQueryClient()
-
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         const token = localStorage.getItem("access_token");
@@ -29,7 +27,6 @@ function SecurityPage() {
         }
     }, [navigate]);
 
-
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,11 +35,8 @@ function SecurityPage() {
         confirmPassword.length > 0 &&
         newPassword !== confirmPassword;
 
-
-    const [isDeleting, setIsDeleting] = useState(false)
-    const [passwordForDelete, setPasswordForDelete] = useState("")
-
-
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [passwordForDelete, setPasswordForDelete] = useState("");
 
     const changePasswordFunction = async (password_data) => {
         const response = await fetch(
@@ -88,8 +82,6 @@ function SecurityPage() {
         },
     });
 
-
-
     const deleteAccountFunction = async (password_data) => {
         const response = await fetch(
             `${BASE_URL}/user/delete`,
@@ -114,7 +106,6 @@ function SecurityPage() {
         return data;
     };
 
-
     const {
         mutate: deleteAccount,
         isError: isErrorDelete,
@@ -127,17 +118,15 @@ function SecurityPage() {
         mutationKey: ["delete-account"],
 
         onSuccess: () => {
-            localStorage.removeItem("access_token")
+            localStorage.removeItem("access_token");
 
             queryClient.removeQueries({
                 queryKey: ["user"],
             });
 
-            navigate("/login")
+            navigate("/login");
         },
     });
-
-
 
     const {
         data: currentUser,
@@ -153,7 +142,6 @@ function SecurityPage() {
             navigate("/login");
         }
     }, [isError, navigate]);
-
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -171,11 +159,10 @@ function SecurityPage() {
     const handleCancel = () => {
         if (!currentUser) return;
 
-        setCurrentPassword("")
-        setNewPassword("")
-        setConfirmPassword("")
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
     };
-
 
     const handleDeleteAccount = (e) => {
         e.preventDefault();
@@ -196,17 +183,11 @@ function SecurityPage() {
         setIsDeleting(false);
     };
 
-
-
-
     return (
-        <main className="relative min-h-screen">
-
-
+        <main className="relative min-h-screen bg-background">
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
-
 
             <div
                 className="
@@ -235,7 +216,6 @@ function SecurityPage() {
                 />
             </div>
 
-
             <section
                 className="
                     relative
@@ -246,9 +226,7 @@ function SecurityPage() {
                     flex
                 "
             >
-
                 <ProfileSidebar user={currentUser} />
-
 
                 <section
                     className="
@@ -262,8 +240,6 @@ function SecurityPage() {
                         scroll-smooth
                     "
                 >
-
-
                     <div
                         className="
                             flex
@@ -274,27 +250,27 @@ function SecurityPage() {
                             pb-3
                         "
                     >
-                        <h2 className="text-2xl font-semibold">
+                        <h2 className="text-2xl font-semibold text-foreground">
                             Security
                         </h2>
                     </div>
 
-
                     <section
                         className="
                             mt-8
+                            mx-auto
                             flex-1
                             min-h-0
                             rounded-3xl
-                            bg-chip
-                            p-3
+                            bg-surface
+                            p-5
+                            w-[50vw]
+                            border border-border
                             overflow-y-auto
                             scrollbar-none
                             flex flex-col gap-4
                         "
                     >
-
-
                         <section
                             className="
                                 rounded-2xl
@@ -303,10 +279,12 @@ function SecurityPage() {
                                 transition
                                 duration-300
                                 ease-in-out
+                                border border-border-soft
+                                hover:border-border
                                 hover:shadow-sm
                             "
                         >
-                            <h3 className="text-lg font-semibold">
+                            <h3 className="text-lg font-semibold text-foreground">
                                 Change Password
                             </h3>
 
@@ -319,10 +297,7 @@ function SecurityPage() {
                                     gap-4
                                 "
                             >
-
-
                                 <div className="flex flex-col gap-2">
-
                                     <label
                                         htmlFor="currentPassword"
                                         className="
@@ -348,35 +323,34 @@ function SecurityPage() {
                                         autoComplete="current-password"
                                         placeholder="Enter your current password"
                                         className={`
-                                            bg-chip
+                                            bg-surface-dark
                                             px-4
                                             py-2
                                             w-full
                                             text-base
                                             font-medium
+                                            text-foreground
                                             outline-none
                                             rounded-lg
                                             border
                                             transition-all
-                                            ${isErrorPassword
-                                                ? "border-danger focus:ring-1 focus:ring-danger/30"
-                                                : "border-border-soft focus:border-primary focus:ring-1 focus:ring-primary/30"
+                                            ${
+                                                isErrorPassword
+                                                    ? "border-danger focus:ring-1 focus:ring-danger/30"
+                                                    : "border-border-soft focus:border-accent focus:ring-1 focus:ring-accent/30"
                                             }
                                         `}
                                     />
 
-
                                     {isErrorPassword && (
                                         <p className="text-sm text-danger">
-                                            {errorPassword?.message || "Failed to change password"}
+                                            {errorPassword?.message ||
+                                                "Failed to change password"}
                                         </p>
                                     )}
-
                                 </div>
 
-
                                 <div className="flex flex-col gap-2">
-
                                     <label
                                         htmlFor="newPassword"
                                         className="
@@ -403,19 +377,20 @@ function SecurityPage() {
                                         autoComplete="new-password"
                                         placeholder="Enter your new password"
                                         className="
-                                            bg-chip
+                                            bg-surface-dark
                                             px-4
                                             py-2
                                             w-full
                                             text-base
                                             font-medium
+                                            text-foreground
                                             outline-none
                                             rounded-lg
                                             border
                                             border-border-soft
-                                            focus:border-primary
+                                            focus:border-accent
                                             focus:ring-1
-                                            focus:ring-primary/30
+                                            focus:ring-accent/30
                                             transition-all
                                         "
                                     />
@@ -423,13 +398,11 @@ function SecurityPage() {
                                     <p className="text-xs text-muted">
                                         Minimum 8 characters
                                     </p>
-
                                 </div>
 
                                 {/* CONFIRM PASSWORD */}
 
                                 <div className="flex flex-col gap-2">
-
                                     <label
                                         htmlFor="confirmPassword"
                                         className="
@@ -456,19 +429,21 @@ function SecurityPage() {
                                         autoComplete="new-password"
                                         placeholder="Confirm your new password"
                                         className={`
-                                            bg-chip
+                                            bg-surface-dark
                                             px-4
                                             py-2
                                             w-full
                                             text-base
                                             font-medium
+                                            text-foreground
                                             outline-none
                                             rounded-lg
                                             border
                                             transition-all
-                                            ${passwordMismatch
-                                                ? "border-danger focus:ring-1 focus:ring-danger/30"
-                                                : "border-border-soft focus:border-primary focus:ring-1 focus:ring-primary/30"
+                                            ${
+                                                passwordMismatch
+                                                    ? "border-danger focus:ring-1 focus:ring-danger/30"
+                                                    : "border-border-soft focus:border-accent focus:ring-1 focus:ring-accent/30"
                                             }
                                         `}
                                     />
@@ -478,9 +453,7 @@ function SecurityPage() {
                                             Passwords do not match
                                         </p>
                                     )}
-
                                 </div>
-
 
                                 {isSuccess && (
                                     <p className="text-sm text-success">
@@ -489,17 +462,18 @@ function SecurityPage() {
                                 )}
 
                                 <div className="flex self-end gap-2">
-                                    {
-                                        currentPassword &&
+                                    {currentPassword && (
                                         <button
                                             type="button"
                                             className="
                                                 px-8
                                                 py-2
-                                                rounded-xl text-foreground
-                                                bg-white/10 backdrop-blur-xl
-                                                border border-border
-                                                hover:bg-black/5
+                                                rounded-xl
+                                                text-foreground
+                                                bg-surface
+                                                border
+                                                border-border
+                                                hover:bg-surface-hover
                                                 duration-300
                                                 ease-in-out
                                                 cursor-pointer
@@ -512,7 +486,8 @@ function SecurityPage() {
                                         >
                                             Cancel
                                         </button>
-                                    }
+                                    )}
+
                                     <button
                                         type="submit"
                                         disabled={
@@ -520,20 +495,22 @@ function SecurityPage() {
                                             isPending
                                         }
                                         className="
-                                        px-8
-                                        py-2
-                                        rounded-xl
-                                        bg-primary border border-transparent
-                                        hover:bg-primary-hover
-                                        duration-300
-                                        ease-in-out
-                                        cursor-pointer
-                                        text-inverse
-                                        text-sm
-                                        font-semibold
-                                        disabled:opacity-50
-                                        disabled:cursor-not-allowed
-                                    "
+                                            px-8
+                                            py-2
+                                            rounded-xl
+                                            bg-accent
+                                            border
+                                            border-transparent
+                                            hover:bg-accent-hover
+                                            duration-300
+                                            ease-in-out
+                                            cursor-pointer
+                                            text-inverse
+                                            text-sm
+                                            font-semibold
+                                            disabled:opacity-50
+                                            disabled:cursor-not-allowed
+                                        "
                                     >
                                         {isPending
                                             ? "Saving..."
@@ -543,22 +520,20 @@ function SecurityPage() {
                             </form>
                         </section>
 
-
-
-
-
                         <section
                             className="
-                                    rounded-2xl
-                                    bg-card
-                                    p-5
-                                    transition
-                                    duration-300
-                                    ease-in-out
-                                    hover:shadow-sm
-                                "
+                                rounded-2xl
+                                bg-card
+                                p-5
+                                transition
+                                duration-300
+                                ease-in-out
+                                border border-border-soft
+                                hover:border-border
+                                hover:shadow-sm
+                            "
                         >
-                            <h3 className="text-lg font-semibold">
+                            <h3 className="text-lg font-semibold text-foreground">
                                 Delete Account
                             </h3>
 
@@ -572,21 +547,21 @@ function SecurityPage() {
                                     type="button"
                                     onClick={() => setIsDeleting(true)}
                                     className="
-                                            self-end
-                                            px-8
-                                            py-2
-                                            rounded-xl
-                                            bg-danger
-                                            border
-                                            border-transparent
-                                            hover:bg-danger-hover
-                                            duration-300
-                                            ease-in-out
-                                            cursor-pointer
-                                            text-inverse
-                                            text-sm
-                                            font-semibold
-                                        "
+                                        self-end
+                                        px-8
+                                        py-2
+                                        rounded-xl
+                                        bg-danger
+                                        border
+                                        border-transparent
+                                        hover:bg-danger-solid
+                                        duration-300
+                                        ease-in-out
+                                        cursor-pointer
+                                        text-inverse
+                                        text-sm
+                                        font-semibold
+                                    "
                                 >
                                     Delete Account
                                 </button>
@@ -596,23 +571,19 @@ function SecurityPage() {
                 </section>
             </section>
 
-
-
-
-
             {isDeleting && (
                 <div
                     className="
-            fixed
-            inset-0
-            z-[100]
-            flex
-            items-center
-            justify-center
-            px-4
-            bg-black/40
-            backdrop-blur-sm
-        "
+                        fixed
+                        inset-0
+                        z-[100]
+                        flex
+                        items-center
+                        justify-center
+                        px-4
+                        bg-black/40
+                        backdrop-blur-sm
+                    "
                     onMouseDown={(e) => {
                         if (e.target === e.currentTarget) {
                             handleCancelDelete();
@@ -621,18 +592,17 @@ function SecurityPage() {
                 >
                     <div
                         className="
-                relative
-                w-full
-                max-w-md
-                rounded-2xl
-                bg-card
-                border
-                border-border
-                shadow-2xl
-                p-6
-            "
+                            relative
+                            w-full
+                            max-w-md
+                            rounded-2xl
+                            bg-card
+                            border
+                            border-border
+                            shadow-2xl
+                            p-6
+                        "
                     >
-
                         {/* CLOSE */}
 
                         <button
@@ -640,37 +610,36 @@ function SecurityPage() {
                             onClick={handleCancelDelete}
                             disabled={isPendingDelete}
                             className="
-                    absolute
-                    top-4
-                    right-4
-                    p-1.5
-                    rounded-lg
-                    text-muted
-                    hover:bg-chip
-                    hover:text-foreground
-                    transition
-                    cursor-pointer
-                    disabled:opacity-50
-                    disabled:cursor-not-allowed
-                "
+                                absolute
+                                top-4
+                                right-4
+                                p-1.5
+                                rounded-lg
+                                text-muted
+                                hover:bg-surface-hover
+                                hover:text-foreground
+                                transition
+                                cursor-pointer
+                                disabled:opacity-50
+                                disabled:cursor-not-allowed
+                            "
                         >
                             <X className="w-5 h-5" />
                         </button>
-
 
                         {/* ICON */}
 
                         <div
                             className="
-                    w-11
-                    h-11
-                    rounded-full
-                    bg-danger/10
-                    flex
-                    items-center
-                    justify-center
-                    mb-4
-                "
+                                w-11
+                                h-11
+                                rounded-full
+                                bg-danger/10
+                                flex
+                                items-center
+                                justify-center
+                                mb-4
+                            "
                         >
                             <Trash2
                                 className="w-5 h-5 text-danger"
@@ -678,13 +647,11 @@ function SecurityPage() {
                             />
                         </div>
 
-
                         {/* TITLE */}
 
                         <h3 className="text-xl font-semibold text-foreground">
                             Delete your account?
                         </h3>
-
 
                         {/* DESCRIPTION */}
 
@@ -693,28 +660,25 @@ function SecurityPage() {
                             associated data. This action cannot be undone.
                         </p>
 
-
                         {/* FORM */}
 
                         <form
                             onSubmit={handleDeleteAccount}
                             className="
-                    mt-6
-                    flex
-                    flex-col
-                    gap-4
-                "
+                                mt-6
+                                flex
+                                flex-col
+                                gap-4
+                            "
                         >
-
                             <div className="flex flex-col gap-2">
-
                                 <label
                                     htmlFor="deletePassword"
                                     className="
-                            text-sm
-                            font-medium
-                            text-muted
-                        "
+                                        text-sm
+                                        font-medium
+                                        text-muted
+                                    "
                                 >
                                     Enter your current password
                                 </label>
@@ -734,21 +698,23 @@ function SecurityPage() {
                                     placeholder="Current password"
                                     disabled={isPendingDelete}
                                     className={`
-                            bg-chip
-                            px-4
-                            py-2.5
-                            w-full
-                            text-base
-                            font-medium
-                            outline-none
-                            rounded-lg
-                            border
-                            transition-all
-                            ${isErrorDelete
-                                            ? "border-danger focus:ring-1 focus:ring-danger/30"
-                                            : "border-border-soft focus:border-danger focus:ring-1 focus:ring-danger/20"
+                                        bg-surface-dark
+                                        px-4
+                                        py-2.5
+                                        w-full
+                                        text-base
+                                        font-medium
+                                        text-foreground
+                                        outline-none
+                                        rounded-lg
+                                        border
+                                        transition-all
+                                        ${
+                                            isErrorDelete
+                                                ? "border-danger focus:ring-1 focus:ring-danger/30"
+                                                : "border-border-soft focus:border-danger focus:ring-1 focus:ring-danger/20"
                                         }
-                        `}
+                                    `}
                                 />
 
                                 {isErrorDelete && (
@@ -757,35 +723,32 @@ function SecurityPage() {
                                             "Failed to delete account"}
                                     </p>
                                 )}
-
                             </div>
-
 
                             {/* ACTIONS */}
 
                             <div className="flex justify-end gap-2 mt-2">
-
                                 <button
                                     type="button"
                                     onClick={handleCancelDelete}
                                     disabled={isPendingDelete}
                                     className="
-                            px-6
-                            py-2
-                            rounded-xl
-                            text-foreground
-                            bg-card
-                            border
-                            border-border
-                            hover:bg-chip
-                            transition
-                            duration-200
-                            cursor-pointer
-                            text-sm
-                            font-semibold
-                            disabled:opacity-50
-                            disabled:cursor-not-allowed
-                        "
+                                        px-6
+                                        py-2
+                                        rounded-xl
+                                        text-foreground
+                                        bg-surface
+                                        border
+                                        border-border
+                                        hover:bg-surface-hover
+                                        transition
+                                        duration-200
+                                        cursor-pointer
+                                        text-sm
+                                        font-semibold
+                                        disabled:opacity-50
+                                        disabled:cursor-not-allowed
+                                    "
                                 >
                                     Cancel
                                 </button>
@@ -797,28 +760,26 @@ function SecurityPage() {
                                         isPendingDelete
                                     }
                                     className="
-                            px-6
-                            py-2
-                            rounded-xl
-                            bg-danger
-                            hover:bg-danger-hover
-                            transition
-                            duration-200
-                            cursor-pointer
-                            text-inverse
-                            text-sm
-                            font-semibold
-                            disabled:opacity-50
-                            disabled:cursor-not-allowed
-                        "
+                                        px-6
+                                        py-2
+                                        rounded-xl
+                                        bg-danger
+                                        hover:bg-danger-solid
+                                        transition
+                                        duration-200
+                                        cursor-pointer
+                                        text-inverse
+                                        text-sm
+                                        font-semibold
+                                        disabled:opacity-50
+                                        disabled:cursor-not-allowed
+                                    "
                                 >
                                     {isPendingDelete
                                         ? "Deleting..."
                                         : "Delete Account"}
                                 </button>
-
                             </div>
-
                         </form>
                     </div>
                 </div>

@@ -195,7 +195,7 @@ function CartPage() {
     if (isError) {
         return (
             <main className="min-h-screen flex items-center justify-center">
-                <p className="text-minimal-red font-bold">
+                <p className="text-danger font-bold">
                     {error?.message || "Failed to load cart"}
                 </p>
             </main>
@@ -224,9 +224,9 @@ function CartPage() {
                     cursorRadius={420}
                     cursorForce={0.08}
                     bulgeOnly
-                    gradientFrom="#6e6e7380"
-                    gradientTo="#d2d2d760"
-                    glowColor="#1d1d1f20"
+                    gradientFrom="#A8AEC040"
+                    gradientTo="#6FA7A330"
+                    glowColor="#6FA7A320"
                 />
             </div>
 
@@ -267,7 +267,7 @@ function CartPage() {
                     {/* Cart Section */}
                     <section className="flex-1 min-w-0 flex flex-col gap-2">
                         {/* Select All */}
-                        <section className="bg-chip p-2 rounded-3xl">
+                        <section className="bg-card-dark p-2 rounded-3xl">
                             <div className="flex gap-2 bg-card rounded-2xl overflow-hidden px-4 py-3 items-center">
                                 <input
                                     type="checkbox"
@@ -286,7 +286,7 @@ function CartPage() {
                                 </label>
 
                                 <button
-                                    className="bg-minimal-red text-inverse px-5 py-2 rounded-lg ml-auto hover:bg-minimal-red-hover cursor-pointer duration-300 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="bg-danger-solid text-inverse px-5 py-2 rounded-lg ml-auto hover:bg-danger-solid-hover cursor-pointer duration-300 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed"
                                     disabled={
                                         !hasSelectedItems ||
                                         isClearingCart
@@ -301,7 +301,7 @@ function CartPage() {
                         </section>
 
                         {/* Cart Items */}
-                        <section className="max-h-[600px] flex flex-col bg-chip gap-4 p-2 rounded-3xl overflow-y-auto">
+                        <section className="max-h-[600px] flex flex-col bg-card-dark gap-4 p-2 rounded-3xl overflow-y-auto">
                             {cartItems.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-20">
                                     <p className="text-xl font-bold">
@@ -312,7 +312,7 @@ function CartPage() {
                                         onClick={() =>
                                             navigate("/products")
                                         }
-                                        className="mt-4 bg-primary text-inverse px-5 py-2 rounded-lg hover:bg-primary-hover duration-300"
+                                        className="mt-4 bg-accent text-inverse px-5 py-2 rounded-lg hover:bg-accent-hover duration-300"
                                     >
                                         Continue Shopping
                                     </button>
@@ -358,7 +358,7 @@ function CartPage() {
                                             key={variantId}
                                             className={`w-full min-h-[150px] shrink-0 flex rounded-2xl overflow-hidden p-4 gap-4 ${
                                                 isSelected
-                                                    ? "bg-chip"
+                                                    ? "bg-card-dark"
                                                     : "bg-card"
                                             }`}
                                         >
@@ -377,7 +377,7 @@ function CartPage() {
                                             </div>
 
                                             {/* Image */}
-                                            <div className="aspect-square rounded-xl overflow-hidden h-[120px] w-[120px] shrink-0 bg-chip">
+                                            <div className="aspect-square rounded-xl overflow-hidden h-[120px] w-[120px] shrink-0 bg-card-dark">
                                                 {image ? (
                                                     <img
                                                         src={image}
@@ -398,7 +398,7 @@ function CartPage() {
 
                                             {/* Product Info */}
                                             <div className="flex flex-col min-w-0">
-                                                <h3 className="text-xl font-bold text-black truncate">
+                                                <h3 className="text-xl font-bold text-foreground truncate">
                                                     {
                                                         variant
                                                             .product
@@ -451,7 +451,7 @@ function CartPage() {
                                             {/* Price / Delete */}
                                             <div className="ml-auto shrink-0 flex flex-col justify-between gap-4 items-end">
                                                 <button
-                                                    className="text-minimal-red font-bold hover:scale-[1.1] duration-300 ease-linear cursor-pointer"
+                                                    className="text-danger font-bold hover:scale-[1.1] duration-300 ease-linear cursor-pointer"
                                                     onClick={() =>
                                                         deleteItem(
                                                             variantId
@@ -487,7 +487,7 @@ function CartPage() {
                                                                 )}
                                                             </span>
 
-                                                            <span className="text-xs font-bold text-minimal-red">
+                                                            <span className="text-xs font-bold text-danger">
                                                                 -
                                                                 {
                                                                     discount
@@ -497,7 +497,7 @@ function CartPage() {
                                                         </div>
                                                     )}
 
-                                                    <p className="text-emerald font-bold text-xl">
+                                                    <p className="text-highlight font-bold text-xl">
                                                         $
                                                         {itemTotal.toFixed(
                                                             2
@@ -513,7 +513,7 @@ function CartPage() {
                     </section>
 
                     {/* Summary */}
-                    <section className="w-[320px] lg:w-[360px] shrink-0 bg-chip p-2 h-fit rounded-3xl">
+                    <section className="w-[320px] lg:w-[360px] shrink-0 bg-card-dark p-2 h-fit rounded-3xl">
                         <div className="bg-card p-4 flex gap-7 flex-col rounded-2xl">
                             <h3 className="text-xl font-bold">
                                 Cart Summary
@@ -558,10 +558,11 @@ function CartPage() {
                             </div>
 
                             <button
-                                className="flex bg-primary text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-primary-hover duration-300 ease-in-out cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="flex bg-accent text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-accent-hover duration-300 ease-in-out cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                 disabled={!hasItems}
                                 onClick={() => {
                                     if (!hasItems) return;
+
                                     navigate("/checkout");
                                 }}
                             >

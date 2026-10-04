@@ -1,4 +1,5 @@
 import json
+import math
 
 from enum import Enum
 from typing import Annotated, List
@@ -7,6 +8,7 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
+    Query,
     status,
 )
 
@@ -26,6 +28,7 @@ from models.product import (
 )
 
 from schemas.product import (
+    ProductListResponse,
     ProductRagResponse,
     ProductResponse,
     ProductVariantResponse,
@@ -51,7 +54,7 @@ class SortBy(str, Enum):
 
 @router.get(
     "/products",
-    response_model=List[ProductResponse],
+    response_model=ProductListResponse
 )
 def get_products(
     db: Annotated[
@@ -66,6 +69,8 @@ def get_products(
     search: str | None = None,
     is_active: bool | None = True,
     on_promotion: bool | None = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    limit: Annotated[int, Query(ge=1, le=100)] = 15,
 ):
     query = db.query(Product)
 
@@ -162,7 +167,33 @@ def get_products(
             )
         )
 
-    return query.all()
+    # --------------------------------------------------------
+    # PAGINATION
+    #
+    # Count BEFORE applying offset/limit, so "total" is the
+    # number of products matching the filters (not the page).
+    #
+    # order_by is required: without a stable order, the same
+    # product can show up on two pages or be skipped.
+    # --------------------------------------------------------
+
+    total = query.count()
+
+    items = (
+        query
+        .order_by(Product.id)
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": max(1, math.ceil(total / limit)),
+    }
 
 
 
@@ -170,7 +201,7 @@ def get_products(
     "/test_rag",
     response_model=list[ProductRagResponse],
 )
-def get_products(
+def get_products_for_rag(
     db: Annotated[Session, Depends(get_db)],
 ):
     query = db.query(Product)

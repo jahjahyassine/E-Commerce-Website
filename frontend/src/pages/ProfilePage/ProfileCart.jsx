@@ -105,7 +105,12 @@ function ProfileCart() {
 
     const getVariantDiscount = (item) =>
         Math.min(
-            Math.max(Number(item.product_variant?.discount_percentage ?? 0), 0),
+            Math.max(
+                Number(
+                    item.product_variant?.discount_percentage ?? 0
+                ),
+                0
+            ),
             100
         );
 
@@ -281,7 +286,8 @@ function ProfileCart() {
         );
     }, [cartItems]);
 
-    const discountAmount = originalSubtotalAmount - subtotalAmount;
+    const discountAmount =
+        originalSubtotalAmount - subtotalAmount;
 
     const deliveryFee = subtotalAmount > 0 ? 10 : 0;
     const totalAmount = subtotalAmount + deliveryFee;
@@ -296,8 +302,8 @@ function ProfileCart() {
 
     if (isLoadingCart || isLoadingUser) {
         return (
-            <main className="min-h-screen flex items-center justify-center">
-                <p className="text-lg font-bold">
+            <main className="min-h-screen flex items-center justify-center bg-background">
+                <p className="text-lg font-bold text-foreground">
                     Loading cart...
                 </p>
             </main>
@@ -312,8 +318,8 @@ function ProfileCart() {
 
     if (isErrorCart) {
         return (
-            <main className="min-h-screen flex items-center justify-center">
-                <p className="text-minimal-red font-bold">
+            <main className="min-h-screen flex items-center justify-center bg-background">
+                <p className="text-danger font-bold">
                     {cartError?.message ||
                         "Failed to load cart"}
                 </p>
@@ -328,7 +334,7 @@ function ProfileCart() {
      */
 
     return (
-        <main className="relative min-h-screen">
+        <main className="relative min-h-screen bg-background">
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
@@ -385,7 +391,6 @@ function ProfileCart() {
                         scroll-smooth
                     "
                 >
-
                     {/* Header */}
 
                     <div
@@ -398,12 +403,11 @@ function ProfileCart() {
                             pb-2
                         "
                     >
-                        <h2 className="text-3xl">
+                        <h2 className="text-3xl text-foreground">
                             Your Cart
                         </h2>
 
                         <div className="flex items-center gap-6">
-
                             {/* Total */}
 
                             {hasItems && (
@@ -413,15 +417,20 @@ function ProfileCart() {
                                             Total
                                         </span>
 
-                                        <span className="text-emerald font-bold text-xl">
-                                             
+                                        <span className="text-success font-bold text-xl">
                                             {totalAmount.toFixed(2)} DH
                                         </span>
                                     </div>
 
                                     {discountAmount > 0 && (
                                         <span className="text-xs text-muted">
-                                            You're saving   <span className="text-primary font-bold">{discountAmount.toFixed(2)} DH</span>
+                                            You're saving{" "}
+                                            <span className="text-accent font-bold">
+                                                {discountAmount.toFixed(
+                                                    2
+                                                )}{" "}
+                                                DH
+                                            </span>
                                         </span>
                                     )}
                                 </div>
@@ -447,14 +456,12 @@ function ProfileCart() {
                                         : "Select All"}
                                 </button>
                             )}
-
                         </div>
                     </div>
 
                     {/* Cart */}
 
                     {!hasItems ? (
-
                         <section
                             className="
                                 mt-10
@@ -463,16 +470,14 @@ function ProfileCart() {
                                 items-center
                                 justify-center
                                 rounded-3xl
-                                bg-chip
+                                bg-surface
                             "
                         >
                             <p className="text-muted">
                                 Your cart is empty.
                             </p>
                         </section>
-
                     ) : (
-
                         <section
                             className="
                                 mt-10
@@ -482,7 +487,6 @@ function ProfileCart() {
                                 items-start
                             "
                         >
-
                             {/* Cart items */}
 
                             <div
@@ -491,7 +495,7 @@ function ProfileCart() {
                                     min-w-0
                                     flex
                                     flex-col
-                                    bg-chip
+                                    bg-surface
                                     gap-4
                                     p-2
                                     rounded-3xl
@@ -499,9 +503,7 @@ function ProfileCart() {
                                     scrollbar-none
                                 "
                             >
-
                                 {cartItems.map((cartItem) => {
-
                                     const variant =
                                         cartItem.product_variant;
 
@@ -523,10 +525,13 @@ function ProfileCart() {
                                         getVariantPrice(cartItem);
 
                                     const discountedPrice =
-                                        getItemDiscountedPrice(cartItem);
+                                        getItemDiscountedPrice(
+                                            cartItem
+                                        );
 
                                     const hasDiscount =
-                                        originalPrice > discountedPrice;
+                                        originalPrice >
+                                        discountedPrice;
 
                                     return (
                                         <div
@@ -544,20 +549,21 @@ function ProfileCart() {
                                                 duration-300
                                                 ease-in-out
                                                 hover:shadow-sm
-                                                ${isSelected
-                                                    ? "bg-card border border-primary"
-                                                    : "bg-card"
+                                                ${
+                                                    isSelected
+                                                        ? "bg-card border border-accent"
+                                                        : "bg-card"
                                                 }
                                             `}
                                         >
-
                                             {/* Checkbox */}
 
                                             <div className="flex items-center">
-
                                                 <input
                                                     type="checkbox"
-                                                    checked={isSelected}
+                                                    checked={
+                                                        isSelected
+                                                    }
                                                     onChange={() =>
                                                         toggleItem(
                                                             variantId
@@ -567,10 +573,9 @@ function ProfileCart() {
                                                         w-4
                                                         h-4
                                                         cursor-pointer
-                                                        accent-primary
+                                                        accent-accent
                                                     "
                                                 />
-
                                             </div>
 
                                             {/* Image */}
@@ -582,12 +587,10 @@ function ProfileCart() {
                                                     overflow-hidden
                                                     h-[118px]
                                                     shrink-0
-                                                    bg-chip
+                                                    bg-surface-dark
                                                 "
                                             >
-
                                                 {media?.media_url ? (
-
                                                     <img
                                                         src={
                                                             media.media_url
@@ -604,9 +607,7 @@ function ProfileCart() {
                                                             duration-300
                                                         "
                                                     />
-
                                                 ) : (
-
                                                     <div
                                                         className="
                                                             w-full
@@ -620,9 +621,7 @@ function ProfileCart() {
                                                     >
                                                         No image
                                                     </div>
-
                                                 )}
-
                                             </div>
 
                                             {/* Product information */}
@@ -634,12 +633,11 @@ function ProfileCart() {
                                                     min-w-0
                                                 "
                                             >
-
                                                 <h3
                                                     className="
                                                         text-xl
                                                         font-bold
-                                                        text-black
+                                                        text-foreground
                                                         truncate
                                                     "
                                                 >
@@ -649,7 +647,6 @@ function ProfileCart() {
                                                 {/* Variant attributes */}
 
                                                 <div className="mt-1">
-
                                                     {variant?.attributes &&
                                                         Object.entries(
                                                             variant.attributes
@@ -658,7 +655,6 @@ function ProfileCart() {
                                                                 key,
                                                                 value,
                                                             ]) => (
-
                                                                 <div
                                                                     key={key}
                                                                     className="
@@ -668,8 +664,7 @@ function ProfileCart() {
                                                                         items-center
                                                                     "
                                                                 >
-
-                                                                    <p className="font-bold">
+                                                                    <p className="font-bold text-foreground">
                                                                         {key.toUpperCase()}:
                                                                     </p>
 
@@ -678,12 +673,9 @@ function ProfileCart() {
                                                                             value
                                                                         )}
                                                                     </p>
-
                                                                 </div>
-
                                                             )
                                                         )}
-
                                                 </div>
 
                                                 {/* Quantity */}
@@ -697,17 +689,17 @@ function ProfileCart() {
                                                         mt-auto
                                                     "
                                                 >
-                                                    <p className="font-bold">
+                                                    <p className="font-bold text-foreground">
                                                         QUANTITY:
                                                     </p>
 
                                                     <p className="text-muted font-bold">
-                                                        {cartItem.quantity}
+                                                        {
+                                                            cartItem.quantity
+                                                        }
                                                     </p>
                                                 </div>
-
                                             </div>
-
 
                                             <div
                                                 className="
@@ -719,11 +711,10 @@ function ProfileCart() {
                                                     items-end
                                                 "
                                             >
-
                                                 <button
                                                     type="button"
                                                     className="
-                                                        text-minimal-red
+                                                        text-danger
                                                         font-bold
                                                         hover:scale-[1.1]
                                                         duration-300
@@ -736,7 +727,6 @@ function ProfileCart() {
                                                         )
                                                     }
                                                 >
-
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         width="20"
@@ -746,50 +736,48 @@ function ProfileCart() {
                                                     >
                                                         <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5" />
                                                     </svg>
-
                                                 </button>
 
                                                 <div className="flex flex-col items-end gap-0.5">
                                                     {hasDiscount && (
                                                         <p className="text-xs text-muted line-through">
-                                                            
                                                             {(
                                                                 originalPrice *
                                                                 cartItem.quantity
-                                                            ).toFixed(2)} DH
-                                                        </p> 
+                                                            ).toFixed(
+                                                                2
+                                                            )}{" "}
+                                                            DH
+                                                        </p>
                                                     )}
 
-                                                    <p className="text-emerald font-bold text-xl">
-                                                        
+                                                    <p className="text-success font-bold text-xl">
                                                         {(
                                                             discountedPrice *
                                                             cartItem.quantity
-                                                        ).toFixed(2)} DH
+                                                        ).toFixed(
+                                                            2
+                                                        )}{" "}
+                                                        DH
                                                     </p>
                                                 </div>
-
                                             </div>
-
                                         </div>
                                     );
                                 })}
-
                             </div>
 
                             {/* Actions only — no totals panel */}
 
                             {hasSelectedItems && (
-
                                 <div
                                     className="
                                         shrink-0
                                         rounded-3xl
-                                        bg-chip
+                                        bg-surface
                                         p-4
                                     "
                                 >
-
                                     <button
                                         type="button"
                                         onClick={
@@ -803,11 +791,11 @@ function ProfileCart() {
                                             py-2
                                             rounded-full
                                             bg-danger
-                                            text-white
+                                            text-inverse
                                             font-bold
                                             text-sm
-                                            hover:opacity-80
-                                            transition
+                                            hover:bg-danger-solid
+                                            transition-colors
                                             cursor-pointer
                                             disabled:opacity-50
                                             disabled:cursor-not-allowed
@@ -819,19 +807,12 @@ function ProfileCart() {
                                                 ? "Clear Cart"
                                                 : "Remove Selected"}
                                     </button>
-
                                 </div>
-
                             )}
-
                         </section>
-
                     )}
-
                 </section>
-
             </section>
-
         </main>
     );
 }

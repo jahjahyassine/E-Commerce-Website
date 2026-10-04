@@ -16,7 +16,7 @@ const shippingStatusStyles = {
     NOT_SHIPPED:
         "text-warning bg-warning/10 border-warning/40",
     SHIPPED:
-        "text-primary bg-primary/10 border-primary/40",
+        "text-accent bg-accent/10 border-accent/40",
     DELIVERED:
         "text-success bg-success/10 border-success/40",
 };
@@ -25,7 +25,7 @@ const orderStatusStyles = {
     PENDING:
         "text-warning bg-warning/10 border-warning/40",
     CONFIRMED:
-        "text-primary bg-primary/10 border-primary/40",
+        "text-accent bg-accent/10 border-accent/40",
     COMPLETED:
         "text-success bg-success/10 border-success/40",
     CANCELLED:
@@ -38,7 +38,7 @@ const paymentStatusStyles = {
     PAID:
         "text-success bg-success/10 border-success/40",
     REFUNDED:
-        "text-primary bg-primary/10 border-primary/40",
+        "text-accent bg-accent/10 border-accent/40",
 };
 
 const shippingStatusOptions = [
@@ -478,7 +478,7 @@ function OrderShow() {
                                 items-center
                                 justify-center
                                 rounded-3xl
-                                bg-chip
+                                bg-surface
                             "
                         >
                             <p className="text-muted">
@@ -502,7 +502,7 @@ function OrderShow() {
                                     max-h-[600px]
                                     flex
                                     flex-col
-                                    bg-chip
+                                    bg-surface
                                     gap-4
                                     p-2
                                     rounded-3xl
@@ -560,7 +560,7 @@ function OrderShow() {
                                                     overflow-hidden
                                                     h-[118px]
                                                     shrink-0
-                                                    bg-chip
+                                                    bg-surface-dark
                                                 "
                                             >
                                                 {media?.media_url ? (
@@ -681,20 +681,20 @@ function OrderShow() {
                                                 <div className="flex flex-col items-end gap-0.5">
                                                     {hasDiscount && (
                                                         <p className="text-xs text-muted line-through">
-                                                            
                                                             {(
                                                                 originalItemPrice *
                                                                 orderItem.quantity
-                                                            ).toFixed(2)} DH
+                                                            ).toFixed(2)}{" "}
+                                                            DH
                                                         </p>
                                                     )}
 
                                                     <p className="text-success font-bold text-xl">
-                                                        
                                                         {(
                                                             paidItemPrice *
                                                             orderItem.quantity
-                                                        ).toFixed(2)} DH
+                                                        ).toFixed(2)}{" "}
+                                                        DH
                                                     </p>
                                                 </div>
                                             </div>

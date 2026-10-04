@@ -195,7 +195,7 @@ function FeaturedCategories() {
                             h-[460px]
                             w-full
                             rounded-2xl
-                            bg-white/5
+                            bg-card/50
                             animate-pulse
                         "
                     />
@@ -450,12 +450,12 @@ function FeaturedCategories() {
                         items-center
                         gap-3
                         rounded-full
-                        bg-[#567C8D]
+                        bg-accent
                         px-7
                         py-3.5
                         text-sm
                         font-semibold
-                        text-white
+                        text-inverse
                         transition-all
                         duration-300
                         hover:scale-[1.03]

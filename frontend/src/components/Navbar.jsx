@@ -490,13 +490,13 @@ function Navbar() {
                         to="/cart"
                         className="
         relative
-        bg-background-secondary
+        bg-card
         p-2
         rounded-full
         border
         border-border-soft
         hover:border-border
-        hover:bg-foreground/5
+        hover:bg-card-hover
         transition-colors
         duration-300
     "
@@ -548,14 +548,14 @@ function Navbar() {
                         <Link
                             to="/profile"
                             className="
-                                bg-background-secondary
+                                bg-card
                                 w-10
                                 h-10
                                 rounded-full
                                 border
                                 border-border-soft
                                 hover:border-border
-                                hover:bg-foreground/5
+                                hover:bg-card-hover
                                 duration-300
                             "
                             aria-label="Account"
@@ -585,13 +585,13 @@ function Navbar() {
                         <Link
                             to="/login"
                             className="
-                                bg-background-secondary
+                                bg-card
                                 p-2
                                 rounded-full
                                 border
                                 border-border-soft
                                 hover:border-border
-                                hover:bg-foreground/5
+                                hover:bg-card-hover
                                 duration-300
                             "
                             aria-label="Account"

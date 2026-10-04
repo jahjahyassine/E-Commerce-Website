@@ -7,6 +7,13 @@ import {
     MapPin,
 } from "lucide-react";
 
+// Shared color classes
+const LINK =
+    "text-muted hover:text-accent transition-colors duration-200";
+
+const SOCIAL =
+    "w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted hover:text-accent hover:border-accent/50 transition-all";
+
 function Footer() {
     const BASE_URL =
         import.meta.env.VITE_BASE_URL || "http://localhost:8000";
@@ -83,7 +90,7 @@ function Footer() {
                     label: "All Categories",
                     action: () => navigate("/products"),
                 },
-            ]
+            ],
         },
 
         {
@@ -106,16 +113,16 @@ function Footer() {
     ];
 
     return (
-        <footer className="w-full bg-background-dark text-inverse px-4 sm:px-6 lg:px-10 py-12 sm:py-16">
+        <footer className="w-full bg-background-dark text-foreground px-4 sm:px-6 lg:px-10 py-12 sm:py-16">
             <div className="max-w-7xl mx-auto">
 
                 {/* Header */}
                 <div className="text-center mb-10">
-                    <p className="text-3xl sm:text-4xl lg:text-5xl font-cormorant font-bold">
+                    <p className="text-3xl sm:text-4xl lg:text-5xl font-cormorant font-bold text-foreground">
                         Technology, chosen smarter.
                     </p>
 
-                    <p className="mt-4 max-w-3xl mx-auto text-inverse/70 text-base sm:text-lg">
+                    <p className="mt-4 max-w-3xl mx-auto text-muted text-base sm:text-lg">
                         Discover premium technology from the world's leading
                         brands, get personalized recommendations, and find the
                         perfect products for your needs.
@@ -123,7 +130,7 @@ function Footer() {
                 </div>
 
                 {/* Divider */}
-                <div className="border-t border-inverse/15 mb-10" />
+                <div className="border-t border-border-soft mb-10" />
 
                 {/* Columns */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-10 lg:gap-12">
@@ -131,7 +138,7 @@ function Footer() {
                     {/* Shop / Categories / Account */}
                     {columns.map((column) => (
                         <div key={column.title}>
-                            <h3 className="text-inverse text-base sm:text-lg font-semibold mb-4">
+                            <h3 className="text-foreground text-base sm:text-lg font-semibold mb-4">
                                 {column.title}
                             </h3>
 
@@ -141,15 +148,7 @@ function Footer() {
                                         <button
                                             type="button"
                                             onClick={link.action}
-                                            className="
-                                                text-inverse/65
-                                                hover:text-inverse
-                                                text-md
-                                                sm:text-base
-                                                transition-colors
-                                                duration-200
-                                                text-left
-                                            "
+                                            className={`${LINK} text-base text-left`}
                                         >
                                             {link.label}
                                         </button>
@@ -161,7 +160,7 @@ function Footer() {
 
                     {/* Contact */}
                     <div>
-                        <h3 className="text-inverse text-base sm:text-lg font-semibold mb-4">
+                        <h3 className="text-foreground text-base sm:text-lg font-semibold mb-4">
                             Contact Us
                         </h3>
 
@@ -170,15 +169,15 @@ function Footer() {
                             {/* Phone */}
                             <a
                                 href="tel:+212600000000"
-                                className="flex items-start gap-3 text-inverse/65 hover:text-inverse transition-colors"
+                                className={`flex items-center  gap-3 ${LINK}`}
                             >
                                 <Phone
                                     size={19}
-                                    className="mt-0.5 shrink-0"
+                                    className="mt-0.5 shrink-0 text-accent"
                                 />
 
                                 <div>
-                                    <p className="text-xs text-inverse/40 mb-0.5">
+                                    <p className="text-xs text-subtle mb-0.5">
                                         Phone
                                     </p>
 
@@ -191,15 +190,15 @@ function Footer() {
                             {/* Email */}
                             <a
                                 href="mailto:contact@bytestore.ma"
-                                className="flex items-start gap-3 text-inverse/65 hover:text-inverse transition-colors"
+                                className={`flex items-center gap-3 ${LINK}`}
                             >
                                 <Mail
                                     size={19}
-                                    className="mt-0.5 shrink-0"
+                                    className="mt-0.5 shrink-0 text-accent"
                                 />
 
                                 <div>
-                                    <p className="text-xs text-inverse/40 mb-0.5">
+                                    <p className="text-xs text-subtle mb-0.5">
                                         Email
                                     </p>
 
@@ -210,14 +209,14 @@ function Footer() {
                             </a>
 
                             {/* Address */}
-                            <div className="flex items-start gap-3 text-inverse/65">
+                            <div className="flex items-center gap-3 text-muted">
                                 <MapPin
                                     size={19}
-                                    className="mt-0.5 shrink-0"
+                                    className="mt-0.5 shrink-0 text-accent"
                                 />
 
                                 <div>
-                                    <p className="text-xs text-inverse/40 mb-0.5">
+                                    <p className="text-xs text-subtle mb-0.5">
                                         Address
                                     </p>
 
@@ -229,7 +228,7 @@ function Footer() {
 
                             {/* Social */}
                             <div className="pt-2">
-                                <p className="text-xs text-inverse/40 mb-3">
+                                <p className="text-xs text-subtle mb-3">
                                     Follow us
                                 </p>
 
@@ -239,16 +238,7 @@ function Footer() {
                                     <a
                                         href="#"
                                         aria-label="Instagram"
-                                        className="
-                                            w-10 h-10
-                                            rounded-full
-                                            border border-inverse/15
-                                            flex items-center justify-center
-                                            text-inverse/60
-                                            hover:text-inverse
-                                            hover:border-inverse/40
-                                            transition-all
-                                        "
+                                        className={SOCIAL}
                                     >
                                         <svg
                                             viewBox="0 0 24 24"
@@ -283,16 +273,7 @@ function Footer() {
                                     <a
                                         href="#"
                                         aria-label="Facebook"
-                                        className="
-                                            w-10 h-10
-                                            rounded-full
-                                            border border-inverse/15
-                                            flex items-center justify-center
-                                            text-inverse/60
-                                            hover:text-inverse
-                                            hover:border-inverse/40
-                                            transition-all
-                                        "
+                                        className={SOCIAL}
                                     >
                                         <svg
                                             viewBox="0 0 24 24"
@@ -310,7 +291,7 @@ function Footer() {
                 </div>
 
                 {/* Bottom */}
-                <div className="mt-12 pt-6 border-t border-inverse/15 flex flex-col sm:flex-row justify-between gap-3 text-sm text-inverse/50">
+                <div className="mt-12 pt-6 border-t border-border-soft flex flex-col sm:flex-row justify-between gap-3 text-sm text-subtle">
                     <p>
                         © {new Date().getFullYear()} ByteStore. All rights
                         reserved.

@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
+
 import DotField from "../../components/animation/DotField";
 import Navbar from "../../components/Navbar";
 import getCurrentUser from "../../hooks/CurrentUser";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import {
+    useMutation,
+    useQuery,
+    useQueryClient,
+} from "@tanstack/react-query";
+
 import { useNavigate } from "react-router-dom";
 
 const ADDRESS_STORAGE_KEY = "checkout_shipping_details";
@@ -42,7 +49,9 @@ function CheckoutPage() {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.detail || "Failed to Retrieve Cart");
+            throw new Error(
+                data.detail || "Failed to Retrieve Cart"
+            );
         }
 
         return data;
@@ -84,7 +93,8 @@ function CheckoutPage() {
     const [region, setRegion] = useState("");
     const [regionDefault, setRegionDefault] = useState(false);
     const [postalCode, setPostalCode] = useState("");
-    const [postalCodeDefault, setPostalCodeDefault] = useState(false);
+    const [postalCodeDefault, setPostalCodeDefault] =
+        useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
     const infoSet =
@@ -94,37 +104,57 @@ function CheckoutPage() {
         city !== "" &&
         region !== "";
 
-    // --- price/discount helpers (mirrors the live pricing logic used by /orders) -
+    // --- Price / discount helpers ---
     const getVariantPrice = (item) =>
-        Number(item.product_variant?.price ?? item.price ?? 0);
+        Number(
+            item.product_variant?.price ??
+                item.price ??
+                0
+        );
 
     const getVariantDiscount = (item) =>
         Math.min(
-            Math.max(Number(item.product_variant?.discount_percentage ?? 0), 0),
+            Math.max(
+                Number(
+                    item.product_variant
+                        ?.discount_percentage ?? 0
+                ),
+                0
+            ),
             100
         );
 
     const getItemDiscountedPrice = (item) => {
         const price = getVariantPrice(item);
         const discount = getVariantDiscount(item);
+
         return price * (1 - discount / 100);
     };
 
     const originalSubtotalAmount =
         cart?.items?.reduce((total, item) => {
-            return total + item.quantity * getVariantPrice(item);
+            return (
+                total +
+                item.quantity * getVariantPrice(item)
+            );
         }, 0) ?? 0;
 
     const subtotalAmount =
         cart?.items?.reduce((total, item) => {
-            return total + item.quantity * getItemDiscountedPrice(item);
+            return (
+                total +
+                item.quantity *
+                    getItemDiscountedPrice(item)
+            );
         }, 0) ?? 0;
 
-    const discountAmount = originalSubtotalAmount - subtotalAmount;
+    const discountAmount =
+        originalSubtotalAmount - subtotalAmount;
 
     const deliveryFee = subtotalAmount > 0 ? 10 : 0;
     const totalAmount = subtotalAmount + deliveryFee;
 
+    // --- Update user information ---
     const updateUserInfosFunction = async (new_infos) => {
         const response = await fetch(`${BASE_URL}/profile`, {
             method: "PATCH",
@@ -138,7 +168,9 @@ function CheckoutPage() {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.detail || "Failed to update Infos");
+            throw new Error(
+                data.detail || "Failed to update Infos"
+            );
         }
 
         return data;
@@ -149,6 +181,7 @@ function CheckoutPage() {
         error: errorPatch,
     } = useMutation({
         mutationFn: updateUserInfosFunction,
+
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ["user"],
@@ -156,7 +189,7 @@ function CheckoutPage() {
         },
     });
 
-    // --- load account info + address (localStorage takes priority over backend) -
+    // --- Load account info + address ---
     useEffect(() => {
         if (currentUser) {
             const stored = getStoredAddressInfo();
@@ -166,10 +199,29 @@ function CheckoutPage() {
             setEmail(currentUser.email || "");
             setPhone(currentUser.phone || "");
 
-            setAddress(stored.address ?? currentUser.address ?? "");
-            setCity(stored.city ?? currentUser.city ?? "");
-            setRegion(stored.region ?? currentUser.region ?? "");
-            setPostalCode(stored.postal_code ?? currentUser.postal_code ?? "");
+            setAddress(
+                stored.address ??
+                    currentUser.address ??
+                    ""
+            );
+
+            setCity(
+                stored.city ??
+                    currentUser.city ??
+                    ""
+            );
+
+            setRegion(
+                stored.region ??
+                    currentUser.region ??
+                    ""
+            );
+
+            setPostalCode(
+                stored.postal_code ??
+                    currentUser.postal_code ??
+                    ""
+            );
         }
     }, [currentUser]);
 
@@ -194,15 +246,24 @@ function CheckoutPage() {
             changedFields.phone = phone;
         }
 
-        if (address !== currentUser.address && addressDefault) {
+        if (
+            address !== currentUser.address &&
+            addressDefault
+        ) {
             changedFields.address = address;
         }
 
-        if (city !== currentUser.city && cityDefault) {
+        if (
+            city !== currentUser.city &&
+            cityDefault
+        ) {
             changedFields.city = city;
         }
 
-        if (region !== currentUser.region && regionDefault) {
+        if (
+            region !== currentUser.region &&
+            regionDefault
+        ) {
             changedFields.region = region;
         }
 
@@ -213,9 +274,10 @@ function CheckoutPage() {
             changedFields.postal_code = postalCode;
         }
 
-        // Persist whichever address fields are NOT marked "default" to
-        // localStorage, and drop any that are now backend defaults.
-        const storedUpdate = { ...getStoredAddressInfo() };
+        // Persist non-default address fields locally
+        const storedUpdate = {
+            ...getStoredAddressInfo(),
+        };
 
         if (addressDefault) {
             delete storedUpdate.address;
@@ -262,13 +324,35 @@ function CheckoutPage() {
         setFullName(currentUser.full_name || "");
         setEmail(currentUser.email || "");
         setPhone(currentUser.phone || "");
-        setAddress(stored.address ?? currentUser.address ?? "");
-        setCity(stored.city ?? currentUser.city ?? "");
-        setRegion(stored.region ?? currentUser.region ?? "");
-        setPostalCode(stored.postal_code ?? currentUser.postal_code ?? "");
+
+        setAddress(
+            stored.address ??
+                currentUser.address ??
+                ""
+        );
+
+        setCity(
+            stored.city ??
+                currentUser.city ??
+                ""
+        );
+
+        setRegion(
+            stored.region ??
+                currentUser.region ??
+                ""
+        );
+
+        setPostalCode(
+            stored.postal_code ??
+                currentUser.postal_code ??
+                ""
+        );
+
         setIsEditing(false);
     };
 
+    // --- Create order ---
     const createOrder = async (orderData) => {
         const response = await fetch(`${BASE_URL}/orders`, {
             method: "POST",
@@ -282,7 +366,9 @@ function CheckoutPage() {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.detail || "Failed to Place Order");
+            throw new Error(
+                data.detail || "Failed to Place Order"
+            );
         }
 
         return data;
@@ -294,12 +380,15 @@ function CheckoutPage() {
         error: orderError,
     } = useMutation({
         mutationFn: createOrder,
+
         onSuccess: (order) => {
             queryClient.invalidateQueries({
                 queryKey: ["cart"],
             });
 
-            navigate(`/order-confirmation/${order.id}`);
+            navigate(
+                `/order-confirmation/${order.id}`
+            );
         },
     });
 
@@ -335,14 +424,16 @@ function CheckoutPage() {
                         cursorRadius={420}
                         cursorForce={0.08}
                         bulgeOnly
-                        gradientFrom="#6e6e7380"
-                        gradientTo="#d2d2d760"
-                        glowColor="#1d1d1f20"
+                        gradientFrom="#A8AEC040"
+                        gradientTo="#6FA7A330"
+                        glowColor="#6FA7A320"
                     />
                 </div>
 
                 <section className="relative z-10 min-h-screen flex items-center justify-center pt-20">
-                    <p className="text-xl font-bold">Loading...</p>
+                    <p className="text-xl font-bold">
+                        Loading...
+                    </p>
                 </section>
             </main>
         );
@@ -368,9 +459,9 @@ function CheckoutPage() {
                     cursorRadius={420}
                     cursorForce={0.08}
                     bulgeOnly
-                    gradientFrom="#6e6e7380"
-                    gradientTo="#d2d2d760"
-                    glowColor="#1d1d1f20"
+                    gradientFrom="#A8AEC040"
+                    gradientTo="#6FA7A330"
+                    glowColor="#6FA7A320"
                 />
             </div>
 
@@ -405,7 +496,7 @@ function CheckoutPage() {
                 </section>
 
                 <section className="flex gap-5">
-                    <section className="h-full flex flex-col gap-2 flex-1 bg-chip rounded-3xl p-3">
+                    <section className="h-full flex flex-col gap-2 flex-1 bg-card-dark rounded-3xl p-3">
                         <section className="m-auto border-b border-border w-1/2">
                             <h3 className="text-xl text-center font-bold tracking-wide pb-2">
                                 Delivery Information
@@ -413,294 +504,334 @@ function CheckoutPage() {
                         </section>
 
                         <section className="w-full h-full flex flex-col gap-4">
-<form
-    onSubmit={handleForm}
-    className="mt-12 flex flex-col gap-4"
->
-    {/* Full Name + Phone */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <form
+                                onSubmit={handleForm}
+                                className="mt-12 flex flex-col gap-4"
+                            >
+                                {/* Full Name + Phone */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex flex-col">
+                                        <label
+                                            htmlFor="fullName"
+                                            className="text-sm font-bold text-muted px-1"
+                                        >
+                                            Full Name
+                                        </label>
 
-        <div className="flex flex-col">
-            <label
-                htmlFor="fullName"
-                className="text-sm font-bold text-muted px-1"
-            >
-                Full Name
-            </label>
+                                        <input
+                                            id="fullName"
+                                            type="text"
+                                            placeholder="Enter your Name"
+                                            required
+                                            value={fullName}
+                                            disabled={!isEditing}
+                                            onChange={(e) =>
+                                                setFullName(
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                        />
+                                    </div>
 
-            <input
-                id="fullName"
-                type="text"
-                placeholder="Enter your Name"
-                required
-                value={fullName}
-                disabled={!isEditing}
-                onChange={(e) => setFullName(e.target.value)}
-                className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-            />
-        </div>
+                                    <div className="flex flex-col">
+                                        <label
+                                            htmlFor="phone"
+                                            className="text-sm font-bold text-muted px-1"
+                                        >
+                                            Phone
+                                        </label>
 
-        <div className="flex flex-col">
-            <label
-                htmlFor="phone"
-                className="text-sm font-bold text-muted px-1"
-            >
-                Phone
-            </label>
+                                        <input
+                                            id="phone"
+                                            type="text"
+                                            required
+                                            placeholder="Enter your Phone number"
+                                            value={phone}
+                                            disabled={!isEditing}
+                                            onChange={(e) =>
+                                                setPhone(
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                        />
+                                    </div>
+                                </div>
 
-            <input
-                id="phone"
-                type="text"
-                required
-                placeholder="Enter your Phone number"
-                value={phone}
-                disabled={!isEditing}
-                onChange={(e) => setPhone(e.target.value)}
-                className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-            />
-        </div>
+                                {/* Shipping Address */}
+                                <div className="flex flex-col">
+                                    <label
+                                        htmlFor="address"
+                                        className="text-sm font-bold text-muted px-1"
+                                    >
+                                        Shipping Address
+                                    </label>
 
-    </div>
+                                    <input
+                                        id="address"
+                                        type="text"
+                                        required
+                                        placeholder="Enter your Shipping Address"
+                                        value={address}
+                                        disabled={!isEditing}
+                                        onChange={(e) =>
+                                            setAddress(
+                                                e.target.value
+                                            )
+                                        }
+                                        className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                    />
 
+                                    <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
+                                        <input
+                                            id="addressDefault"
+                                            type="checkbox"
+                                            disabled={!isEditing}
+                                            checked={addressDefault}
+                                            onChange={(e) =>
+                                                setAddressDefault(
+                                                    e.target.checked
+                                                )
+                                            }
+                                            className="w-4 h-4 rounded border-border-soft accent-accent cursor-pointer"
+                                        />
 
-    {/* Shipping Address */}
-    <div className="flex flex-col">
-        <label
-            htmlFor="address"
-            className="text-sm font-bold text-muted px-1"
-        >
-            Shipping Address
-        </label>
+                                        <label
+                                            htmlFor="addressDefault"
+                                            className="text-muted cursor-pointer select-none"
+                                        >
+                                            Set as Default
+                                        </label>
+                                    </div>
+                                </div>
 
-        <input
-            id="address"
-            type="text"
-            required
-            placeholder="Enter your Shipping Address"
-            value={address}
-            disabled={!isEditing}
-            onChange={(e) => setAddress(e.target.value)}
-            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-        />
+                                {/* City + Region + Postal Code */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    {/* City */}
+                                    <div className="flex flex-col">
+                                        <label
+                                            htmlFor="city"
+                                            className="text-sm font-bold text-muted px-1"
+                                        >
+                                            City
+                                        </label>
 
-        <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
-            <input
-                id="addressDefault"
-                type="checkbox"
-                disabled={!isEditing}
-                checked={addressDefault}
-                onChange={(e) => setAddressDefault(e.target.checked)}
-                className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
-            />
+                                        <input
+                                            id="city"
+                                            type="text"
+                                            required
+                                            placeholder="Enter Shipping City"
+                                            value={city}
+                                            disabled={!isEditing}
+                                            onChange={(e) =>
+                                                setCity(
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                        />
 
-            <label
-                htmlFor="addressDefault"
-                className="text-muted cursor-pointer select-none"
-            >
-                Set as Default
-            </label>
-        </div>
-    </div>
+                                        <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
+                                            <input
+                                                id="cityDefault"
+                                                type="checkbox"
+                                                disabled={!isEditing}
+                                                checked={cityDefault}
+                                                onChange={(e) =>
+                                                    setCityDefault(
+                                                        e.target
+                                                            .checked
+                                                    )
+                                                }
+                                                className="w-4 h-4 rounded border-border-soft accent-accent cursor-pointer"
+                                            />
 
+                                            <label
+                                                htmlFor="cityDefault"
+                                                className="text-muted cursor-pointer select-none"
+                                            >
+                                                Set as Default
+                                            </label>
+                                        </div>
+                                    </div>
 
-    {/* City + Region + Postal Code */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    {/* Region */}
+                                    <div className="flex flex-col">
+                                        <label
+                                            htmlFor="region"
+                                            className="text-sm font-bold text-muted px-1"
+                                        >
+                                            Region
+                                        </label>
 
-        {/* City */}
-        <div className="flex flex-col">
-            <label
-                htmlFor="city"
-                className="text-sm font-bold text-muted px-1"
-            >
-                City
-            </label>
+                                        <input
+                                            id="region"
+                                            type="text"
+                                            required
+                                            placeholder="Enter Shipping Region"
+                                            value={region}
+                                            disabled={!isEditing}
+                                            onChange={(e) =>
+                                                setRegion(
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                        />
 
-            <input
-                id="city"
-                type="text"
-                required
-                placeholder="Enter Shipping City"
-                value={city}
-                disabled={!isEditing}
-                onChange={(e) => setCity(e.target.value)}
-                className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-            />
+                                        <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
+                                            <input
+                                                id="regionDefault"
+                                                type="checkbox"
+                                                disabled={!isEditing}
+                                                checked={regionDefault}
+                                                onChange={(e) =>
+                                                    setRegionDefault(
+                                                        e.target
+                                                            .checked
+                                                    )
+                                                }
+                                                className="w-4 h-4 rounded border-border-soft accent-accent cursor-pointer"
+                                            />
 
-            <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
-                <input
-                    id="cityDefault"
-                    type="checkbox"
-                    disabled={!isEditing}
-                    checked={cityDefault}
-                    onChange={(e) => setCityDefault(e.target.checked)}
-                    className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
-                />
+                                            <label
+                                                htmlFor="regionDefault"
+                                                className="text-muted cursor-pointer select-none"
+                                            >
+                                                Set as Default
+                                            </label>
+                                        </div>
+                                    </div>
 
-                <label
-                    htmlFor="cityDefault"
-                    className="text-muted cursor-pointer select-none"
-                >
-                    Set as Default
-                </label>
-            </div>
-        </div>
+                                    {/* Postal Code */}
+                                    <div className="flex flex-col">
+                                        <label
+                                            htmlFor="postalCode"
+                                            className="text-sm font-bold text-muted px-1"
+                                        >
+                                            Postal Code
+                                        </label>
 
+                                        <input
+                                            id="postalCode"
+                                            type="text"
+                                            required
+                                            placeholder="Enter Postal Code"
+                                            value={postalCode}
+                                            disabled={!isEditing}
+                                            onChange={(e) =>
+                                                setPostalCode(
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
+                                        />
 
-        {/* Region */}
-        <div className="flex flex-col">
-            <label
-                htmlFor="region"
-                className="text-sm font-bold text-muted px-1"
-            >
-                Region
-            </label>
+                                        <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
+                                            <input
+                                                id="postalCodeDefault"
+                                                type="checkbox"
+                                                disabled={!isEditing}
+                                                checked={
+                                                    postalCodeDefault
+                                                }
+                                                onChange={(e) =>
+                                                    setPostalCodeDefault(
+                                                        e.target
+                                                            .checked
+                                                    )
+                                                }
+                                                className="w-4 h-4 rounded border-border-soft accent-accent cursor-pointer"
+                                            />
 
-            <input
-                id="region"
-                type="text"
-                required
-                placeholder="Enter Shipping Region"
-                value={region}
-                disabled={!isEditing}
-                onChange={(e) => setRegion(e.target.value)}
-                className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-            />
+                                            <label
+                                                htmlFor="postalCodeDefault"
+                                                className="text-muted cursor-pointer select-none"
+                                            >
+                                                Set as Default
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
 
-            <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
-                <input
-                    id="regionDefault"
-                    type="checkbox"
-                    disabled={!isEditing}
-                    checked={regionDefault}
-                    onChange={(e) => setRegionDefault(e.target.checked)}
-                    className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
-                />
+                                {/* Payment Method */}
+                                <div className="flex flex-col gap-3">
+                                    <p className="text-sm font-bold text-muted px-1">
+                                        Payment Method
+                                    </p>
 
-                <label
-                    htmlFor="regionDefault"
-                    className="text-muted cursor-pointer select-none"
-                >
-                    Set as Default
-                </label>
-            </div>
-        </div>
+                                    <div className="flex items-center justify-between p-3 rounded-xl border border-border-soft bg-card">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-lg bg-card-dark flex items-center justify-center">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="18"
+                                                    height="18"
+                                                    fill="currentColor"
+                                                    viewBox="0 0 16 16"
+                                                >
+                                                    <path d="M3 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H3zm0 1h10a1 1 0 0 1 1 1v2H2V3a1 1 0 0 1 1-1z" />
+                                                    <path d="M2 6h12v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6z" />
+                                                </svg>
+                                            </div>
 
+                                            <div className="flex flex-col">
+                                                <span className="font-semibold text-foreground">
+                                                    Cash on delivery
+                                                </span>
 
-        {/* Postal Code */}
-        <div className="flex flex-col">
-            <label
-                htmlFor="postalCode"
-                className="text-sm font-bold text-muted px-1"
-            >
-                Postal Code
-            </label>
+                                                <span className="text-sm text-muted">
+                                                    Pay when your order arrives
+                                                </span>
+                                            </div>
+                                        </div>
 
-            <input
-                id="postalCode"
-                type="text"
-                required
-                placeholder="Enter Postal Code"
-                value={postalCode}
-                disabled={!isEditing}
-                onChange={(e) => setPostalCode(e.target.value)}
-                className="border border-border-soft rounded-xl bg-card text-lg text-foreground font-semibold px-2 py-1 focus:outline-0 hover:border-border transition-all duration-300 ease-in-out placeholder:text-base"
-            />
+                                        <span className="text-xs font-semibold text-muted bg-card-dark px-2 py-1 rounded-lg">
+                                            COD
+                                        </span>
+                                    </div>
+                                </div>
 
-            <div className="flex items-center justify-end gap-2 mt-1 text-sm font-semibold">
-                <input
-                    id="postalCodeDefault"
-                    type="checkbox"
-                    disabled={!isEditing}
-                    checked={postalCodeDefault}
-                    onChange={(e) => setPostalCodeDefault(e.target.checked)}
-                    className="w-4 h-4 rounded border-border-soft accent-primary cursor-pointer"
-                />
+                                {/* Buttons */}
+                                <div className="flex justify-end items-center gap-2">
+                                    {isEditing && (
+                                        <button
+                                            type="button"
+                                            onClick={handleCancel}
+                                            className="px-5 py-2 rounded-xl bg-card text-muted border border-border-soft hover:bg-card-dark duration-300 ease-in-out cursor-pointer shadow-inner text-lg font-bold"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
 
-                <label
-                    htmlFor="postalCodeDefault"
-                    className="text-muted cursor-pointer select-none"
-                >
-                    Set as Default
-                </label>
-            </div>
-        </div>
-
-    </div>
-
-
-    {/* Payment Method */}
-    <div className="flex flex-col gap-3">
-        <p className="text-sm font-bold text-muted px-1">
-            Payment Method
-        </p>
-
-        <div className="flex items-center justify-between p-3 rounded-xl border border-border-soft bg-card">
-            <div className="flex items-center gap-3">
-
-                <div className="w-9 h-9 rounded-lg bg-chip flex items-center justify-center">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        fill="currentColor"
-                        viewBox="0 0 16 16"
-                    >
-                        <path d="M3 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H3zm0 1h10a1 1 0 0 1 1 1v2H2V3a1 1 0 0 1 1-1z" />
-                        <path d="M2 6h12v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6z" />
-                    </svg>
-                </div>
-
-                <div className="flex flex-col">
-                    <span className="font-semibold text-foreground">
-                        Cash on delivery
-                    </span>
-
-                    <span className="text-sm text-muted">
-                        Pay when your order arrives
-                    </span>
-                </div>
-
-            </div>
-
-            <span className="text-xs font-semibold text-muted bg-chip px-2 py-1 rounded-lg">
-                COD
-            </span>
-        </div>
-    </div>
-
-
-    {/* Buttons */}
-    <div className="flex justify-end items-center gap-2">
-
-        {isEditing && (
-            <button
-                type="button"
-                onClick={handleCancel}
-                className="px-5 py-2 rounded-xl bg-card text-muted border border-border-soft hover:bg-chip duration-300 ease-in-out cursor-pointer shadow-inner text-lg font-bold"
-            >
-                Cancel
-            </button>
-        )}
-
-        <button
-            type={isEditing ? "submit" : "button"}
-            onClick={
-                !isEditing
-                    ? () => setIsEditing(true)
-                    : undefined
-            }
-            className="px-12 py-2 rounded-xl bg-primary hover:bg-primary-hover duration-300 ease-in-out cursor-pointer shadow-inner text-inverse text-lg font-bold"
-        >
-            {isEditing ? "Save" : "Edit"}
-        </button>
-
-    </div>
-</form>
-
+                                    <button
+                                        type={
+                                            isEditing
+                                                ? "submit"
+                                                : "button"
+                                        }
+                                        onClick={
+                                            !isEditing
+                                                ? () =>
+                                                      setIsEditing(
+                                                          true
+                                                      )
+                                                : undefined
+                                        }
+                                        className="px-12 py-2 rounded-xl bg-accent hover:bg-accent-hover duration-300 ease-in-out cursor-pointer shadow-inner text-inverse text-lg font-bold"
+                                    >
+                                        {isEditing
+                                            ? "Save"
+                                            : "Edit"}
+                                    </button>
+                                </div>
+                            </form>
                         </section>
                     </section>
 
-                    <section className="bg-chip p-2 h-fit w-[20vw] rounded-3xl">
+                    {/* Order Summary */}
+                    <section className="bg-card-dark p-2 h-fit w-[20vw] rounded-3xl">
                         <div className="bg-card p-4 flex gap-7 flex-col rounded-2xl">
                             <h3 className="text-xl font-bold">
                                 Order Summary
@@ -713,7 +844,10 @@ function CheckoutPage() {
                                     </p>
 
                                     <p className="font-bold">
-                                        {originalSubtotalAmount.toFixed(2)} DH
+                                        {originalSubtotalAmount.toFixed(
+                                            2
+                                        )}{" "}
+                                        DH
                                     </p>
                                 </div>
 
@@ -723,8 +857,12 @@ function CheckoutPage() {
                                             Discount
                                         </p>
 
-                                        <p className="font-bold text-red-500">
-                                            -{discountAmount.toFixed(2)} DH
+                                        <p className="font-bold text-danger">
+                                            -
+                                            {discountAmount.toFixed(
+                                                2
+                                            )}{" "}
+                                            DH
                                         </p>
                                     </div>
                                 )}
@@ -735,7 +873,8 @@ function CheckoutPage() {
                                     </p>
 
                                     <p className="font-bold">
-                                        {deliveryFee.toFixed(2)} DH
+                                        {deliveryFee.toFixed(2)}{" "}
+                                        DH
                                     </p>
                                 </div>
                             </div>
@@ -746,24 +885,25 @@ function CheckoutPage() {
                                 </p>
 
                                 <p className="text-lg font-bold">
-                                    {totalAmount.toFixed(2)} DH
+                                    {totalAmount.toFixed(2)}{" "}
+                                    DH
                                 </p>
                             </div>
 
                             {orderError && (
-                                <p className="text-sm text-red-500 font-semibold">
+                                <p className="text-sm text-danger font-semibold">
                                     {orderError.message}
                                 </p>
                             )}
 
                             {errorPatch && (
-                                <p className="text-sm text-red-500 font-semibold">
+                                <p className="text-sm text-danger font-semibold">
                                     {errorPatch.message}
                                 </p>
                             )}
 
                             <button
-                                className="flex bg-primary text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-primary-hover duration-300 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex bg-accent text-inverse p-2 justify-center rounded-lg items-center gap-2 hover:bg-accent-hover duration-300 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled={
                                     !infoSet ||
                                     isPlacingOrder ||
@@ -787,7 +927,7 @@ function CheckoutPage() {
                                 >
                                     <path
                                         fillRule="evenodd"
-                                        d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"
+                                        d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"
                                     />
                                 </svg>
                             </button>

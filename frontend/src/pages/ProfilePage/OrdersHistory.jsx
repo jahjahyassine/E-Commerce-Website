@@ -58,7 +58,7 @@ function OrdersHistory() {
 
     // Compares the variant's current price to what was actually paid on the
     // order line. Since OrderItem only stores the final (already-discounted)
-    // price, this reflects the variant's *current* discount, not necessarily
+    // price, this reflects the variant's current discount, not necessarily
     // the one applied at the time of purchase.
     const getOriginalItemPrice = (item) =>
         Number(item.product_variant?.price ?? item.price ?? 0);
@@ -70,7 +70,7 @@ function OrdersHistory() {
             "text-warning bg-warning/10 border-warning/40",
 
         SHIPPED:
-            "text-primary bg-primary/10 border-primary/40",
+            "text-accent bg-accent/10 border-accent/40",
 
         DELIVERED:
             "text-success bg-success/10 border-success/40",
@@ -78,7 +78,7 @@ function OrdersHistory() {
 
     if (userLoading || ordersLoading) {
         return (
-            <main className="min-h-screen w-full flex items-center justify-center font-sans">
+            <main className="min-h-screen w-full flex items-center justify-center font-sans bg-background">
                 <p className="text-muted text-lg">
                     Loading your Orders...
                 </p>
@@ -88,9 +88,9 @@ function OrdersHistory() {
 
     if (ordersError) {
         return (
-            <main className="min-h-screen w-full flex items-center justify-center font-sans">
+            <main className="min-h-screen w-full flex items-center justify-center font-sans bg-background">
                 <div className="text-center">
-                    <p className="text-minimal-red text-lg mb-4">
+                    <p className="text-danger text-lg mb-4">
                         Failed to load your orders.
                     </p>
 
@@ -102,12 +102,12 @@ function OrdersHistory() {
                         className="
                             px-5 py-2
                             rounded-xl
-                            bg-primary
+                            bg-accent
                             text-inverse
                             font-semibold
                             cursor-pointer
-                            hover:opacity-90
-                            transition-opacity
+                            hover:bg-accent-hover
+                            transition-colors
                         "
                     >
                         Try Again
@@ -118,7 +118,7 @@ function OrdersHistory() {
     }
 
     return (
-        <main className="relative min-h-screen">
+        <main className="relative min-h-screen bg-background">
             <header className="fixed top-0 left-0 w-full z-50">
                 <Navbar />
             </header>
@@ -175,7 +175,7 @@ function OrdersHistory() {
                         scroll-smooth
                     "
                 >
-                    <h2 className="text-3xl border-b border-border pb-2">
+                    <h2 className="text-3xl border-b border-border pb-2 text-foreground">
                         Your Orders
                     </h2>
 
@@ -184,7 +184,7 @@ function OrdersHistory() {
                             className="
                                 mt-6
                                 p-10
-                                bg-chip
+                                bg-surface
                                 rounded-xl
                                 border
                                 border-border
@@ -205,19 +205,28 @@ function OrdersHistory() {
                                     px-5
                                     py-2
                                     rounded-xl
-                                    bg-primary
+                                    bg-accent
                                     text-inverse
                                     font-semibold
                                     cursor-pointer
-                                    hover:opacity-90
-                                    transition-opacity
+                                    hover:bg-accent-hover
+                                    transition-colors
                                 "
                             >
                                 Browse Products
                             </button>
                         </div>
                     ) : (
-                        <div className="mt-6 flex flex-col gap-5 bg-chip p-2 rounded-xl"
+                        <div
+                            className="
+                                mt-6
+                                flex
+                                flex-col
+                                gap-5
+                                bg-surface
+                                p-2
+                                rounded-xl
+                            "
                         >
                             {orders.map((order) => (
                                 <Link
@@ -243,7 +252,7 @@ function OrdersHistory() {
                                                         Order ID:
                                                     </p>
 
-                                                    <p className="font-bold">
+                                                    <p className="font-bold text-foreground">
                                                         #{order.id}
                                                     </p>
                                                 </div>
@@ -273,8 +282,7 @@ function OrdersHistory() {
                                                         duration-300
                                                         ${
                                                             shippingStatusStyles[
-                                                                order
-                                                                    .shipping_status
+                                                                order.shipping_status
                                                             ] ??
                                                             "text-muted bg-muted/10 border-border"
                                                         }
@@ -310,10 +318,11 @@ function OrdersHistory() {
                                         </div>
 
                                         {/* Order Total */}
-                                        <p className="font-bold">
-                                        {Number(
+                                        <p className="font-bold text-foreground">
+                                            {Number(
                                                 order.total_amount
-                                            ).toFixed(2)} DH
+                                            ).toFixed(2)}{" "}
+                                            DH
                                         </p>
                                     </div>
 
@@ -350,7 +359,7 @@ function OrdersHistory() {
                                                         overflow-hidden
                                                         p-3
                                                         gap-3
-                                                        bg-chip
+                                                        bg-surface
                                                         border
                                                         border-border-soft
                                                         hover:border-border
@@ -366,7 +375,7 @@ function OrdersHistory() {
                                                             shrink-0
                                                             rounded-lg
                                                             overflow-hidden
-                                                            bg-chip
+                                                            bg-surface-dark
                                                         "
                                                     >
                                                         {image ? (
@@ -403,7 +412,7 @@ function OrdersHistory() {
 
                                                     {/* Product Information */}
                                                     <div className="flex flex-col min-w-0">
-                                                        <h3 className="text-sm font-bold truncate">
+                                                        <h3 className="text-sm font-bold truncate text-foreground">
                                                             {
                                                                 item.product_name
                                                             }
@@ -415,7 +424,7 @@ function OrdersHistory() {
                                                                     SKU:
                                                                 </p>
 
-                                                                <p className="text-xs font-semibold">
+                                                                <p className="text-xs font-semibold text-foreground">
                                                                     {
                                                                         variant.sku
                                                                     }
@@ -444,7 +453,7 @@ function OrdersHistory() {
                                                                             items-center
                                                                         "
                                                                     >
-                                                                        <p className="font-bold">
+                                                                        <p className="font-bold text-foreground">
                                                                             {
                                                                                 key
                                                                             }
@@ -488,20 +497,24 @@ function OrdersHistory() {
                                                     <div className="ml-auto shrink-0 flex flex-col items-end gap-0.5">
                                                         {hasDiscount && (
                                                             <p className="text-xs text-muted line-through">
-                                                                
                                                                 {(
                                                                     originalItemPrice *
                                                                     item.quantity
-                                                                ).toFixed(2)} DH
+                                                                ).toFixed(
+                                                                    2
+                                                                )}{" "}
+                                                                DH
                                                             </p>
                                                         )}
 
-                                                        <p className="text-base font-bold text-emerald">
-                                                            
+                                                        <p className="text-base font-bold text-success">
                                                             {(
                                                                 paidItemPrice *
                                                                 item.quantity
-                                                            ).toFixed(2)} DH
+                                                            ).toFixed(
+                                                                2
+                                                            )}{" "}
+                                                            DH
                                                         </p>
                                                     </div>
                                                 </div>

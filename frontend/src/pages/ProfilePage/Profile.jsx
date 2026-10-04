@@ -16,7 +16,8 @@ import ProfilePictureModal from "../../modals/ProfilePictureModal";
 import { queryClient } from "../../lib/queryClient";
 
 function Profile() {
-    const BASE_URL = import.meta.env.VITE_BASE_URL;
+    const BASE_URL =
+        import.meta.env.VITE_BASE_URL || "http://localhost:8000";
 
     const token = localStorage.getItem("access_token");
 
@@ -35,12 +36,10 @@ function Profile() {
     /* ---------------- AUTH CHECK ---------------- */
 
     useEffect(() => {
-        const token = localStorage.getItem("access_token");
-
         if (!token) {
             navigate("/login");
         }
-    }, [navigate]);
+    }, [token, navigate]);
 
     /* ---------------- GET CURRENT USER ---------------- */
 
@@ -51,7 +50,7 @@ function Profile() {
     } = useQuery({
         queryKey: ["user"],
         queryFn: getCurrentUser,
-        enabled: !!localStorage.getItem("access_token"),
+        enabled: !!token,
     });
 
     useEffect(() => {
@@ -161,7 +160,7 @@ function Profile() {
 
     if (isLoading) {
         return (
-            <main className="min-h-screen flex items-center justify-center">
+            <main className="min-h-screen flex items-center justify-center bg-background">
                 <p className="text-base text-muted">
                     Loading...
                 </p>
@@ -172,7 +171,7 @@ function Profile() {
     /* ---------------- UI ---------------- */
 
     return (
-        <main className="relative min-h-screen">
+        <main className="relative min-h-screen bg-background">
 
             {/* NAVBAR */}
 
@@ -181,36 +180,37 @@ function Profile() {
             </header>
 
             {/* BACKGROUND */}
-<div
-    className="
-        fixed
-        inset-0
-        z-0
-        w-screen
-        h-screen
-        pointer-events-none
-        overflow-hidden
-    "
-    aria-hidden="true"
->
-    <div className="relative w-full h-full">
-        <CursorGrid
-            cellSize={70}
-            color="#567C8D"
-            radius={140}
-            falloff="smooth"
-            holdTime={400}
-            fadeDuration={800}
-            lineWidth={1.2}
-            maxOpacity={1}
-            fillOpacity={0}
-            gridOpacity={0}
-            cellRadius={0}
-            clickPulse
-            pulseSpeed={600}
-        />
-    </div>
-</div>
+
+            <div
+                className="
+                    fixed
+                    inset-0
+                    z-0
+                    w-screen
+                    h-screen
+                    pointer-events-none
+                    overflow-hidden
+                "
+                aria-hidden="true"
+            >
+                <div className="relative w-full h-full">
+                    <CursorGrid
+                        cellSize={70}
+                        color="#6FA7A3"
+                        radius={140}
+                        falloff="smooth"
+                        holdTime={400}
+                        fadeDuration={800}
+                        lineWidth={1.2}
+                        maxOpacity={1}
+                        fillOpacity={0}
+                        gridOpacity={0}
+                        cellRadius={0}
+                        clickPulse
+                        pulseSpeed={600}
+                    />
+                </div>
+            </div>
 
             {/* MAIN CONTENT */}
 
@@ -255,14 +255,22 @@ function Profile() {
 
                     <div className="mt-6 flex gap-5">
 
-                        <div className="h-25 w-25 rounded-full overflow-hidden border border-border-soft">
-
+                        <div
+                            className="
+                                h-25
+                                w-25
+                                rounded-full
+                                overflow-hidden
+                                border
+                                border-border-soft
+                                bg-surface-dark
+                            "
+                        >
                             <img
                                 src={currentUser?.profile_pic_path}
                                 alt="Profile"
                                 className="h-full w-full object-cover"
                             />
-
                         </div>
 
                         <div className="flex flex-col justify-around">
@@ -283,12 +291,12 @@ function Profile() {
                                     className="
                                         flex
                                         items-center
-                                        bg-primary
+                                        bg-accent
                                         px-4
                                         py-2
                                         rounded-xl
                                         gap-2
-                                        hover:bg-primary-hover
+                                        hover:bg-accent-hover
                                         duration-300
                                         ease-in-out
                                         cursor-pointer
@@ -329,7 +337,7 @@ function Profile() {
                                         gap-2
                                         border
                                         border-border-soft
-                                        hover:bg-chip
+                                        hover:bg-surface-hover
                                         duration-300
                                         ease-in-out
                                         cursor-pointer
@@ -372,8 +380,17 @@ function Profile() {
                                 Username
                             </label>
 
-                            <div className="relative bg-chip rounded-xl px-4 py-3">
-
+                            <div
+                                className="
+                                    relative
+                                    bg-surface
+                                    rounded-xl
+                                    px-4
+                                    py-3
+                                    border
+                                    border-border-soft
+                                "
+                            >
                                 <input
                                     id="username"
                                     type="text"
@@ -389,6 +406,7 @@ function Profile() {
                                         pr-8
                                         text-lg
                                         font-medium
+                                        text-foreground
                                         bg-transparent
                                         outline-none
                                     "
@@ -409,6 +427,7 @@ function Profile() {
                                             w-5
                                             h-5
                                             text-muted
+                                            hover:text-accent
                                             cursor-pointer
                                         "
                                     />
@@ -433,8 +452,17 @@ function Profile() {
                                 Full Name
                             </label>
 
-                            <div className="relative bg-chip rounded-xl px-4 py-3">
-
+                            <div
+                                className="
+                                    relative
+                                    bg-surface
+                                    rounded-xl
+                                    px-4
+                                    py-3
+                                    border
+                                    border-border-soft
+                                "
+                            >
                                 <input
                                     id="fullName"
                                     type="text"
@@ -450,6 +478,7 @@ function Profile() {
                                         pr-8
                                         text-lg
                                         font-medium
+                                        text-foreground
                                         bg-transparent
                                         outline-none
                                     "
@@ -470,6 +499,7 @@ function Profile() {
                                             w-5
                                             h-5
                                             text-muted
+                                            hover:text-accent
                                             cursor-pointer
                                         "
                                     />
@@ -494,8 +524,17 @@ function Profile() {
                                 Email
                             </label>
 
-                            <div className="relative bg-chip rounded-xl px-4 py-3">
-
+                            <div
+                                className="
+                                    relative
+                                    bg-surface
+                                    rounded-xl
+                                    px-4
+                                    py-3
+                                    border
+                                    border-border-soft
+                                "
+                            >
                                 <input
                                     id="email"
                                     type="text"
@@ -511,6 +550,7 @@ function Profile() {
                                         pr-8
                                         text-lg
                                         font-medium
+                                        text-foreground
                                         bg-transparent
                                         outline-none
                                     "
@@ -531,6 +571,7 @@ function Profile() {
                                             w-5
                                             h-5
                                             text-muted
+                                            hover:text-accent
                                             cursor-pointer
                                         "
                                     />
@@ -555,8 +596,17 @@ function Profile() {
                                 Phone
                             </label>
 
-                            <div className="relative bg-chip rounded-xl px-4 py-3">
-
+                            <div
+                                className="
+                                    relative
+                                    bg-surface
+                                    rounded-xl
+                                    px-4
+                                    py-3
+                                    border
+                                    border-border-soft
+                                "
+                            >
                                 <input
                                     id="phone"
                                     type="text"
@@ -572,6 +622,7 @@ function Profile() {
                                         pr-8
                                         text-lg
                                         font-medium
+                                        text-foreground
                                         bg-transparent
                                         outline-none
                                     "
@@ -592,6 +643,7 @@ function Profile() {
                                             w-5
                                             h-5
                                             text-muted
+                                            hover:text-accent
                                             cursor-pointer
                                         "
                                     />
@@ -616,8 +668,17 @@ function Profile() {
                                 Main Address
                             </label>
 
-                            <div className="relative bg-chip rounded-xl px-4 py-3">
-
+                            <div
+                                className="
+                                    relative
+                                    bg-surface
+                                    rounded-xl
+                                    px-4
+                                    py-3
+                                    border
+                                    border-border-soft
+                                "
+                            >
                                 <input
                                     id="address"
                                     type="text"
@@ -633,6 +694,7 @@ function Profile() {
                                         pr-8
                                         text-lg
                                         font-medium
+                                        text-foreground
                                         bg-transparent
                                         outline-none
                                     "
@@ -653,6 +715,7 @@ function Profile() {
                                             w-5
                                             h-5
                                             text-muted
+                                            hover:text-accent
                                             cursor-pointer
                                         "
                                     />
@@ -703,7 +766,8 @@ function Profile() {
                                     text-muted
                                     border
                                     border-border-soft
-                                    hover:bg-chip
+                                    hover:bg-surface-hover
+                                    hover:text-foreground
                                     duration-300
                                     ease-in-out
                                     cursor-pointer
@@ -724,8 +788,8 @@ function Profile() {
                                     px-8
                                     py-2
                                     rounded-xl
-                                    bg-primary
-                                    hover:bg-primary-hover
+                                    bg-accent
+                                    hover:bg-accent-hover
                                     duration-300
                                     ease-in-out
                                     cursor-pointer

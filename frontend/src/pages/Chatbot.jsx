@@ -470,9 +470,9 @@ function Chatbot() {
                     glowColor="#0F8B8D20"
                 />
 
-                <div className="absolute -left-40 top-24 h-80 w-80 rounded-full bg-cobalt/8 blur-3xl" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-violet/8 blur-3xl" />
-                <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-teal/6 blur-3xl" />
+                <div className="absolute -left-40 top-24 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-secondary/10 blur-3xl" />
+                <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
             </div>
 
             <div
@@ -531,15 +531,15 @@ function Hero({
                 {/* AI identity */}
                 <div className="bs-rise relative">
                     <div
-                        className="absolute -inset-3 rounded-2xl bg-violet/15 blur-xl"
+                        className="absolute -inset-3 rounded-2xl bg-secondary/15 blur-xl"
                         aria-hidden="true"
                     />
 
                     <div className="relative flex items-center gap-3">
                         <div className="relative">
-                            <div className="absolute -inset-1 rounded-xl bg-violet/20 blur-md" />
+                            <div className="absolute -inset-1 rounded-xl bg-secondary/20 blur-md" />
 
-                            <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary via-secondary to-violet text-inverse shadow-violet">
+                            <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary via-secondary to-accent text-inverse shadow-product">
                                 <Sparkles size={19} />
                             </div>
                         </div>
@@ -549,7 +549,7 @@ function Hero({
                                 ByteStore
                             </span>
 
-                            <span className="rounded-md border border-border-violet bg-violet-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-violet">
+                            <span className="rounded-md border border-secondary/40 bg-secondary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-secondary">
                                 AI
                             </span>
                         </div>
@@ -566,7 +566,7 @@ function Hero({
                         Find the right tech.
                         <br />
 
-                        <span className="bg-gradient-to-r from-primary via-secondary to-violet bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                             Without the guesswork.
                         </span>
                     </h1>
@@ -650,21 +650,21 @@ function SuggestionCard({
 }) {
     const styles = {
         cobalt: {
-            icon: "bg-cobalt-soft text-cobalt group-hover:bg-cobalt group-hover:text-inverse",
-            border: "hover:border-border-cobalt",
-            glow: "bg-cobalt/8",
+            icon: "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-inverse",
+            border: "hover:border-primary/50",
+            glow: "bg-primary/10",
         },
 
         teal: {
-            icon: "bg-teal-soft text-teal group-hover:bg-teal group-hover:text-inverse",
-            border: "hover:border-border-teal",
-            glow: "bg-teal/8",
+            icon: "bg-accent/10 text-accent group-hover:bg-accent group-hover:text-inverse",
+            border: "hover:border-accent/50",
+            glow: "bg-accent/10",
         },
 
         violet: {
-            icon: "bg-violet-soft text-violet group-hover:bg-violet group-hover:text-inverse",
-            border: "hover:border-border-violet",
-            glow: "bg-violet/8",
+            icon: "bg-secondary/10 text-secondary group-hover:bg-secondary group-hover:text-inverse",
+            border: "hover:border-secondary/50",
+            glow: "bg-secondary/10",
         },
     };
 
@@ -675,7 +675,7 @@ function SuggestionCard({
             type="button"
             onClick={onClick}
             disabled={disabled}
-            className={`group relative min-w-0 overflow-hidden rounded-2xl border border-border bg-card/90 p-4 text-left shadow-card backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:shadow-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 ${style.border}`}
+            className={`group relative min-w-0 overflow-hidden rounded-2xl border border-border bg-card/90 p-4 text-left shadow-product backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:shadow-product focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 ${style.border}`}
         >
             <span
                 className={`pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl transition duration-300 group-hover:scale-125 ${style.glow}`}
@@ -743,7 +743,7 @@ function Conversation({
                     {/* Conversation toolbar */}
                     <div className="mb-7 flex items-center justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-2">
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-soft text-violet">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
                                 <Sparkles size={14} />
                             </div>
 
@@ -761,7 +761,7 @@ function Conversation({
                             type="button"
                             onClick={onReset}
                             disabled={isPending}
-                            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-muted shadow-card transition hover:border-border-cobalt hover:bg-cobalt-soft hover:text-cobalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-muted shadow-product transition hover:border-primary hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <Plus size={13} />
                             <span className="hidden sm:inline">
@@ -816,7 +816,7 @@ function Conversation({
                     type="button"
                     onClick={onScrollLatest}
                     aria-label="Scroll to latest message"
-                    className="absolute bottom-36 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground shadow-product backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-border-cobalt hover:text-cobalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:bottom-40"
+                    className="absolute bottom-36 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground shadow-product backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:bottom-40"
                 >
                     <ArrowDown size={14} />
                     Latest
@@ -914,7 +914,7 @@ function ChatInput({
                 aria-hidden="true"
             />
 
-            <div className="relative flex items-end gap-2 rounded-2xl border border-border bg-card/95 p-2 shadow-product backdrop-blur-xl transition duration-300 hover:border-border-dark focus-within:border-border-violet focus-within:ring-4 focus-within:ring-violet/8 sm:gap-3 sm:p-2.5 sm:pl-5">
+<div className="relative flex items-end gap-2 rounded-2xl border border-border bg-card/95 p-2 shadow-product backdrop-blur-xl transition duration-300 hover:border-border focus-within:border-secondary/60 focus-within:ring-4 focus-within:ring-secondary/20 sm:gap-3 sm:p-2.5 sm:pl-5">
 
                 <textarea
                     ref={textareaRef}
@@ -942,7 +942,7 @@ function ChatInput({
                     type="submit"
                     disabled={!canSend}
                     aria-label="Send message"
-                    className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary via-secondary to-violet text-inverse shadow-cobalt transition duration-200 hover:-translate-y-0.5 hover:shadow-violet focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0 disabled:hover:shadow-cobalt"
+                    className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary via-secondary to-accent text-inverse shadow-product transition duration-200 hover:-translate-y-0.5 hover:shadow-product focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0 disabled:hover:shadow-product"
                 >
                     <span
                         className="absolute inset-0 bg-white/10 opacity-0 transition-opacity duration-200 hover:opacity-100"
@@ -1037,7 +1037,7 @@ function Message({
                             ByteStore AI
                         </span>
 
-                        <span className="h-1 w-1 rounded-full bg-violet" />
+                        <span className="h-1 w-1 rounded-full bg-secondary" />
 
                         <span className="text-[10px] text-muted">
                             Recommendation
@@ -1052,7 +1052,7 @@ function Message({
                         <button
                             type="button"
                             onClick={onRetry}
-                            className="mt-3 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-semibold text-foreground transition hover:border-border-cobalt hover:bg-cobalt-soft hover:text-cobalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            className="mt-3 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-semibold text-foreground transition hover:border-primary hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         >
                             Try again
                         </button>
@@ -1108,7 +1108,7 @@ function ThinkingState() {
                         {[0, 1, 2].map((i) => (
                             <span
                                 key={i}
-                                className="bs-dot h-1.5 w-1.5 rounded-full bg-violet"
+                                className="bs-dot h-1.5 w-1.5 rounded-full bg-secondary"
                                 style={{
                                     animationDelay: `${i * 160}ms`,
                                 }}
@@ -1140,10 +1140,10 @@ function ThinkingState() {
 function SkeletonCard({ className = "" }) {
     return (
         <div
-            className={`min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-card ${className}`}
+            className={`min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-product ${className}`}
             aria-hidden="true"
         >
-            <div className="bs-shimmer aspect-[4/3] bg-gradient-to-br from-surface-cobalt via-card-soft to-surface-purple" />
+            <div className="bs-shimmer aspect-[4/3] bg-gradient-to-br from-primary/10 via-card to-secondary/10" />
 
             <div className="space-y-3 p-4">
                 <div className="bs-shimmer h-3 w-1/3 rounded bg-chip" />
@@ -1228,7 +1228,7 @@ function ProductCard({ product, index }) {
 
     return (
         <article
-            className="bs-rise group flex min-w-0 max-w-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-border-cobalt hover:shadow-product"
+            className="bs-rise group flex min-w-0 max-w-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-product transition duration-300 hover:-translate-y-0.5 hover:border-primary hover:shadow-product"
             style={{
                 animationDelay: `${index * 70}ms`,
             }}
@@ -1239,7 +1239,7 @@ function ProductCard({ product, index }) {
 
                 {/* Subtle media accent */}
                 <div
-                    className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cobalt/10 blur-2xl transition duration-500 group-hover:scale-125"
+                    className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-primary/10 blur-2xl transition duration-500 group-hover:scale-125"
                     aria-hidden="true"
                 />
 
@@ -1263,7 +1263,7 @@ function ProductCard({ product, index }) {
 
                 {/* Discount */}
                 {hasDiscount && (
-                    <span className="absolute left-3 top-3 z-20 rounded-lg border border-border-coral bg-coral-soft px-2.5 py-1 text-[11px] font-bold text-coral shadow-card">
+                    <span className="absolute left-3 top-3 z-20 rounded-lg border border-danger/50 bg-danger/10 px-2.5 py-1 text-[11px] font-bold text-danger shadow-product">
                         -{discount}%
                     </span>
                 )}
@@ -1325,10 +1325,10 @@ function ProductCard({ product, index }) {
 
 
                     {hasRating && (
-                        <div className="flex shrink-0 items-center gap-1 rounded-md bg-gold-soft px-2 py-1 text-[11px]">
+                        <div className="flex shrink-0 items-center gap-1 rounded-md bg-highlight/10 px-2 py-1 text-[11px]">
                             <Star
                                 size={12}
-                                className="fill-current text-gold"
+                                className="fill-current text-highlight"
                             />
 
                             <span className="font-bold text-foreground">
@@ -1354,7 +1354,7 @@ function ProductCard({ product, index }) {
                             `/products/${product.id}`
                         )
                     }
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-chip px-4 py-2.5 text-sm font-semibold text-foreground transition duration-200 hover:bg-primary hover:text-inverse hover:shadow-cobalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary group-hover:bg-primary group-hover:text-inverse"
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition duration-200 hover:bg-primary hover:text-inverse hover:shadow-product focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary group-hover:bg-primary group-hover:text-inverse"
                 >
                     View product
                     <ChevronDown

@@ -7,9 +7,15 @@ import DepthCarousel from "./animation/DepthCarousel";
 const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:8000";
 
 async function fetchProducts() {
-  const response = await fetch(`${BASE_URL}/products`);
-  if (!response.ok) throw new Error("Failed to retrieve products");
-  return response.json();
+    const response = await fetch(`${BASE_URL}/products`);
+
+    if (!response.ok) {
+        throw new Error("Failed to retrieve products");
+    }
+
+    const data = await response.json();
+
+    return data.items;
 }
 
 // Best sellers = highest rating, then most reviews as tiebreaker
@@ -95,7 +101,7 @@ function BestSellers() {
               <div className="h-12 w-72 animate-pulse rounded bg-foreground/10" />
               <div className="h-4 w-96 max-w-full animate-pulse rounded bg-foreground/10" />
             </div>
-            <div className="h-10 w-36 animate-pulse rounded-xl bg-[#17242B]/10" />
+            <div className="h-10 w-36 animate-pulse rounded-xl bg-background-darker/20" />
           </div>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div className="flex justify-center">
@@ -113,7 +119,7 @@ function BestSellers() {
   if (isError) {
     return (
       <StateWrapper>
-        <div className="rounded-3xl border border-foreground/10 bg-surface-blue px-8 py-16">
+        <div className="rounded-3xl border border-border-soft bg-card px-8 py-16">
           <p className="text-sm font-medium text-muted">Failed to load best sellers.</p>
           <button
             type="button"
@@ -151,7 +157,7 @@ function BestSellers() {
       {/* Background glows */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-1/2 h-[750px] w-[750px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-secondary/[0.045] blur-3xl" />
-        <div className="absolute -right-40 top-20 h-[400px] w-[400px] rounded-full bg-surface-warm/20 blur-3xl" />
+        <div className="absolute -right-40 top-20 h-[400px] w-[400px] rounded-full bg-highlight/20 blur-3xl" />
         <div className="absolute -left-40 bottom-0 h-[350px] w-[350px] rounded-full bg-secondary/[0.025] blur-3xl" />
       </div>
 
@@ -230,7 +236,7 @@ function BestSellers() {
         <div className="mt-8 flex flex-col gap-6 border-t border-foreground/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
             <div className="flex items-center gap-2">
-              <Star size={15} fill="currentColor" className="text-yellow" />
+              <Star size={15} fill="currentColor" className="text-highlight" />
               <span className="text-xs font-medium text-muted">Highly rated</span>
             </div>
             <div className="flex items-center gap-2">

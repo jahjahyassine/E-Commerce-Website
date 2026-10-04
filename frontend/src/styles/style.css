@@ -3,22 +3,13 @@
 /*
 =========================================================
 BYTESTORE CUSTOMER THEME
-Bold / Mature / Premium Electronics
+Dark / Mature / Premium Electronics
 
-Neutral foundation:
-  Cool White / Soft Gray
-
-Primary:
-  Deep Navy / Navy
-
-Strong accents:
-  Cobalt / Teal / Violet
-  Gold / Amber
-  Coral / Orange
-  Emerald / Red
-
-The colors are intentionally saturated.
-Soft variants are only used for backgrounds and subtle UI.
+Palette:
+  Foundation: Deep Navy / Slate
+  Primary Accent: Muted Teal
+  Secondary Accent: Muted Violet
+  Highlight: Warm Champagne
 =========================================================
 */
 
@@ -30,208 +21,91 @@ Soft variants are only used for backgrounds and subtle UI.
 
     /* ---------- Main ---------- */
 
-    --color-background: #F3F4F8;
-    --color-background-dark: #233A66;
-    --color-background-black: #172554;
+    --color-background: #20253D;
+    --color-background-dark: #171B2D;
+    --color-background-darker: #0D1120;
 
-    --color-foreground: #172554;
-    --color-inverse: #FFFFFF;
+    --color-foreground: #F7F8FA;
+    --color-inverse: #0D1120;
+
 
     /* ---------- Primary ---------- */
 
-    --color-primary: #233A66;
-    --color-primary-hover: #172554;
+    --color-primary: #3B4263;
+    --color-primary-hover: #474F73;
+    --color-primary-light: #565F84;
 
-    --color-secondary: #3155D4;
-    --color-secondary-hover: #2747BD;
 
-    /* ---------- Main commercial accent ---------- */
+    /* ---------- Accent: Muted Teal ---------- */
 
-    --color-accent: #F05D6C;
-    --color-accent-hover: #D94A59;
-    --color-accent-soft: #FDE5E8;
-    --color-on-accent: #FFFFFF;
+    --color-accent: #6FA7A3;
+    --color-accent-hover: #5F918D;
+    --color-accent-soft: #DCEAE8;
 
-    /* ---------- Cobalt ---------- */
 
-    --color-cobalt: #3155D4;
-    --color-cobalt-hover: #2747BD;
-    --color-cobalt-soft: #E7EBFF;
+    /* ---------- Secondary: Muted Violet ---------- */
 
-    /* ---------- Teal / Technology ---------- */
+    --color-secondary: #8E7BB5;
+    --color-secondary-hover: #7B68A3;
+    --color-secondary-soft: #E7E1F0;
 
-    --color-teal: #0F8B8D;
-    --color-teal-hover: #0A7072;
-    --color-teal-soft: #DDF4F3;
 
-    /* ---------- Emerald / Positive ---------- */
+    /* ---------- Highlight: Warm Champagne ---------- */
 
-    --color-emerald: #16845B;
-    --color-emerald-hover: #116B49;
-    --color-emerald-soft: #DFF3EA;
+    --color-highlight: #C9B79C;
+    --color-highlight-soft: #E8DFD2;
 
-    /* ---------- Gold / Premium ---------- */
 
-    --color-gold: #D7A23A;
-    --color-gold-hover: #B98727;
-    --color-gold-soft: #F9ECCA;
+    /* ---------- Semantic ---------- */
 
-    /* ---------- Amber / Promotions ---------- */
+    --color-success: #5FAF91;
 
-    --color-amber: #E59A18;
-    --color-amber-hover: #C77F0C;
-    --color-amber-soft: #FFF0CE;
+    --color-danger: #D96B72;
+    --color-danger-solid: #C95760;
 
-    /* ---------- Coral / Commerce ---------- */
+    --color-warning: #D8905C;
 
-    --color-coral: #F05D6C;
-    --color-coral-hover: #D94A59;
-    --color-coral-soft: #FDE5E8;
-
-    /* ---------- Orange ---------- */
-
-    --color-orange: #E86F2D;
-    --color-orange-hover: #C9571D;
-    --color-orange-soft: #FCE8DB;
-
-    /* ---------- Violet / Premium + AI ---------- */
-
-    --color-violet: #7C3AED;
-    --color-violet-hover: #6829D0;
-    --color-violet-soft: #EEE7FF;
-
-    /* ---------- Indigo ---------- */
-
-    --color-indigo: #5146B8;
-    --color-indigo-hover: #42389D;
-    --color-indigo-soft: #EAE8FA;
-
-    /* ---------- Red / Danger ---------- */
-
-    --color-red: #C9364A;
-    --color-red-hover: #A92B3C;
-    --color-red-soft: #F9E0E4;
 
     /* ---------- Text ---------- */
+--color-muted: #B8BDCC;
+--color-subtle: #8E96AB;
 
-    --color-muted: #596A8D;
-    --color-subtle: #8290AA;
+--color-coral: #C9786E;
+--color-coral-hover: #B8665D;
+--color-coral-soft: #E8D2CE;
 
     /* ---------- Surfaces ---------- */
 
-    --color-card: #FFFFFF;
+    --color-surface: #303752;
+    --color-surface-hover: #39425F;
 
-    --color-card-soft: #F7F8FB;
+    --color-surface-dark: #252B43;
 
-    --color-card-dark: #233A66;
+    --color-card: #343B58;
+    --color-card-hover: #3D4665;
+    --color-card-dark: #292F48;
 
-    --color-surface-blue: #E8ECF8;
-    --color-surface-cobalt: #E7EBFF;
-    --color-surface-teal: #E4F3F3;
-    --color-surface-purple: #EEEAF8;
-    --color-surface-gold: #F8EDD5;
-    --color-surface-warm: #FFF0E5;
-    --color-surface-coral: #FDE8EA;
-    --color-surface-green: #E6F3ED;
-
-    /* ---------- Chips ---------- */
-
-    --color-chip: #E8EBF2;
-    --color-chip-dark: #596A8D;
-
-    --color-chip-accent: #F05D6C;
-    --color-chip-teal: #DDF4F3;
-    --color-chip-cobalt: #E7EBFF;
-    --color-chip-gold: #F9ECCA;
-    --color-chip-violet: #EEE7FF;
-    --color-chip-orange: #FCE8DB;
-    --color-chip-green: #DFF3EA;
-
-    /* ---------- Premium ---------- */
-
-    --color-premium: #D7A23A;
-    --color-premium-hover: #B98727;
 
     /* ---------- Borders ---------- */
 
-    --color-border: #D9DEE9;
-    --color-border-soft: #E8EBF1;
-    --color-border-dark: #68799B;
+    --color-border: #414966;
+    --color-border-soft: #39415C;
 
-    --color-border-cobalt: #B8C4F3;
-    --color-border-teal: #A9D9D8;
-    --color-border-gold: #E5C87F;
-    --color-border-violet: #C7B8EE;
-    --color-border-coral: #F2B5BD;
-    --color-border-orange: #EFC1A3;
-    --color-border-green: #A9D8C1;
-
-    /* ---------- Status ---------- */
-
-    --color-success: #16845B;
-    --color-success-soft: #DFF3EA;
-
-    --color-warning: #E59A18;
-    --color-warning-soft: #FFF0CE;
-
-    --color-danger: #C9364A;
-    --color-danger-soft: #F9E0E4;
-
-    /* ---------- Compact ---------- */
-
-    --color-minimal-red: #C9364A;
-    --color-minimal-green: #16845B;
-    --color-minimal-yellow: #D7A23A;
-    --color-minimal-blue: #3155D4;
-
-    /* ---------- Decorative ---------- */
-
-    --color-decoration: #3155D4;
-    --color-decoration-soft: #E7EBFF;
-
-    --color-decoration-accent: #F05D6C;
-    --color-decoration-teal: #0F8B8D;
-    --color-decoration-yellow: #D7A23A;
-    --color-decoration-violet: #7C3AED;
-    --color-decoration-orange: #E86F2D;
-
-    /* ---------- Animation ---------- */
-
-    --color-animation-overlay: #172554;
-    --color-animation-text: #FFFFFF;
-    --color-animation-accent: #4FB3BF;
 
     /* ---------- Shadows ---------- */
 
-    --shadow-card:
-        0 8px 25px rgba(23, 37, 84, 0.08);
-
     --shadow-product:
-        0 20px 50px rgba(23, 37, 84, 0.13);
-
-    --shadow-hover:
-        0 18px 45px rgba(23, 37, 84, 0.18);
+        0 4px 12px rgba(0, 0, 0, 0.25);
 
     --shadow-dark:
-        0 20px 50px rgba(15, 23, 42, 0.30);
+        0 20px 50px rgba(13, 17, 32, 0.40);
 
     --shadow-inner:
-        inset 0 1px 4px rgba(23, 37, 84, 0.08);
+        inset 0 1px 4px rgba(255, 255, 255, 0.04);
 
-    --shadow-cobalt:
-        0 10px 30px rgba(49, 85, 212, 0.20);
+    --shadow-elevated:
+        0 10px 30px rgba(0, 0, 0, 0.30);
 
-    --shadow-teal:
-        0 10px 30px rgba(15, 139, 141, 0.18);
-
-    --shadow-violet:
-        0 10px 30px rgba(124, 58, 237, 0.18);
-
-    --shadow-gold:
-        0 10px 30px rgba(215, 162, 58, 0.22);
-
-    --shadow-coral:
-        0 10px 30px rgba(240, 93, 108, 0.20);
 
     /* ---------- Typography ---------- */
 
@@ -244,18 +118,39 @@ Soft variants are only used for backgrounds and subtle UI.
         "Segoe UI",
         sans-serif;
 
-    /* Keep display typography available,
-       but don't force it globally. */
+    /*
+       Keep display typography available,
+       but don't force it globally.
+    */
 
     --font-display:
         "Barlow",
         var(--font-sans);
 
+
     /* ---------- Shape ---------- */
 
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
     --radius-xl: 1rem;
     --radius-2xl: 1.5rem;
     --radius-3xl: 2rem;
+
+
+    /* ---------- Spacing ---------- */
+
+    --space-xxs: 0.25rem;
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+    --space-4xl: 5rem;
+    --space-5xl: 6rem;
+    --space-6xl: 8rem;
 
 
     /* =====================================================
@@ -268,24 +163,33 @@ Soft variants are only used for backgrounds and subtle UI.
     --color-admin-surface-hover: #334155;
     --color-admin-border: #334155;
     --color-admin-border-hover: #475569;
+
     --color-admin-text: #F8FAFC;
     --color-admin-muted: #94A3B8;
+
     --color-admin-primary: #3B82F6;
     --color-admin-primary-border: #60A5FA;
     --color-admin-primary-hover: #2563EB;
+
     --color-admin-success: #22C55E;
     --color-admin-success-hover: #16A34A;
+
     --color-admin-warning: #F59E0B;
     --color-admin-warning-hover: #D97706;
+
     --color-admin-danger: #EF4444;
     --color-admin-danger-hover: #DC2626;
+
     --color-admin-input: #263449;
     --color-admin-input-hover: #2D3B50;
     --color-admin-input-border: #3B4A60;
+
     --color-admin-active: #4ADE80;
     --color-admin-active-hover: #22C55E;
+
     --color-admin-inactive: #F87171;
     --color-admin-inactive-hover: #EF4444;
+
     --color-admin-reviews: #FACC15;
     --color-admin-reviews-hover: #EAB308;
 
@@ -300,17 +204,22 @@ Soft variants are only used for backgrounds and subtle UI.
 @layer base {
 
     :root {
-        color-scheme: light;
+        color-scheme: dark;
     }
+
 
     html {
         scrollbar-width: thin;
-        scrollbar-color: var(--color-secondary) transparent;
+        scrollbar-color:
+            var(--color-primary)
+            transparent;
     }
+
 
     body {
         font-family: var(--font-sans);
         font-weight: 500;
+
         color: var(--color-foreground);
         background: var(--color-background);
 
@@ -318,10 +227,13 @@ Soft variants are only used for backgrounds and subtle UI.
         text-rendering: optimizeLegibility;
     }
 
+
     /*
-    Headings stay clean and modern.
-    Don't force a decorative display font across
-    every heading.
+    ---------------------------------------------------------
+    Headings
+    ---------------------------------------------------------
+    Clean and modern.
+    Don't force a decorative display font globally.
     */
 
     h1,
@@ -330,18 +242,34 @@ Soft variants are only used for backgrounds and subtle UI.
     h4 {
         font-family: var(--font-sans);
         font-weight: 700;
+
         letter-spacing: -0.025em;
         line-height: 1.05;
+
         text-wrap: balance;
     }
 
+
+    /*
+    ---------------------------------------------------------
+    Selection
+    ---------------------------------------------------------
+    */
+
     ::selection {
-        background: var(--color-cobalt);
-        color: #FFFFFF;
+        background: var(--color-accent);
+        color: var(--color-inverse);
     }
 
+
+    /*
+    ---------------------------------------------------------
+    Focus
+    ---------------------------------------------------------
+    */
+
     :focus-visible {
-        outline: 2px solid var(--color-cobalt);
+        outline: 2px solid var(--color-accent);
         outline-offset: 3px;
     }
 }

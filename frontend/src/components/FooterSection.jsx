@@ -39,6 +39,7 @@ function FooterSection() {
                     <p className="text-sm uppercase tracking-[0.35em] text-muted">
                         A Seamless Experience
                     </p>
+
                     <h2
                         id="experience-heading"
                         className="mt-3 text-4xl sm:text-5xl font-cormorant font-bold text-foreground"
@@ -56,7 +57,7 @@ function FooterSection() {
                                 overflow-hidden rounded-3xl
                                 border border-border-soft
                                 transition-all duration-500
-                                hover:-translate-y-1 hover:border-border
+                                hover:-translate-y-1 hover:border-accent/50
                             "
                         >
                             <img
@@ -70,16 +71,19 @@ function FooterSection() {
                                 "
                             />
 
-                            <div className="absolute inset-0 bg-gradient-to-t from-background-black/90 via-background-black/35 to-transparent" />
+                            {/* Dark scrim so the text stays readable over the photo */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-background-darker/90 via-background-darker/35 to-transparent" />
 
                             <div className="absolute bottom-0 left-0 p-5 sm:p-6 text-left">
-                                <p className="text-sm uppercase tracking-[0.3em] text-inverse/80">
+                                <p className="text-sm uppercase tracking-[0.3em] text-accent">
                                     {step.label}
                                 </p>
-                                <h3 className="text-3xl sm:text-4xl font-cormorant font-bold text-inverse tracking-wide">
+
+                                <h3 className="text-3xl sm:text-4xl font-cormorant font-bold text-foreground tracking-wide">
                                     {step.title}
                                 </h3>
-                                <p className="mt-2 text-inverse/75 text-sm sm:text-base">
+
+                                <p className="mt-2 text-foreground/80 text-sm sm:text-base">
                                     {step.description}
                                 </p>
                             </div>

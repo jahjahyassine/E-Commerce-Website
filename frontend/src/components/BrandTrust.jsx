@@ -70,7 +70,7 @@ function BrandTrust() {
                 transition-all duration-300
                 hover:-translate-y-0.5
                 hover:border-border
-                hover:bg-background-secondary
+                hover:bg-card-hover
                 group
             "
         >

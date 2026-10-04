@@ -176,6 +176,15 @@ class ProductVariantCreateRequest(BaseModel):
     supplier_id: int
 
 
+
+class ProductListResponse(BaseModel):
+    items: list[ProductResponse]
+    total: int
+    page: int
+    limit: int
+    total_pages: int
+
+
 class ProductVariantUpdate(BaseModel):
     sku: str | None = None
 

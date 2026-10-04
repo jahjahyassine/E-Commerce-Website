@@ -61,9 +61,45 @@ function ProfileSidebar({ user }) {
         queryClient.removeQueries({
             queryKey: ["user"],
         });
-        
+
         navigate("/login")
     }
+
+    // ==========================================
+    // Shared classes
+    // ==========================================
+
+    // Sidebar link: muted by default, teal tint when active
+    const itemClass = ({ isActive }) => `
+        flex
+        items-center
+        gap-3
+        rounded-xl
+        px-2.5
+        py-2
+        transition-all
+        duration-200
+        cursor-pointer
+        ${isActive
+            ? "bg-accent/10 text-accent"
+            : "text-muted hover:bg-card-hover hover:text-foreground"
+        }
+        ${toggle ? "justify-center" : ""}
+    `;
+
+    // Text next to an icon, collapses when the sidebar is closed
+    const labelClass = `
+        text-base
+        tracking-wide
+        overflow-hidden
+        whitespace-nowrap
+        transition-all
+        duration-300
+        ${toggle
+            ? "max-w-0 opacity-0"
+            : "max-w-[150px] opacity-100"
+        }
+    `;
 
     return (
         <main
@@ -76,7 +112,7 @@ function ProfileSidebar({ user }) {
                 flex
                 flex-col
                 justify-between
-                shadow-[4px_0_18px_rgba(47,65,86,0.08)]
+                shadow-product
                 transition-all
                 duration-300
                 ease-in-out
@@ -101,7 +137,9 @@ function ProfileSidebar({ user }) {
                             cursor-pointer
                             rounded-lg
                             p-1
-                            hover:bg-chip
+                            text-muted
+                            hover:bg-card-hover
+                            hover:text-foreground
                             transition-colors
                             duration-200
                         "
@@ -128,7 +166,7 @@ function ProfileSidebar({ user }) {
                         }
                     `}
                 >
-                    <div className="h-[46px] w-[46px] shrink-0 rounded-full overflow-hidden">
+                    <div className="h-[46px] w-[46px] shrink-0 rounded-full overflow-hidden bg-surface ring-2 ring-accent/30">
                         <img
                             src={user?.profile_pic_path}
                             alt="Profile"
@@ -140,6 +178,7 @@ function ProfileSidebar({ user }) {
                         className={`
                             text-lg
                             font-bold
+                            text-foreground
                             overflow-hidden
                             whitespace-nowrap
                             transition-all
@@ -158,7 +197,7 @@ function ProfileSidebar({ user }) {
                 <div className="mt-5 w-full">
                     <p
                         className={`
-                            text-muted
+                            text-subtle
                             font-semibold
                             text-xs
                             uppercase
@@ -183,40 +222,14 @@ function ProfileSidebar({ user }) {
                                 key={label}
                                 to={to}
                                 end={to === "/profile"}
-                                className={({ isActive }) => `
-                                    flex
-                                    items-center
-                                    gap-3
-                                    rounded-xl
-                                    px-2.5
-                                    py-2
-                                    hover:bg-chip
-                                    transition-all
-                                    duration-200
-                                    cursor-pointer
-                                    ${isActive ? "bg-chip" : ""}
-                                    ${toggle ? "justify-center" : ""}
-                                `}
+                                className={itemClass}
                             >
                                 <Icon
                                     className="w-7 h-7 shrink-0"
                                     strokeWidth={1.5}
                                 />
 
-                                <p
-                                    className={`
-                                        text-base
-                                        tracking-wide
-                                        overflow-hidden
-                                        whitespace-nowrap
-                                        transition-all
-                                        duration-300
-                                        ${toggle
-                                            ? "max-w-0 opacity-0"
-                                            : "max-w-[150px] opacity-100"
-                                        }
-                                    `}
-                                >
+                                <p className={labelClass}>
                                     {label}
                                 </p>
                             </NavLink>
@@ -225,6 +238,7 @@ function ProfileSidebar({ user }) {
                 </div>
             </div>
 
+            {/* BOTTOM */}
             <div
                 className={`
                     pb-2
@@ -234,51 +248,25 @@ function ProfileSidebar({ user }) {
                     ${toggle ? "flex flex-col items-center w-full" : ""}
                 `}
             >
-                {/* Shield */}
+                {/* Security */}
                 <NavLink
                     key="security"
                     to="/profile/security"
-                    className={({ isActive }) => `
-                                flex
-                                items-center
-                                gap-3
-                                rounded-xl
-                                px-2.5
-                                py-2
-                                hover:bg-chip
-                                transition-all
-                                duration-200
-                                cursor-pointer
-                                ${isActive ? "bg-chip" : ""}
-                                ${toggle ? "justify-center" : ""}
-                            `}
+                    className={itemClass}
                 >
                     <Shield
                         className="w-7 h-7 shrink-0"
                         strokeWidth={1.5}
                     />
 
-                    <p
-                        className={`
-                            text-base
-                            tracking-wide
-                            overflow-hidden
-                            whitespace-nowrap
-                            transition-all
-                            duration-300
-                            ${toggle
-                                ? "max-w-0 opacity-0"
-                                : "max-w-[150px] opacity-100"
-                            }
-                        `}
-                    >
+                    <p className={labelClass}>
                         Security
                     </p>
-            </NavLink>
+                </NavLink>
 
-            {/* Logout */}
-            <button
-                className={`
+                {/* Logout (turns red on hover) */}
+                <button
+                    className={`
                         flex
                         w-full
                         gap-3
@@ -286,41 +274,27 @@ function ProfileSidebar({ user }) {
                         px-2.5
                         py-2
                         rounded-xl
-                        hover:bg-chip
+                        text-muted
+                        hover:bg-danger/10
+                        hover:text-danger
                         transition-all
                         duration-200
                         cursor-pointer
                         ${toggle ? "justify-center" : ""}
                     `}
-                onClick={() => {
-                    localStorage.removeItem("access_token")
-                    navigate("/login")
-                }}
-            >
-                <LogOut
-                    className="w-7 h-7 shrink-0"
-                    strokeWidth={1.5}
-                />
-
-                <p
-                    className={`
-                            text-base
-                            tracking-wide
-                            overflow-hidden
-                            whitespace-nowrap
-                            transition-all
-                            duration-300
-                            ${toggle
-                            ? "max-w-0 opacity-0"
-                            : "max-w-[150px] opacity-100"
-                        }
-                        `}
+                    onClick={handleLogout}
                 >
-                    Logout
-                </p>
-            </button>
-        </div>
-        </main >
+                    <LogOut
+                        className="w-7 h-7 shrink-0"
+                        strokeWidth={1.5}
+                    />
+
+                    <p className={labelClass}>
+                        Logout
+                    </p>
+                </button>
+            </div>
+        </main>
     );
 }
 
